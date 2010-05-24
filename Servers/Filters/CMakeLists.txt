@@ -133,6 +133,7 @@ SET(Filters_SRCS
   vtkPVMergeTables.cxx
   vtkPVNullSource.cxx
   vtkPVRecoverGeometryWireframe.cxx
+  vtkPVRenderView.cxx
   vtkPVRenderViewProxy.cxx
   vtkPVScalarBarActor.cxx
   vtkPVSelectionSource.cxx
@@ -349,6 +350,8 @@ TARGET_LINK_LIBRARIES(vtkPVFilters
   vtkParallelCS
   vtkVolumeRenderingCS
   vtkWidgetsCS
+  vtkViews
+  vtkViewsCS
   KWCommon
   vtksys
   ${OPENGL_gl_LIBRARY}
