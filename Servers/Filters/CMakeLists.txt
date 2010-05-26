@@ -145,6 +145,7 @@ SET(Filters_SRCS
   vtkPVServerSelectTimeSet.cxx
   vtkPVServerTimeSteps.cxx
   vtkPVStringArrayHelper.cxx
+  vtkPVSynchronizedRenderer.cxx
   vtkPVSynchronizedRenderWindows.cxx
   vtkPVTextSource.cxx
   vtkPVTrackballMoveActor.cxx
