@@ -35,10 +35,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
+#include "pqFixStateFilenamesDialog.h"
 #include "pqServer.h"
 #include "pqServerResource.h"
 #include "pqServerResources.h"
 #include "vtkPVXMLParser.h"
+
+#include <QFileInfo>
 
 //-----------------------------------------------------------------------------
 pqLoadStateReaction::pqLoadStateReaction(QAction* parentObject)
@@ -74,6 +77,11 @@ void pqLoadStateReaction::loadState(const QString& filename)
   vtkPVXMLElement *root = xmlParser->GetRootElement();
   if (root)
     {
+    pqFixStateFilenamesDialog dialog(root, pqCoreUtilities::mainWidget());
+    dialog.setWindowTitle(
+      QString("Fix FileNames in %1").arg(QFileInfo(filename).fileName()));
+    dialog.exec();
+
     pqApplicationCore::instance()->loadState(root, server);
 
     // Add this to the list of recent server resources ...
