@@ -53,7 +53,11 @@ def Connect(ds_host=None, ds_port=11111, rs_host=None, rs_port=11111):
     > Connect("amber", 11111, "vis_cluster", 11111) # connect to data server, render server pair"""
     _disconnect()
     cid = servermanager.Connect(ds_host, ds_port, rs_host, rs_port)
-    servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", servermanager.misc.TimeKeeper())
+    tk =  servermanager.misc.TimeKeeper()
+    servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", tk)
+    scene = servermanager.animation.AnimationScene()
+    servermanager.ProxyManager().RegisterProxy("animation", "scene", scene)
+    scene.TimeKeeper = tk
     return cid
 
 def ReverseConnect(port=11111):
@@ -61,7 +65,11 @@ def ReverseConnect(port=11111):
     an incoming connection from the server."""
     _disconnect()
     cid = servermanager.ReverseConnect(port)
-    servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", servermanager.misc.TimeKeeper())
+    tk =  servermanager.misc.TimeKeeper()
+    servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", tk)
+    scene = servermanager.animation.AnimationScene()
+    servermanager.ProxyManager().RegisterProxy("animation", "scene", scene)
+    scene.TimeKeeper = tk
     return cid
 
 def _create_view(view_xml_name):
@@ -76,7 +84,12 @@ def _create_view(view_xml_name):
     views = tk.Views
     if not view in views:
         views.append(view)
-
+    try:
+        scene = GetAnimationScene()
+        if not view in scene.Views:
+            scene.Views.append(view)
+    except servermanager.MissingProxy:
+        pass
     return view
 
 def CreateRenderView():
@@ -597,7 +610,8 @@ def _func_name_valid(name):
     return valid
 
 def _add_functions(g):
-    for m in [servermanager.filters, servermanager.sources, servermanager.writers]:
+    for m in [servermanager.filters, servermanager.sources,
+              servermanager.writers, servermanager.animation]:
         dt = m.__dict__
         for key in dt.keys():
             cl = dt[key]
@@ -626,6 +640,21 @@ def GetActiveCamera():
     """Returns the active camera for the active view. The returned object
     is an instance of vtkCamera."""
     return GetActiveView().GetActiveCamera()
+
+def GetAnimationScene():
+    """Returns the application-wide animation scene. ParaView has only one
+    global animation scene. This method provides access to that. Users are
+    free to create additional animation scenes directly, but those scenes
+    won't be shown in the ParaView GUI."""
+    animation_proxies = servermanager.ProxyManager().GetProxiesInGroup("animation")
+    scene = None
+    for aProxy in animation_proxies.values():
+        if aProxy.GetXMLName() == "AnimationScene":
+            scene = aProxy
+            break
+    if not scene:
+        raise servermanager.MissingProxy, "Could not locate global AnimationScene."
+    return scene
 
 def LoadXML(xmlstring, ns=None):
     """Given a server manager XML as a string, parse and process it.

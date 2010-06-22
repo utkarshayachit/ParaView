@@ -2578,6 +2578,8 @@ def __determineGroup(proxy):
         return "implicit_functions"
     elif xmlgroup == "piecewise_functions":
         return "piecewise_functions"
+    elif xmlgroup == "animation" or xmlgroup == "animation_keyframes":
+        return "animation"
     return None
 
 __nameCounter = {}
@@ -2603,6 +2605,10 @@ def __getName(proxy, group):
 class MissingRegistrationInformation(Exception):
     """Exception for missing registration information. Raised when a name or group 
     is not specified or when a group cannot be deduced."""
+    pass
+
+class MissingProxy(Exception):
+    """Exception fired when the requested proxy is missing."""
     pass
     
 def Register(proxy, **extraArgs):
@@ -2919,8 +2925,8 @@ def _proxyDefinitionsUpdated(caller, event):
 # Setup observer to update the modules when new proxy definitions are added.
 # Unfortunately, we don't have a specific even when a definition is added. So
 # this callback will get called even when proxy is registered :(
-vtkSMObject.GetProxyManager().AddObserver("RegisterEvent",
-  _proxyDefinitionsUpdated)
+#vtkSMObject.GetProxyManager().AddObserver("RegisterEvent",
+#  _proxyDefinitionsUpdated)
 
 if hasattr(sys, "ps1"):
     # session is interactive.
