@@ -659,7 +659,17 @@ def GetAnimationTrack(propertyname_or_property, index=None, proxy=None):
     new one will be created.
     Typical usage:
         track = GetAnimationTrack("Center", 0, sphere) or
-        track = GetAnimationTrack(sphere.GetProperty("Radius"))
+        track = GetAnimationTrack(sphere.GetProperty("Radius")) or
+
+        # this returns the track to animate visibility of the active source in
+        # all views.
+        track = GetAnimationTrack("Visibility")
+
+     For animating properties on implicit planes etc., use the following
+     signatures:
+        track = GetAnimationTrack(slice.SliceType.GetProperty("Origin"), 0) or
+        track = GetAnimationTrack("Origin", 0, slice.SliceType)
+
     """
     if not proxy:
         proxy = GetActiveSource()
@@ -668,7 +678,7 @@ def GetAnimationTrack(propertyname_or_property, index=None, proxy=None):
     if isinstance(propertyname_or_property, str):
         propertyname = propertyname_or_property
         prop = proxy.GetProperty(propertyname)
-    elif isinstance(propertyname, servermanager.Property):
+    elif isinstance(propertyname_or_property, servermanager.Property):
         prop = propertyname_or_property
         propertyname = prop.Name
     else:
@@ -683,6 +693,11 @@ def GetAnimationTrack(propertyname_or_property, index=None, proxy=None):
                     return cue
         except AttributeError:
             pass
+
+    # TODO: To handle the case where the property is actually a "display" property, in
+    # which case we are actually animating the "RepresentationAnimationHelper"
+    # associated with the source.
+
     # matching animation track wasn't found, create a new one.
     cue = KeyFrameAnimationCue()
     cue.AnimatedProxy = prop.Proxy
