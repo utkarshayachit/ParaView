@@ -93,7 +93,8 @@ protected:
   vtkPolyDataMapper* LODMapper;
   vtkPVLODActor* Actor;
   vtkProperty* Property;
-  vtkUnstructuredDataDeliveryFilter* DeliverFilter;
+  vtkUnstructuredDataDeliveryFilter* DeliveryFilter;
+  vtkUnstructuredDataDeliveryFilter* LODDeliveryFilter;
 private:
   vtkGeometryRepresentation(const vtkGeometryRepresentation&); // Not implemented
   void operator=(const vtkGeometryRepresentation&); // Not implemented

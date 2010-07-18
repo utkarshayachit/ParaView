@@ -34,19 +34,22 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
 {
   this->GeometryFilter = vtkPVGeometryFilter::New();
   this->Decimator = vtkQuadricClustering::New();
+  this->Decimator->SetNumberOfDivisions(10, 10, 10);
   this->Mapper = vtkPolyDataMapper::New();
   this->LODMapper = vtkPolyDataMapper::New();
   this->Actor = vtkPVLODActor::New();
   this->Property = vtkProperty::New();
-  this->DeliverFilter = vtkUnstructuredDataDeliveryFilter::New();
+  this->DeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
+  this->LODDeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
 
   this->GeometryFilter->SetUseOutline(0);
 
-  this->DeliverFilter->SetOutputDataType(VTK_POLY_DATA);
+  this->DeliveryFilter->SetOutputDataType(VTK_POLY_DATA);
+  this->LODDeliveryFilter->SetOutputDataType(VTK_POLY_DATA);
 
   this->Decimator->SetInputConnection(this->GeometryFilter->GetOutputPort());
-  this->Mapper->SetInputConnection(this->DeliverFilter->GetOutputPort());
-  this->LODMapper->SetInputConnection(this->Decimator->GetOutputPort());
+  this->Mapper->SetInputConnection(this->DeliveryFilter->GetOutputPort());
+  this->LODMapper->SetInputConnection(this->LODDeliveryFilter->GetOutputPort());
   this->Actor->SetMapper(this->Mapper);
   this->Actor->SetLODMapper(this->LODMapper);
   this->Actor->SetProperty(this->Property);
@@ -61,7 +64,8 @@ vtkGeometryRepresentation::~vtkGeometryRepresentation()
   this->LODMapper->Delete();
   this->Actor->Delete();
   this->Property->Delete();
-  this->DeliverFilter->Delete();
+  this->DeliveryFilter->Delete();
+  this->LODDeliveryFilter->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -90,12 +94,15 @@ int vtkGeometryRepresentation::RequestData(vtkInformation*,
     this->GeometryFilter->SetInputConnection(
       this->GetInternalOutputPort());
     this->GeometryFilter->Update();
-    this->DeliverFilter->SetInputConnection(
+    this->DeliveryFilter->SetInputConnection(
       this->GeometryFilter->GetOutputPort());
+    this->LODDeliveryFilter->SetInputConnection(
+      this->Decimator->GetOutputPort());
     }
   else
     {
-    this->DeliverFilter->RemoveAllInputs();
+    this->DeliveryFilter->RemoveAllInputs();
+    this->LODDeliveryFilter->RemoveAllInputs();
     }
   return 1;
 }
@@ -140,8 +147,11 @@ bool vtkGeometryRepresentation::PrepareForRendering(
 {
   // this is where we will look to see on what nodes are we going to render and
   // render set that up.
-  this->DeliverFilter->ProcessViewRequest(inInfo);
-  this->DeliverFilter->Update();
+  this->DeliveryFilter->ProcessViewRequest(inInfo);
+  this->LODDeliveryFilter->ProcessViewRequest(inInfo);
+
+  this->Actor->SetEnableLOD(inInfo->Has(vtkPVRenderView::USE_LOD())? 1 : 0);
+  this->Actor->GetMapper()->Update();
   return true;
 }
 
@@ -149,7 +159,8 @@ bool vtkGeometryRepresentation::PrepareForRendering(
 void vtkGeometryRepresentation::MarkModified()
 {
   this->Modified();
-  this->DeliverFilter->Modified();
+  this->DeliveryFilter->Modified();
+  this->LODDeliveryFilter->Modified();
 }
 
 //----------------------------------------------------------------------------
