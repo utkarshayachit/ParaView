@@ -35,7 +35,7 @@
 #ifndef __vtkPVRenderView_h
 #define __vtkPVRenderView_h
 
-#include "vtkPVView.h"
+#include "vtkView.h"
 
 class vtkCamera;
 class vtkPVSynchronizedRenderer;
@@ -43,12 +43,14 @@ class vtkPVSynchronizedRenderWindows;
 class vtkRenderViewBase;
 class vtkRenderer;
 class vtkRenderWindow;
+class vtkInformationIntegerKey;
+class vtkInformationRequestKey;
 
-class VTK_EXPORT vtkPVRenderView : public vtkPVView
+class VTK_EXPORT vtkPVRenderView : public vtkView
 {
 public:
   static vtkPVRenderView* New();
-  vtkTypeMacro(vtkPVRenderView, vtkPVView);
+  vtkTypeMacro(vtkPVRenderView, vtkView);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -74,6 +76,7 @@ public:
   // labels, 2D annotations etc.
   // @CallOnAllProcessess
   vtkGetObjectMacro(NonCompositedRenderer, vtkRenderer);
+  vtkRenderer* GetRenderer();
 
   // Description:
   // Get the active camera.
@@ -124,6 +127,17 @@ public:
   vtkSetMacro(RemoteRenderingThreshold, unsigned long);
   vtkGetMacro(RemoteRenderingThreshold, unsigned long);
 
+  // Description:
+  // vtkDataRepresentation can use this key to publish meta-data about geometry
+  // size in the VIEW_REQUEST_METADATA pass. If this meta-data is available,
+  // then the view can make informed decisions about where to render/whether to
+  // use LOD etc.
+  static vtkInformationIntegerKey* GEOMETRY_SIZE();
+
+  static vtkInformationIntegerKey* DATA_DISTRIBUTION_MODE();
+  static vtkInformationRequestKey* USE_LOD();
+  static vtkInformationIntegerKey* LOD_RESOLUTION();
+
 //BTX
 protected:
   vtkPVRenderView();
@@ -137,6 +151,14 @@ protected:
   // Description:
   // Returns true if distributed rendering should be used.
   bool GetUseDistributedRendering();
+
+  // Description:
+  // Update the request to enable/disable distributed rendering.
+  void SetRequestDistributedRendering(bool);
+  
+  // Description:
+  // Update the request to enable/disable low-res rendering.
+  void SetRequestLODRendering(bool);
 
   vtkRenderViewBase* RenderView;
   vtkRenderer* NonCompositedRenderer;

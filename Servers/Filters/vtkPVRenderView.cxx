@@ -15,6 +15,11 @@
 #include "vtkPVRenderView.h"
 
 #include "vtkCommand.h"
+#include "vtkInformation.h"
+#include "vtkInformationIntegerKey.h"
+#include "vtkInformationRequestKey.h"
+#include "vtkInformationVector.h"
+#include "vtkMPIMoveData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkPVSynchronizedRenderWindows.h"
@@ -36,6 +41,7 @@
 #include "vtkSphereSource.h"
 #include "vtkScalarBarActor.h"
 #include "vtkLookupTable.h"
+#include "vtkGeometryRepresentation.h"
 
 #include "vtkProcessModule.h"
 #include "vtkRemoteConnection.h"
@@ -58,7 +64,8 @@ namespace
     repr->Delete();
     }
   //-----------------------------------------------------------------------------
-  void CreatePipeline(vtkMultiProcessController* controller, vtkRenderer* renderer)
+  void CreatePipeline(vtkMultiProcessController* controller,
+    vtkRenderer* renderer, vtkView* view)
     {
     int num_procs = controller->GetNumberOfProcesses();
     int my_id = controller->GetLocalProcessId();
@@ -80,25 +87,30 @@ namespace
     piecescalars->SetInputConnection(surface->GetOutputPort());
     piecescalars->SetScalarModeToCellData();
 
-    vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-    mapper->SetInputConnection(piecescalars->GetOutputPort());
-    mapper->SetScalarModeToUseCellFieldData();
-    mapper->SelectColorArray("Piece");
-    mapper->SetScalarRange(0, num_procs-1);
-    mapper->SetPiece(my_id);
-    mapper->SetNumberOfPieces(num_procs);
-    mapper->Update();
+    vtkGeometryRepresentation* repr = vtkGeometryRepresentation::New();
+    repr->SetInputConnection(piecescalars->GetOutputPort());
+    view->AddRepresentation(repr);
+    repr->Delete();
 
-    //this->KdTree = d3->GetKdtree();
+    //vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+    //mapper->SetInputConnection(piecescalars->GetOutputPort());
+    //mapper->SetScalarModeToUseCellFieldData();
+    //mapper->SelectColorArray("Piece");
+    //mapper->SetScalarRange(0, num_procs-1);
+    //mapper->SetPiece(my_id);
+    //mapper->SetNumberOfPieces(num_procs);
+    //mapper->Update();
 
-    vtkActor* actor = vtkActor::New();
-    actor->SetMapper(mapper);
-    //actor->GetProperty()->SetOpacity(this->UseOrderedCompositing? 0.5 : 1.0);
-    //actor->GetProperty()->SetOpacity(0.5);
-    renderer->AddActor(actor);
+    ////this->KdTree = d3->GetKdtree();
 
-    actor->Delete();
-    mapper->Delete();
+    //vtkActor* actor = vtkActor::New();
+    //actor->SetMapper(mapper);
+    ////actor->GetProperty()->SetOpacity(this->UseOrderedCompositing? 0.5 : 1.0);
+    ////actor->GetProperty()->SetOpacity(0.5);
+    //renderer->AddActor(actor);
+
+    //actor->Delete();
+    //mapper->Delete();
     piecescalars->Delete();
     surface->Delete();
     d3->Delete();
@@ -107,6 +119,10 @@ namespace
 };
 
 vtkStandardNewMacro(vtkPVRenderView);
+vtkInformationKeyMacro(vtkPVRenderView, GEOMETRY_SIZE, Integer);
+vtkInformationKeyMacro(vtkPVRenderView, DATA_DISTRIBUTION_MODE, Integer);
+vtkInformationKeyMacro(vtkPVRenderView, USE_LOD, Request);
+vtkInformationKeyMacro(vtkPVRenderView, LOD_RESOLUTION, Integer);
 //----------------------------------------------------------------------------
 vtkPVRenderView::vtkPVRenderView()
 {
@@ -148,7 +164,7 @@ vtkPVRenderView::vtkPVRenderView()
 
   // DUMMY SPHERE FOR TESTING
   ::CreatePipeline(vtkMultiProcessController::GetGlobalController(),
-    this->RenderView->GetRenderer());
+    this->RenderView->GetRenderer(), this);
 
   ::Create2DPipeline(this->NonCompositedRenderer);
 }
@@ -191,6 +207,12 @@ void vtkPVRenderView::SetSize(int x, int y)
 }
 
 //----------------------------------------------------------------------------
+vtkRenderer* vtkPVRenderView::GetRenderer()
+{
+  return this->RenderView->GetRenderer();
+}
+
+//----------------------------------------------------------------------------
 vtkCamera* vtkPVRenderView::GetActiveCamera()
 {
   return this->RenderView->GetRenderer()->GetActiveCamera();
@@ -206,6 +228,8 @@ vtkRenderWindow* vtkPVRenderView::GetRenderWindow()
 // Note this is called on all processes.
 void vtkPVRenderView::ResetCamera()
 {
+  this->Update();
+
   double bounds[6];
   this->SynchronizedRenderers->ComputeVisiblePropBounds(bounds);
   // Remember, vtkRenderer::ResetCamera() call
@@ -229,9 +253,16 @@ void vtkPVRenderView::StillRender()
   // Decide if we are doing remote rendering or local rendering.
   bool use_distributed_rendering = this->GetUseDistributedRendering();
   this->SynchronizedWindows->SetEnabled(use_distributed_rendering);
+  this->SynchronizedRenderers->SetEnabled(use_distributed_rendering);
 
-  // Now we need a mechanism to pass this information about whether we are using
-  // remote-rendering or not to the representation.
+  // Build the request for REQUEST_PREPARE_FOR_RENDER().
+  this->SetRequestDistributedRendering(use_distributed_rendering);
+  this->SetRequestLODRendering(false);
+  
+  // TODO: Add more info about ordered compositing/tile-display etc.
+  this->CallProcessViewRequest(
+    vtkView::REQUEST_PREPARE_FOR_RENDER(),
+    this->RequestInformation, this->ReplyInformationVector);
 
   // set the image reduction factor. 
   this->SynchronizedRenderers->SetImageReductionFactor(
@@ -272,26 +303,51 @@ void vtkPVRenderView::InteractiveRender()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::SetRequestDistributedRendering(bool enable)
+{
+  if (enable)
+    {
+    this->RequestInformation->Set(DATA_DISTRIBUTION_MODE(),
+      vtkMPIMoveData::PASS_THROUGH);
+    }
+  else
+    {
+    this->RequestInformation->Set(DATA_DISTRIBUTION_MODE(),
+      vtkMPIMoveData::COLLECT);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetRequestLODRendering(bool enable)
+{
+  if (enable)
+    {
+    this->RequestInformation->Set(USE_LOD());
+    }
+  else
+    {
+    this->RequestInformation->Remove(USE_LOD());
+    }
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::GatherGeometrySizeInformation()
 {
   this->GeometrySize = 0;
+
+  this->CallProcessViewRequest(vtkView::REQUEST_INFORMATION(),
+    this->RequestInformation, this->ReplyInformationVector);
+
   unsigned long geometry_size = 0;
-  int num_reprs = this->GetNumberOfRepresentations();
+  int num_reprs = this->ReplyInformationVector->GetNumberOfInformationObjects();
   for (int cc=0; cc < num_reprs; cc++)
     {
-    vtkDataRepresentation *drepr = this->GetRepresentation(cc);
-    //vtkPVDataRepresentation *pvrepr =
-    //  vtkPVDataRepresentation::SafeDownCast(drepr);
-    //if (pvrepr)
-    //  {
-    //  geometry_size += pvrepr->GetLocalGeometrySize();
-    //  }
-    //else
-    //  {
-    //  // We can look at the input dataobject for the vtkDataRepresentation and
-    //  // then get size information from it. We'll do that in future. For now,
-    //  // let's assume that we don't care about such geometry size.
-    //  }
+    vtkInformation* info =
+      this->ReplyInformationVector->GetInformationObject(cc);
+    if (info->Has(GEOMETRY_SIZE()))
+      {
+      geometry_size += info->Get(GEOMETRY_SIZE());
+      }
     }
 
   // Now synchronize the geometry size.
@@ -344,6 +400,7 @@ void vtkPVRenderView::GatherGeometrySizeInformation()
 //----------------------------------------------------------------------------
 bool vtkPVRenderView::GetUseDistributedRendering()
 {
+  return false;
   return this->RemoteRenderingThreshold <= this->GeometrySize;  
 }
 

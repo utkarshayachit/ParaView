@@ -63,6 +63,7 @@ SET(Filters_SRCS
   vtkFlashContour.cxx
   vtkFlashReader.cxx
   vtkHierarchicalFractal.cxx
+  vtkGeometryRepresentation.cxx
   vtkGenericEnSightReader2.cxx
   vtkGridConnectivity.cxx
   vtkImageCompressor.cxx
@@ -194,6 +195,7 @@ SET(Filters_SRCS
   vtkTransferFunctionEditorWidgetShapes2D.cxx
   vtkTransferFunctionEditorWidgetSimple1D.cxx
   vtkTransferFunctionViewer.cxx
+  vtkUnstructuredDataDeliveryFilter.cxx
   vtkUpdateSuppressorPipeline.cxx
   vtkVolumeRepresentationPreprocessor.cxx
   vtkVRMLSource.cxx

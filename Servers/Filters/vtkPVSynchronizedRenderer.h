@@ -39,7 +39,7 @@ public:
 
   // Description:
   // Enable/Disable parallel rendering.
-  vtkSetMacro(Enabled, bool);
+  virtual void SetEnabled(bool enabled);
   vtkGetMacro(Enabled, bool);
   vtkBooleanMacro(Enabled, bool);
 

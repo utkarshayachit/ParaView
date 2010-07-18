@@ -18,7 +18,7 @@
 #include <QHBoxLayout>
 
 //#define SECOND_WINDOW
-//#define REMOTE_CONNECTION
+#define REMOTE_CONNECTION
 
 int main(int argc, char** argv)
 {
@@ -57,6 +57,7 @@ int main(int argc, char** argv)
   mainWindow.setCentralWidget(centralWidget);
   hbox->addWidget(qwidget);
 
+  proxy->InvokeCommand("StillRender");
   proxy->InvokeCommand("ResetCamera");
 #ifdef SECOND_WINDOW
 

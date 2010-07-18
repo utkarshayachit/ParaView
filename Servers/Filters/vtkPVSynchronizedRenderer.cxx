@@ -191,6 +191,20 @@ vtkPVSynchronizedRenderer::~vtkPVSynchronizedRenderer()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVSynchronizedRenderer::SetEnabled(bool enabled)
+{
+  if (this->ParallelSynchronizer)
+    {
+    this->ParallelSynchronizer->SetParallelRendering(enabled);
+    }
+  if (this->CSSynchronizer)
+    {
+    this->CSSynchronizer->SetParallelRendering(enabled);
+    }
+  this->Enabled = enabled;
+}
+
+//----------------------------------------------------------------------------
 void vtkPVSynchronizedRenderer::SetRenderer(vtkRenderer* ren)
 {
   if (this->ParallelSynchronizer)
