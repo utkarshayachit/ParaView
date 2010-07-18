@@ -391,8 +391,7 @@ public:
 //BTX
   // Description:
   // Get the ID used for MPIMToNSocketConnection for the given connection.
-  vtkClientServerID GetMPIMToNSocketConnectionID(vtkIdType id);
-  
+  vtkClientServerID GetMPIMToNSocketConnectionID(vtkIdType id=-1);
 //ETX
 
 

@@ -155,7 +155,7 @@ vtkProcessModule::vtkProcessModule()
   this->InterpreterObserver = 0;
   this->ReportInterpreterErrors = 1;
 
-  this->UniqueID.ID = 3;
+  this->UniqueID.ID = 100;
 
   this->ProgressRequests = 0;
 
@@ -1782,11 +1782,10 @@ vtkPVServerInformation* vtkProcessModule::GetServerInformation(
 
 //-----------------------------------------------------------------------------
 vtkClientServerID vtkProcessModule::GetMPIMToNSocketConnectionID(
-  vtkIdType id)
+  vtkIdType vtkNotUsed(id))
 {
-  return this->ConnectionManager->GetMPIMToNSocketConnectionID(id);
+  return vtkClientServerID(3);
 }
-
 
 //----------------------------------------------------------------------------
 // This method leaks memory.  It is a quick and dirty way to set different 
