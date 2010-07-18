@@ -11,13 +11,31 @@
 #include "vtkPVRenderView.h"
 #include "vtkRenderWindow.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkCallbackCommand.h"
 
 #include <QApplication>
 #include <QMainWindow>
 #include "QVTKWidget.h"
 #include <QHBoxLayout>
+void callback(vtkObject *caller, unsigned long eid, void *clientdata, void *calldata)
+{
+  vtkSMProxy* proxy = reinterpret_cast<vtkSMProxy*>(clientdata);
+  proxy->InvokeCommand("StillRender");
+}
 
-//#define SECOND_WINDOW
+void setupRender(vtkSMProxy* proxy)
+{
+  vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(proxy->GetClientSideObject());
+  rv->GetRenderWindow()->GetInteractor()->EnableRenderOff();
+  vtkCallbackCommand* observer = vtkCallbackCommand::New();
+  observer->SetClientData(proxy);
+  observer->SetCallback(::callback);
+  rv->GetRenderWindow()->GetInteractor()->AddObserver(
+    vtkCommand::RenderEvent, observer);
+  observer->Delete();
+}
+
+#define SECOND_WINDOW
 #define REMOTE_CONNECTION
 
 int main(int argc, char** argv)
@@ -51,6 +69,7 @@ int main(int argc, char** argv)
   vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(proxy->GetClientSideObject());
   QVTKWidget* qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv->GetRenderWindow());
+  setupRender(proxy);
 
   QWidget *centralWidget = new QWidget(&mainWindow);
   QHBoxLayout* hbox = new QHBoxLayout(centralWidget);
@@ -72,7 +91,10 @@ int main(int argc, char** argv)
   vtkPVRenderView* rv2 = vtkPVRenderView::SafeDownCast(proxy2->GetClientSideObject());
   qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv2->GetRenderWindow());
+  setupRender(proxy);
+
   hbox->addWidget(qwidget);
+  proxy2->InvokeCommand("StillRender");
   proxy2->InvokeCommand("ResetCamera");
 
 #endif

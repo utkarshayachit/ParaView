@@ -146,6 +146,13 @@ bool vtkGeometryRepresentation::PrepareForRendering(
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentation::MarkModified()
+{
+  this->Modified();
+  this->DeliverFilter->Modified();
+}
+
+//----------------------------------------------------------------------------
 bool vtkGeometryRepresentation::AddToView(vtkView* view)
 {
   // FIXME: Need generic view API to add props.

@@ -49,11 +49,7 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  void MarkModified()
-    {
-    this->Modified();
-    this->DeliverFilter->Modified();
-    }
+  void MarkModified();
 
 //BTX
 protected:
