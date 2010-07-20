@@ -72,6 +72,7 @@ vtkGeometryRepresentation::~vtkGeometryRepresentation()
   this->Property->Delete();
   this->DeliveryFilter->Delete();
   this->LODDeliveryFilter->Delete();
+  this->Distributor->SetInputConnection(1, NULL);
   this->Distributor->Delete();
 }
 
@@ -118,7 +119,10 @@ int vtkGeometryRepresentation::ProcessViewRequest(
       {
       vtkAlgorithm* cutSource = vtkAlgorithm::SafeDownCast(
         inInfo->Get(vtkPVRenderView::ORDERED_COMPOSITING_CUTS_SOURCE()));
-      this->Distributor->SetInputConnection(1, cutSource->GetOutputPort(0));
+      vtkDataObject* output = cutSource->GetOutputDataObject(0)->NewInstance();
+      output->ShallowCopy(cutSource->GetOutputDataObject(0));
+      this->Distributor->SetInputConnection(1, output->GetProducerPort());
+      output->FastDelete();
       this->Distributor->SetPassThrough(0);
       }
     else
