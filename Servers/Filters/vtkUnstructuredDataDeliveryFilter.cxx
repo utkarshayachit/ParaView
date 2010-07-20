@@ -164,6 +164,15 @@ void vtkUnstructuredDataDeliveryFilter::ProcessViewRequest(vtkInformation* info)
     // default mode is pass-through.
     this->MoveData->SetMoveModeToPassThrough();
     }
+
+  if (info->Has(vtkPVRenderView::DELIVER_OUTLINE_TO_CLIENT()))
+    {
+    this->MoveData->SetDeliverOutlineToClient(1);
+    }
+  else
+    {
+    this->MoveData->SetDeliverOutlineToClient(0);
+    }
 }
 
 //----------------------------------------------------------------------------

@@ -21,8 +21,10 @@
 #include "vtkInformationVector.h"
 #include "vtkMPIMoveData.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVServerInformation.h"
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkPVSynchronizedRenderWindows.h"
+#include "vtkRemoteConnection.h"
 #include "vtkRenderer.h"
 #include "vtkRenderViewBase.h"
 #include "vtkRenderWindow.h"
@@ -121,7 +123,9 @@ namespace
 vtkStandardNewMacro(vtkPVRenderView);
 vtkInformationKeyMacro(vtkPVRenderView, GEOMETRY_SIZE, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, DATA_DISTRIBUTION_MODE, Integer);
-vtkInformationKeyMacro(vtkPVRenderView, USE_LOD, Request);
+vtkInformationKeyMacro(vtkPVRenderView, USE_LOD, Integer);
+vtkInformationKeyMacro(vtkPVRenderView, DELIVER_OUTLINE_TO_CLIENT, Integer);
+vtkInformationKeyMacro(vtkPVRenderView, DELIVER_LOD_TO_CLIENT, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, LOD_RESOLUTION, Integer);
 //----------------------------------------------------------------------------
 vtkPVRenderView::vtkPVRenderView()
@@ -131,6 +135,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->GeometrySize = 0;
   this->RemoteRenderingThreshold = 0;
   this->LODRenderingThreshold = 0;
+  this->ClientOutlineThreshold = 100;
 
   if (::SynchronizedWindows == NULL)
     {
@@ -278,6 +283,26 @@ void vtkPVRenderView::Render(bool interactive)
   this->SetRequestDistributedRendering(use_distributed_rendering);
 
   // TODO: Add more info about ordered compositing/tile-display etc.
+
+  if (this->InTileDisplayMode())
+    {
+    if (this->GetDeliverOutlineToClient())
+      {
+      this->RequestInformation->Remove(DELIVER_LOD_TO_CLIENT());
+      this->RequestInformation->Set(DELIVER_OUTLINE_TO_CLIENT(), 1);
+      }
+    else
+      {
+      this->RequestInformation->Remove(DELIVER_OUTLINE_TO_CLIENT());
+      this->RequestInformation->Set(DELIVER_LOD_TO_CLIENT(), 1);
+      }
+    }
+  else
+    {
+    this->RequestInformation->Remove(DELIVER_LOD_TO_CLIENT());
+    this->RequestInformation->Remove(DELIVER_OUTLINE_TO_CLIENT());
+    }
+
   this->CallProcessViewRequest(
     vtkView::REQUEST_PREPARE_FOR_RENDER(),
     this->RequestInformation, this->ReplyInformationVector);
@@ -302,14 +327,19 @@ void vtkPVRenderView::Render(bool interactive)
 //----------------------------------------------------------------------------
 void vtkPVRenderView::SetRequestDistributedRendering(bool enable)
 {
+  bool in_tile_display_mode = this->InTileDisplayMode();
   if (enable)
     {
     this->RequestInformation->Set(DATA_DISTRIBUTION_MODE(),
+      in_tile_display_mode?
+      vtkMPIMoveData::COLLECT_AND_PASS_THROUGH:
       vtkMPIMoveData::PASS_THROUGH);
     }
   else
     {
     this->RequestInformation->Set(DATA_DISTRIBUTION_MODE(),
+      in_tile_display_mode?
+      vtkMPIMoveData::CLONE:
       vtkMPIMoveData::COLLECT);
     }
 }
@@ -319,7 +349,7 @@ void vtkPVRenderView::SetRequestLODRendering(bool enable)
 {
   if (enable)
     {
-    this->RequestInformation->Set(USE_LOD());
+    this->RequestInformation->Set(USE_LOD(), 1);
     }
   else
     {
@@ -397,15 +427,40 @@ void vtkPVRenderView::GatherGeometrySizeInformation()
 //----------------------------------------------------------------------------
 bool vtkPVRenderView::GetUseDistributedRendering()
 {
-//  return false;
   return this->RemoteRenderingThreshold <= this->GeometrySize;
 }
 
 //----------------------------------------------------------------------------
 bool vtkPVRenderView::GetUseLODRendering()
 {
-//  return false;
+  // return false;
   return this->LODRenderingThreshold <= this->GeometrySize;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVRenderView::GetDeliverOutlineToClient()
+{
+//  return false;
+  return this->ClientOutlineThreshold <= this->GeometrySize;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVRenderView::InTileDisplayMode()
+{
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkPVServerInformation* info = pm->GetServerInformation(NULL);
+  if (info->GetTileDimensions()[0] > 0 ||
+    info->GetTileDimensions()[1] > 0)
+    {
+    return true;
+    }
+  if (pm->GetActiveRemoteConnection())
+    {
+    info = pm->GetServerInformation(pm->GetConnectionID(
+        pm->GetActiveRemoteConnection()));
+    }
+  return (info->GetTileDimensions()[0] > 0 ||
+    info->GetTileDimensions()[1] > 0);
 }
 
 //----------------------------------------------------------------------------

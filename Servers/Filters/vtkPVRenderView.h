@@ -137,6 +137,14 @@ public:
   vtkGetMacro(LODRenderingThreshold, unsigned long);
 
   // Description:
+  // This threshold is only applicable when in tile-display mode. It is the size
+  // of geometry in kilobytes beyond which the view should not deliver geometry
+  // to the client, but only outlines.
+  // @CallOnAllProcessess
+  vtkSetMacro(ClientOutlineThreshold, unsigned long);
+  vtkGetMacro(ClientOutlineThreshold, unsigned long);
+
+  // Description:
   // vtkDataRepresentation can use this key to publish meta-data about geometry
   // size in the VIEW_REQUEST_METADATA pass. If this meta-data is available,
   // then the view can make informed decisions about where to render/whether to
@@ -144,7 +152,9 @@ public:
   static vtkInformationIntegerKey* GEOMETRY_SIZE();
 
   static vtkInformationIntegerKey* DATA_DISTRIBUTION_MODE();
-  static vtkInformationRequestKey* USE_LOD();
+  static vtkInformationIntegerKey* USE_LOD();
+  static vtkInformationIntegerKey* DELIVER_LOD_TO_CLIENT();
+  static vtkInformationIntegerKey* DELIVER_OUTLINE_TO_CLIENT();
   static vtkInformationIntegerKey* LOD_RESOLUTION();
 
 //BTX
@@ -166,12 +176,20 @@ protected:
   bool GetUseLODRendering();
 
   // Description:
+  // Returns true if outline should be delivered to client.
+  bool GetDeliverOutlineToClient();
+
+  // Description:
   // Update the request to enable/disable distributed rendering.
   void SetRequestDistributedRendering(bool);
   
   // Description:
   // Update the request to enable/disable low-res rendering.
   void SetRequestLODRendering(bool);
+
+  // Description:
+  // Returns true if the application is currently in tile display mode.
+  bool InTileDisplayMode();
 
   vtkRenderViewBase* RenderView;
   vtkRenderer* NonCompositedRenderer;
@@ -185,6 +203,8 @@ protected:
   unsigned long GeometrySize;
   unsigned long RemoteRenderingThreshold;
   unsigned long LODRenderingThreshold;
+  unsigned long ClientOutlineThreshold;
+
 private:
   vtkPVRenderView(const vtkPVRenderView&); // Not implemented
   void operator=(const vtkPVRenderView&); // Not implemented
