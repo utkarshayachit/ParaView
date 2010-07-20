@@ -145,6 +145,11 @@ public:
   vtkGetMacro(ClientOutlineThreshold, unsigned long);
 
   // Description:
+  // Resets the clipping range. One does not need to call this directly ever. It
+  // is called periodically by the vtkRenderer to reset the camera range.
+  void ResetCameraClippingRange();
+
+  // Description:
   // vtkDataRepresentation can use this key to publish meta-data about geometry
   // size in the VIEW_REQUEST_METADATA pass. If this meta-data is available,
   // then the view can make informed decisions about where to render/whether to
@@ -204,6 +209,7 @@ protected:
   unsigned long RemoteRenderingThreshold;
   unsigned long LODRenderingThreshold;
   unsigned long ClientOutlineThreshold;
+  double LastComputedBounds[6];
 
 private:
   vtkPVRenderView(const vtkPVRenderView&); // Not implemented

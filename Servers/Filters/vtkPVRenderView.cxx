@@ -19,6 +19,7 @@
 #include "vtkInformationIntegerKey.h"
 #include "vtkInformationRequestKey.h"
 #include "vtkInformationVector.h"
+#include "vtkMemberFunctionCommand.h"
 #include "vtkMPIMoveData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVServerInformation.h"
@@ -173,6 +174,13 @@ vtkPVRenderView::vtkPVRenderView()
   //  this->RenderView->GetRenderer(), this);
 
   ::Create2DPipeline(this->NonCompositedRenderer);
+
+  vtkMemberFunctionCommand<vtkPVRenderView>* observer =
+    vtkMemberFunctionCommand<vtkPVRenderView>::New();
+  observer->SetCallback(*this, &vtkPVRenderView::ResetCameraClippingRange);
+  this->GetRenderer()->AddObserver(vtkCommand::ResetCameraClippingRangeEvent,
+    observer);
+  observer->FastDelete();
 }
 
 //----------------------------------------------------------------------------
@@ -231,17 +239,22 @@ vtkRenderWindow* vtkPVRenderView::GetRenderWindow()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::ResetCameraClippingRange()
+{
+  this->GetRenderer()->ResetCameraClippingRange(this->LastComputedBounds);
+}
+
+//----------------------------------------------------------------------------
 // Note this is called on all processes.
 void vtkPVRenderView::ResetCamera()
 {
   this->Update();
 
-  double bounds[6];
-  this->SynchronizedRenderers->ComputeVisiblePropBounds(bounds);
+  this->SynchronizedRenderers->ComputeVisiblePropBounds(this->LastComputedBounds);
 
   // Remember, vtkRenderer::ResetCamera() call
   // vtkRenderer::ResetCameraClippingPlanes() with the given bounds.
-  this->RenderView->GetRenderer()->ResetCamera(bounds);
+  this->RenderView->GetRenderer()->ResetCamera(this->LastComputedBounds);
 }
 
 //----------------------------------------------------------------------------
@@ -312,6 +325,14 @@ void vtkPVRenderView::Render(bool interactive)
     (interactive?
      this->InteractiveRenderImageReductionFactor :
      this->StillRenderImageReductionFactor));
+
+  if (!interactive)
+    {
+    // Keep bounds information up-to-date. 
+    // FIXME: How can be make this so that we don't have to do parallel
+    // communication each time.
+    this->SynchronizedRenderers->ComputeVisiblePropBounds(this->LastComputedBounds);
+    }
 
   // Call Render() on local render window only if
   // 1: Local process is the driver OR
