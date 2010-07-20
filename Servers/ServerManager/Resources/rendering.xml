@@ -5045,6 +5045,24 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="RemoteRenderingThreshold"
+        command="SetRemoteRenderingThreshold"
+        number_of_elements="1"
+        default_values="0">
+      </IntVectorProperty>
+
+      <IntVectorProperty name="LODRenderingThreshold"
+        command="SetLODRenderingThreshold"
+        number_of_elements="1"
+        default_values="0">
+      </IntVectorProperty>
+
+      <ProxyProperty name="Representations"
+        command="AddRepresentation"
+        remove_command="RemoveRepresentation"
+        repeatable="1">
+      </ProxyProperty>
+
       <Property name="ResetCamera" command="ResetCamera" />
       <Property name="StillRender" command="StillRender" />
       <Property name="InteractiveRender" command="InteractiveRender" />
@@ -8198,6 +8216,16 @@
       </SubProxy>
     <!-- End of PVRepresentationBase -->
     </PVRepresentationProxy>
+
+    <RepresentationProxy2 name="GeometryRepresentation2"
+                          class="vtkGeometryRepresentation"
+                          processes="client|renderserver|dataserver">
+      <InputProperty name="Input"
+                     command="SetInputConnection">
+      </InputProperty>
+
+
+    </RepresentationProxy2>
 
     <PVRepresentationProxy name="GeometryRepresentation"
       base_proxygroup="representations"

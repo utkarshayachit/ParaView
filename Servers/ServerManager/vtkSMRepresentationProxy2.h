@@ -12,34 +12,34 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkSMRenderView2Proxy
+// .NAME vtkSMRepresentationProxy2
 // .SECTION Description
 //
 
-#ifndef __vtkSMRenderView2Proxy_h
-#define __vtkSMRenderView2Proxy_h
+#ifndef __vtkSMRepresentationProxy2_h
+#define __vtkSMRepresentationProxy2_h
 
-#include "vtkSMProxy.h"
+#include "vtkSMSourceProxy.h"
 
-class VTK_EXPORT vtkSMRenderView2Proxy : public vtkSMProxy
+class VTK_EXPORT vtkSMRepresentationProxy2 : public vtkSMSourceProxy
 {
 public:
-  static vtkSMRenderView2Proxy* New();
-  vtkTypeRevisionMacro(vtkSMRenderView2Proxy, vtkSMProxy);
+  static vtkSMRepresentationProxy2* New();
+  vtkTypeMacro(vtkSMRepresentationProxy2, vtkSMSourceProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  // Description:
+  // Calls MarkDirty() and invokes ModifiedEvent.
+  virtual void MarkModified(vtkSMProxy* modifiedProxy);
 
 //BTX
 protected:
-  vtkSMRenderView2Proxy();
-  ~vtkSMRenderView2Proxy();
-
-  // Description:
-  // Called at the end of CreateVTKObjects().
-  virtual void CreateVTKObjects();
+  vtkSMRepresentationProxy2();
+  ~vtkSMRepresentationProxy2();
 
 private:
-  vtkSMRenderView2Proxy(const vtkSMRenderView2Proxy&); // Not implemented
-  void operator=(const vtkSMRenderView2Proxy&); // Not implemented
+  vtkSMRepresentationProxy2(const vtkSMRepresentationProxy2&); // Not implemented
+  void operator=(const vtkSMRepresentationProxy2&); // Not implemented
 //ETX
 };
 

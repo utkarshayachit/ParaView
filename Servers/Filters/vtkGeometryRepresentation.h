@@ -56,6 +56,8 @@ protected:
   vtkGeometryRepresentation();
   ~vtkGeometryRepresentation();
 
+  virtual int FillInputPortInformation(int port, vtkInformation* info);
+
   // Description:
   // Subclasses should override this to connect inputs to the internal pipeline
   // as necessary. Since most representations are "meta-filters" (i.e. filters

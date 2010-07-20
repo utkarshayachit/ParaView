@@ -55,9 +55,3 @@ IF (PVServerManagerTestData)
 ENDIF (PVServerManagerTestData)
 
 
-################################################################################
-ADD_EXECUTABLE(TestPVSynchronizedRenderWindows
-  TestPVSynchronizedRenderWindows.cxx)
-
-TARGET_LINK_LIBRARIES(TestPVSynchronizedRenderWindows
-  vtkPVServerManager)

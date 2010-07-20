@@ -161,6 +161,7 @@ SET(Kit_SRCS
   vtkSMRenderViewExporterProxy.cxx
   vtkSMRepresentationAnimationHelperProxy.cxx
   vtkSMRepresentationProxy.cxx
+  vtkSMRepresentationProxy2.cxx
   vtkSMRepresentationStrategy.cxx
   vtkSMScalarBarActorProxy.cxx
   vtkSMScalarBarWidgetRepresentationProxy.cxx

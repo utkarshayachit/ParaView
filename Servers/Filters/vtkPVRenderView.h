@@ -102,6 +102,8 @@ public:
   // @CallOnAllProcessess
   virtual void InteractiveRender();
 
+  void Render(bool interactive);
+
   // Description:
   // Get/Set the reduction-factor to use when for StillRender(). This is
   // typically set to 1, but in some cases with terrible connectivity or really
@@ -126,6 +128,13 @@ public:
   // @CallOnAllProcessess
   vtkSetMacro(RemoteRenderingThreshold, unsigned long);
   vtkGetMacro(RemoteRenderingThreshold, unsigned long);
+
+  // Description:
+  // Get/Set the data-size in kilobytes above which LOD rendering should be
+  // used, if possible.
+  // @CallOnAllProcessess
+  vtkSetMacro(LODRenderingThreshold, unsigned long);
+  vtkGetMacro(LODRenderingThreshold, unsigned long);
 
   // Description:
   // vtkDataRepresentation can use this key to publish meta-data about geometry
@@ -153,6 +162,10 @@ protected:
   bool GetUseDistributedRendering();
 
   // Description:
+  // Returns true if LOD rendering should be used.
+  bool GetUseLODRendering();
+
+  // Description:
   // Update the request to enable/disable distributed rendering.
   void SetRequestDistributedRendering(bool);
   
@@ -171,6 +184,7 @@ protected:
 
   unsigned long GeometrySize;
   unsigned long RemoteRenderingThreshold;
+  unsigned long LODRenderingThreshold;
 private:
   vtkPVRenderView(const vtkPVRenderView&); // Not implemented
   void operator=(const vtkPVRenderView&); // Not implemented

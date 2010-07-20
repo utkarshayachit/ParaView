@@ -130,6 +130,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->InteractiveRenderImageReductionFactor = 2;
   this->GeometrySize = 0;
   this->RemoteRenderingThreshold = 0;
+  this->LODRenderingThreshold = 0;
 
   if (::SynchronizedWindows == NULL)
     {
@@ -163,8 +164,8 @@ vtkPVRenderView::vtkPVRenderView()
   // We don't add the LabelRenderer.
 
   // DUMMY SPHERE FOR TESTING
-  ::CreatePipeline(vtkMultiProcessController::GetGlobalController(),
-    this->RenderView->GetRenderer(), this);
+  //::CreatePipeline(vtkMultiProcessController::GetGlobalController(),
+  //  this->RenderView->GetRenderer(), this);
 
   ::Create2DPipeline(this->NonCompositedRenderer);
 }
@@ -232,6 +233,7 @@ void vtkPVRenderView::ResetCamera()
 
   double bounds[6];
   this->SynchronizedRenderers->ComputeVisiblePropBounds(bounds);
+
   // Remember, vtkRenderer::ResetCamera() call
   // vtkRenderer::ResetCameraClippingPlanes() with the given bounds.
   this->RenderView->GetRenderer()->ResetCamera(bounds);
@@ -241,7 +243,21 @@ void vtkPVRenderView::ResetCamera()
 void vtkPVRenderView::StillRender()
 {
   vtkTimerLog::MarkStartEvent("Still Render");
+  this->Render(false);
+  vtkTimerLog::MarkEndEvent("Still Render");
+}
 
+//----------------------------------------------------------------------------
+void vtkPVRenderView::InteractiveRender()
+{
+  vtkTimerLog::MarkStartEvent("Interactive Render");
+  this->Render(true);
+  vtkTimerLog::MarkEndEvent("Interactive Render");
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::Render(bool interactive)
+{
   // Update all representations.
   // This should update mostly just the inputs to the representations, and maybe
   // the internal geometry filter.
@@ -250,6 +266,9 @@ void vtkPVRenderView::StillRender()
   // Gather information about geometry sizes from all representations.
   this->GatherGeometrySizeInformation();
 
+  bool use_lod_rendering = interactive? this->GetUseLODRendering() : false;
+  this->SetRequestLODRendering(use_lod_rendering);
+
   // Decide if we are doing remote rendering or local rendering.
   bool use_distributed_rendering = this->GetUseDistributedRendering();
   this->SynchronizedWindows->SetEnabled(use_distributed_rendering);
@@ -257,49 +276,27 @@ void vtkPVRenderView::StillRender()
 
   // Build the request for REQUEST_PREPARE_FOR_RENDER().
   this->SetRequestDistributedRendering(use_distributed_rendering);
-  this->SetRequestLODRendering(false);
-  
+
   // TODO: Add more info about ordered compositing/tile-display etc.
   this->CallProcessViewRequest(
     vtkView::REQUEST_PREPARE_FOR_RENDER(),
     this->RequestInformation, this->ReplyInformationVector);
 
-  // set the image reduction factor. 
+  // set the image reduction factor.
   this->SynchronizedRenderers->SetImageReductionFactor(
-    this->StillRenderImageReductionFactor);
+    (interactive?
+     this->InteractiveRenderImageReductionFactor :
+     this->StillRenderImageReductionFactor));
 
   // Call Render() on local render window only if
   // 1: Local process is the driver OR
   // 2: RenderEventPropagation is Off and we are doing distributed rendering.
   if (this->SynchronizedWindows->GetLocalProcessIsDriver() ||
-    (!this->SynchronizedWindows->GetRenderEventPropagation() && 
+    (!this->SynchronizedWindows->GetRenderEventPropagation() &&
      use_distributed_rendering))
     {
     this->GetRenderWindow()->Render();
     }
-
-  vtkTimerLog::MarkEndEvent("Still Render");
-}
-
-//----------------------------------------------------------------------------
-void vtkPVRenderView::InteractiveRender()
-{
-  //// * Decide if we are doing LOD or full-res rendering.
-
-  //// * Decide if we are doing remote rendering or local rendering.
-
-  //vtkTimerLog::MarkStartEvent("Interactive Render");
-
-  //this->SynchronizedRenderers->SetImageReductionFactor(
-  //  this->InteractiveRenderImageReductionFactor);
-
-  //if (this->SynchronizedWindows->GetLocalProcessIsDriver() ||
-  //  !this->SynchronizedWindows->GetRenderEventPropagation())
-  //  {
-  //  this->GetRenderWindow()->Render();
-  //  }
-
-  //vtkTimerLog::MarkEndEvent("Interactive Render");
 }
 
 //----------------------------------------------------------------------------
@@ -400,8 +397,15 @@ void vtkPVRenderView::GatherGeometrySizeInformation()
 //----------------------------------------------------------------------------
 bool vtkPVRenderView::GetUseDistributedRendering()
 {
-  return false;
-  return this->RemoteRenderingThreshold <= this->GeometrySize;  
+//  return false;
+  return this->RemoteRenderingThreshold <= this->GeometrySize;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVRenderView::GetUseLODRendering()
+{
+//  return false;
+  return this->LODRenderingThreshold <= this->GeometrySize;
 }
 
 //----------------------------------------------------------------------------

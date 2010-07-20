@@ -12,47 +12,42 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkSMRenderView2Proxy.h"
+#include "vtkSMRepresentationProxy2.h"
 
 #include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
 
-vtkStandardNewMacro(vtkSMRenderView2Proxy);
-vtkCxxRevisionMacro(vtkSMRenderView2Proxy, "$Revision$");
+vtkStandardNewMacro(vtkSMRepresentationProxy2);
 //----------------------------------------------------------------------------
-vtkSMRenderView2Proxy::vtkSMRenderView2Proxy()
+vtkSMRepresentationProxy2::vtkSMRepresentationProxy2()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSMRenderView2Proxy::~vtkSMRenderView2Proxy()
+vtkSMRepresentationProxy2::~vtkSMRepresentationProxy2()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkSMRenderView2Proxy::CreateVTKObjects()
+void vtkSMRepresentationProxy2::MarkModified(vtkSMProxy* modifiedProxy)
 {
-  if (this->ObjectsCreated)
+  if (modifiedProxy != this && this->ObjectsCreated && !this->NeedsUpdate)
     {
-    return;
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke
+      << this->GetID()
+      << "MarkModified"
+      << vtkClientServerStream::End;
+    vtkProcessModule::GetProcessModule()->SendStream(
+      this->ConnectionID,
+      this->Servers, stream);
     }
-  this->Superclass::CreateVTKObjects();
-
-  vtkClientServerStream stream;
-  stream << vtkClientServerStream::Invoke
-         << this->GetID()
-         << "Initialize"
-         << static_cast<unsigned int>(this->GetSelfID().ID)
-         << vtkClientServerStream::End;
-
-  vtkProcessModule::GetProcessModule()->SendStream(
-    this->ConnectionID,
-    this->Servers, stream);
+  this->Superclass::MarkModified(modifiedProxy);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMRenderView2Proxy::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSMRepresentationProxy2::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
