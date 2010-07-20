@@ -25,6 +25,7 @@
 #include "vtkMPIMoveData.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
+#include "vtkPKdTree.h"
 #include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
 #include "vtkPVSynchronizedRenderer.h"
@@ -66,8 +67,8 @@ vtkInformationKeyMacro(vtkPVRenderView, DELIVER_OUTLINE_TO_CLIENT, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, DELIVER_LOD_TO_CLIENT, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, LOD_RESOLUTION, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, NEED_ORDERED_COMPOSITING, Integer);
-vtkInformationKeyMacro(vtkPVRenderView, UNSTRUCTURED_PRODUCER, ObjectBase);
-vtkInformationKeyMacro(vtkPVRenderView, ORDERED_COMPOSITING_CUTS_SOURCE, ObjectBase);
+vtkInformationKeyMacro(vtkPVRenderView, REDISTRIBUTABLE_DATA_PRODUCER, ObjectBase);
+vtkInformationKeyMacro(vtkPVRenderView, KD_TREE, ObjectBase);
 //----------------------------------------------------------------------------
 vtkPVRenderView::vtkPVRenderView()
 {
@@ -193,6 +194,9 @@ void vtkPVRenderView::Render(bool interactive)
   // the internal geometry filter.
   this->Update();
 
+  // Do the vtkView::REQUEST_INFORMATION() pass.
+  this->GatherRepresentationInformation();
+
   // Gather information about geometry sizes from all representations.
   this->GatherGeometrySizeInformation();
 
@@ -238,8 +242,8 @@ void vtkPVRenderView::Render(bool interactive)
     this->OrderedCompositingBSPCutsSource->Update();
     this->SynchronizedRenderers->SetKdTree(
       this->OrderedCompositingBSPCutsSource->GetPKdTree());
-    this->RequestInformation->Set(ORDERED_COMPOSITING_CUTS_SOURCE(),
-      this->OrderedCompositingBSPCutsSource);
+    this->RequestInformation->Set(KD_TREE(),
+      this->OrderedCompositingBSPCutsSource->GetPKdTree());
     }
   else
     {
@@ -309,24 +313,66 @@ void vtkPVRenderView::SetRequestLODRendering(bool enable)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderView::GatherGeometrySizeInformation()
+void vtkPVRenderView::GatherRepresentationInformation()
 {
-  this->GeometrySize = 0;
-
   this->CallProcessViewRequest(vtkView::REQUEST_INFORMATION(),
     this->RequestInformation, this->ReplyInformationVector);
 
-  unsigned long geometry_size = 0;
+  // REQUEST_UPDATE() pass may result in REDISTRIBUTABLE_DATA_PRODUCER() being
+  // specified. If so, we update the OrderedCompositingBSPCutsSource to use
+  // those producers as inputs, if ordered compositing maybe needed.
+  static vtkstd::set<void*> previous_producers;
+
+  this->LocalGeometrySize = 0;
+
+  bool need_ordered_compositing = false;
+  vtkstd::set<void*> current_producers;
   int num_reprs = this->ReplyInformationVector->GetNumberOfInformationObjects();
   for (int cc=0; cc < num_reprs; cc++)
     {
     vtkInformation* info =
       this->ReplyInformationVector->GetInformationObject(cc);
+    if (info->Has(REDISTRIBUTABLE_DATA_PRODUCER()))
+      {
+      current_producers.insert(info->Get(REDISTRIBUTABLE_DATA_PRODUCER()));
+      }
+    if (info->Has(NEED_ORDERED_COMPOSITING()))
+      {
+      need_ordered_compositing = true;
+      }
     if (info->Has(GEOMETRY_SIZE()))
       {
-      geometry_size += info->Get(GEOMETRY_SIZE());
+      this->LocalGeometrySize += info->Get(GEOMETRY_SIZE());
       }
     }
+
+  if (!this->GetUseOrderedCompositing() || !need_ordered_compositing)
+    {
+    this->OrderedCompositingBSPCutsSource->RemoveAllInputs();
+    previous_producers.clear();
+    return;
+    }
+
+  if (current_producers != previous_producers)
+    {
+    this->OrderedCompositingBSPCutsSource->RemoveAllInputs();
+    vtkstd::set<void*>::iterator iter;
+    for (iter = current_producers.begin(); iter != current_producers.end();
+      ++iter)
+      {
+      this->OrderedCompositingBSPCutsSource->AddInputConnection(0,
+        reinterpret_cast<vtkAlgorithm*>(*iter)->GetOutputPort(0));
+      }
+    previous_producers = current_producers;
+    }
+
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::GatherGeometrySizeInformation()
+{
+  this->GeometrySize = 0;
+  unsigned long geometry_size = this->LocalGeometrySize;
 
   // Now synchronize the geometry size.
   vtkMultiProcessController* parallelController =
@@ -417,47 +463,7 @@ void vtkPVRenderView::Update()
 {
   this->Superclass::Update();
 
-  // REQUEST_UPDATE() pass may result in UNSTRUCTURED_PRODUCER() being
-  // specified. If so, we update the OrderedCompositingBSPCutsSource to use
-  // those producers as inputs, if ordered compositing maybe needed.
-  static vtkstd::set<void*> previous_producers;
 
-  bool need_ordered_compositing = false;
-  vtkstd::set<void*> current_producers;
-  int num_reprs = this->ReplyInformationVector->GetNumberOfInformationObjects();
-  for (int cc=0; cc < num_reprs; cc++)
-    {
-    vtkInformation* info =
-      this->ReplyInformationVector->GetInformationObject(cc);
-    if (info->Has(UNSTRUCTURED_PRODUCER()))
-      {
-      current_producers.insert(info->Get(UNSTRUCTURED_PRODUCER()));
-      }
-    if (info->Has(NEED_ORDERED_COMPOSITING()))
-      {
-      need_ordered_compositing = true;
-      }
-    }
-
-  if (!this->GetUseOrderedCompositing() || !need_ordered_compositing)
-    {
-    this->OrderedCompositingBSPCutsSource->RemoveAllInputs();
-    previous_producers.clear();
-    return;
-    }
-
-  if (current_producers != previous_producers)
-    {
-    this->OrderedCompositingBSPCutsSource->RemoveAllInputs();
-    vtkstd::set<void*>::iterator iter;
-    for (iter = current_producers.begin(); iter != current_producers.end();
-      ++iter)
-      {
-      this->OrderedCompositingBSPCutsSource->AddInputConnection(0,
-        reinterpret_cast<vtkAlgorithm*>(*iter)->GetOutputPort(0));
-      }
-    previous_producers = current_producers;
-    }
 }
 
 //----------------------------------------------------------------------------

@@ -18,6 +18,8 @@
 #include "vtkInformationVector.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
+#include "vtkOrderedCompositeDistributor.h"
+#include "vtkPKdTree.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkPVGeometryFilter.h"
@@ -27,7 +29,6 @@
 #include "vtkRenderer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
-#include "vtkOrderedCompositeDistributor.h"
 
 vtkStandardNewMacro(vtkGeometryRepresentation);
 //----------------------------------------------------------------------------
@@ -72,7 +73,6 @@ vtkGeometryRepresentation::~vtkGeometryRepresentation()
   this->Property->Delete();
   this->DeliveryFilter->Delete();
   this->LODDeliveryFilter->Delete();
-  this->Distributor->SetInputConnection(1, NULL);
   this->Distributor->Delete();
 }
 
@@ -94,12 +94,6 @@ int vtkGeometryRepresentation::ProcessViewRequest(
   if (request_type == vtkView::REQUEST_UPDATE())
     {
     this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
-    outInfo->Set(vtkPVRenderView::UNSTRUCTURED_PRODUCER(),
-      this->DeliveryFilter);
-    if (this->Actor->GetProperty()->GetOpacity() < 1.0)
-      {
-      outInfo->Set(vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1);
-      }
     }
   else if (request_type == vtkView::REQUEST_INFORMATION())
     {
@@ -111,23 +105,29 @@ int vtkGeometryRepresentation::ProcessViewRequest(
     // render set that up.
     this->DeliveryFilter->ProcessViewRequest(inInfo);
     this->LODDeliveryFilter->ProcessViewRequest(inInfo);
-    this->Actor->SetEnableLOD(inInfo->Has(vtkPVRenderView::USE_LOD())? 1 : 0);
+    bool lod = inInfo->Has(vtkPVRenderView::USE_LOD());
+    if (lod)
+      {
+      this->LODDeliveryFilter->Update();
+      }
+    else
+      {
+      this->DeliveryFilter->Update();
+      }
+    this->Actor->SetEnableLOD(lod? 1 : 0);
     }
   else if (request_type == vtkView::REQUEST_RENDER())
     {
-    if (inInfo->Has(vtkPVRenderView::ORDERED_COMPOSITING_CUTS_SOURCE()))
+    if (inInfo->Has(vtkPVRenderView::KD_TREE()))
       {
-      vtkAlgorithm* cutSource = vtkAlgorithm::SafeDownCast(
-        inInfo->Get(vtkPVRenderView::ORDERED_COMPOSITING_CUTS_SOURCE()));
-      vtkDataObject* output = cutSource->GetOutputDataObject(0)->NewInstance();
-      output->ShallowCopy(cutSource->GetOutputDataObject(0));
-      this->Distributor->SetInputConnection(1, output->GetProducerPort());
-      output->FastDelete();
+      vtkPKdTree* kdTree = vtkPKdTree::SafeDownCast(
+        inInfo->Get(vtkPVRenderView::KD_TREE()));
+      this->Distributor->SetPKdTree(kdTree);
       this->Distributor->SetPassThrough(0);
       }
     else
       {
-      this->Distributor->SetInputConnection(1, NULL);
+      this->Distributor->SetPKdTree(NULL);
       this->Distributor->SetPassThrough(1);
       }
     this->Actor->GetMapper()->Update();
@@ -188,6 +188,13 @@ bool vtkGeometryRepresentation::RequestMetaData(vtkInformation*,
   if (geom)
     {
     outInfo->Set(vtkPVRenderView::GEOMETRY_SIZE(),geom->GetActualMemorySize());
+    }
+
+  outInfo->Set(vtkPVRenderView::REDISTRIBUTABLE_DATA_PRODUCER(),
+    this->DeliveryFilter);
+  if (this->Actor->GetProperty()->GetOpacity() < 1.0)
+    {
+    outInfo->Set(vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1);
     }
   return 1; 
 }

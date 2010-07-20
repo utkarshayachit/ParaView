@@ -56,6 +56,11 @@ public:
   virtual void PrintSelf(ostream &os, vtkIndent indent);
 
   // Description:
+  // Set the vtkPKdTree to distribute with.
+  virtual void SetPKdTree(vtkPKdTree *);
+  vtkGetObjectMacro(PKdTree, vtkPKdTree);
+
+  // Description:
   // Set/get the controller to distribute with.
   virtual void SetController(vtkMultiProcessController *);
   vtkGetObjectMacro(Controller, vtkMultiProcessController);
@@ -82,6 +87,7 @@ protected:
   vtkOrderedCompositeDistributor();
   ~vtkOrderedCompositeDistributor();
 
+  vtkPKdTree *PKdTree;
   vtkMultiProcessController *Controller;
 
   vtkDistributedDataFilter *D3;

@@ -153,9 +153,27 @@ public:
   static vtkInformationIntegerKey* DELIVER_LOD_TO_CLIENT();
   static vtkInformationIntegerKey* DELIVER_OUTLINE_TO_CLIENT();
   static vtkInformationIntegerKey* LOD_RESOLUTION();
-  static vtkInformationObjectBaseKey* UNSTRUCTURED_PRODUCER();
-  static vtkInformationObjectBaseKey* ORDERED_COMPOSITING_CUTS_SOURCE();
+
+  // Description:
+  // This view supports ordered compositing, if needed. When ordered compositing
+  // needs to be employed, this view requires that all representations
+  // redistribute the data using a KdTree. To tell the view of the vtkAlgorithm
+  // that is producing some redistributable data, representation can use this
+  // key in their REQUEST_INFORMATION() pass to put the producer in the
+  // outInfo.
+  static vtkInformationObjectBaseKey* REDISTRIBUTABLE_DATA_PRODUCER();
+
+  // Description:
+  // Representation can publish this key in their REQUEST_INFORMATION() pass to
+  // indicate that the representation needs ordered compositing.
   static vtkInformationIntegerKey* NEED_ORDERED_COMPOSITING();
+
+  // Description:
+  // This is used by the view in the REQUEST_RENDER() pass to tell the
+  // representations the KdTree, if any to use for distributing the data. If
+  // none is present, then representations should not redistribute the data.
+  static vtkInformationObjectBaseKey* KD_TREE();
+
 //BTX
 protected:
   vtkPVRenderView();
@@ -164,6 +182,10 @@ protected:
   // Description:
   // Actual render method.
   void Render(bool interactive);
+
+  // Description:
+  // Calls vtkView::REQUEST_INFORMATION() on all representations
+  void GatherRepresentationInformation();
 
   // Description:
   // Sychronizes the geometry size information on all nodes.
@@ -206,6 +228,7 @@ protected:
   int StillRenderImageReductionFactor;
   int InteractiveRenderImageReductionFactor;
 
+  unsigned long LocalGeometrySize;
   unsigned long GeometrySize;
   unsigned long RemoteRenderingThreshold;
   unsigned long LODRenderingThreshold;
