@@ -51,7 +51,7 @@ public:
   // Note that this may affect the mtime of the filter.
   void ProcessViewRequest(vtkInformation*);
 
-  // Description: 
+  // Description:
   // Return this object's modified time.
   virtual unsigned long GetMTime();
 
@@ -73,7 +73,6 @@ protected:
   virtual int FillInputPortInformation(int port, vtkInformation* info);
 
   vtkMPIMoveData* MoveData;
-  vtkOrderedCompositeDistributor* Distributor;
   int OutputDataType;
 
 private:

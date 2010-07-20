@@ -14,15 +14,19 @@
 =========================================================================*/
 #include "vtkPVRenderView.h"
 
+#include "vtkBSPCutsGenerator.h"
 #include "vtkCommand.h"
 #include "vtkInformation.h"
 #include "vtkInformationIntegerKey.h"
+#include "vtkInformationObjectBaseKey.h"
 #include "vtkInformationRequestKey.h"
 #include "vtkInformationVector.h"
 #include "vtkMemberFunctionCommand.h"
 #include "vtkMPIMoveData.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
+#include "vtkProcessModule.h"
+#include "vtkPVOptions.h"
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkPVSynchronizedRenderWindows.h"
 #include "vtkRenderer.h"
@@ -37,6 +41,7 @@
 #include "vtkScalarBarActor.h"
 
 #include <assert.h>
+#include <vtkstd/set>
 
 namespace
 {
@@ -60,6 +65,9 @@ vtkInformationKeyMacro(vtkPVRenderView, USE_LOD, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, DELIVER_OUTLINE_TO_CLIENT, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, DELIVER_LOD_TO_CLIENT, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, LOD_RESOLUTION, Integer);
+vtkInformationKeyMacro(vtkPVRenderView, NEED_ORDERED_COMPOSITING, Integer);
+vtkInformationKeyMacro(vtkPVRenderView, UNSTRUCTURED_PRODUCER, ObjectBase);
+vtkInformationKeyMacro(vtkPVRenderView, ORDERED_COMPOSITING_CUTS_SOURCE, ObjectBase);
 //----------------------------------------------------------------------------
 vtkPVRenderView::vtkPVRenderView()
 {
@@ -73,9 +81,11 @@ vtkPVRenderView::vtkPVRenderView()
   this->SynchronizedRenderers = vtkPVSynchronizedRenderer::New();
 
   vtkRenderWindow* window = this->SynchronizedWindows->NewRenderWindow();
+  window->SetMultiSamples(0);
   this->RenderView = vtkRenderViewBase::New();
   this->RenderView->SetRenderWindow(window);
   window->Delete();
+
 
   this->NonCompositedRenderer = vtkRenderer::New();
   this->NonCompositedRenderer->EraseOff();
@@ -94,6 +104,10 @@ vtkPVRenderView::vtkPVRenderView()
   this->GetRenderer()->AddObserver(vtkCommand::ResetCameraClippingRangeEvent,
     observer);
   observer->FastDelete();
+
+  this->GetRenderer()->SetUseDepthPeeling(1);
+
+  this->OrderedCompositingBSPCutsSource = vtkBSPCutsGenerator::New();
 }
 
 //----------------------------------------------------------------------------
@@ -102,6 +116,9 @@ vtkPVRenderView::~vtkPVRenderView()
   this->SynchronizedRenderers->Delete();
   this->NonCompositedRenderer->Delete();
   this->RenderView->Delete();
+
+  this->OrderedCompositingBSPCutsSource->Delete();
+  this->OrderedCompositingBSPCutsSource = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -215,6 +232,24 @@ void vtkPVRenderView::Render(bool interactive)
     vtkView::REQUEST_PREPARE_FOR_RENDER(),
     this->RequestInformation, this->ReplyInformationVector);
 
+  if (use_distributed_rendering &&
+    this->OrderedCompositingBSPCutsSource->GetNumberOfInputConnections(0) > 0)
+    {
+    this->OrderedCompositingBSPCutsSource->Update();
+    this->SynchronizedRenderers->SetKdTree(
+      this->OrderedCompositingBSPCutsSource->GetPKdTree());
+    this->RequestInformation->Set(ORDERED_COMPOSITING_CUTS_SOURCE(),
+      this->OrderedCompositingBSPCutsSource);
+    }
+  else
+    {
+    this->SynchronizedRenderers->SetKdTree(NULL);
+    }
+
+  this->CallProcessViewRequest(
+    vtkView::REQUEST_RENDER(),
+    this->RequestInformation, this->ReplyInformationVector);
+
   // set the image reduction factor.
   this->SynchronizedRenderers->SetImageReductionFactor(
     (interactive?
@@ -223,7 +258,7 @@ void vtkPVRenderView::Render(bool interactive)
 
   if (!interactive)
     {
-    // Keep bounds information up-to-date. 
+    // Keep bounds information up-to-date.
     // FIXME: How can be make this so that we don't have to do parallel
     // communication each time.
     this->SynchronizedRenderers->ComputeVisiblePropBounds(this->LastComputedBounds);
@@ -358,6 +393,71 @@ bool vtkPVRenderView::GetDeliverOutlineToClient()
 {
 //  return false;
   return this->ClientOutlineThreshold <= this->GeometrySize;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVRenderView::GetUseOrderedCompositing()
+{
+  vtkPVOptions* options = vtkProcessModule::GetProcessModule()->GetOptions();
+  switch (options->GetProcessType())
+    {
+  case vtkPVOptions::PVSERVER:
+  case vtkPVOptions::PVBATCH:
+  case vtkPVOptions::PVRENDER_SERVER:
+    if (vtkProcessModule::GetProcessModule()->GetNumberOfLocalPartitions() > 1)
+      {
+      return true;
+      }
+    }
+  return false;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::Update()
+{
+  this->Superclass::Update();
+
+  // REQUEST_UPDATE() pass may result in UNSTRUCTURED_PRODUCER() being
+  // specified. If so, we update the OrderedCompositingBSPCutsSource to use
+  // those producers as inputs, if ordered compositing maybe needed.
+  static vtkstd::set<void*> previous_producers;
+
+  bool need_ordered_compositing = false;
+  vtkstd::set<void*> current_producers;
+  int num_reprs = this->ReplyInformationVector->GetNumberOfInformationObjects();
+  for (int cc=0; cc < num_reprs; cc++)
+    {
+    vtkInformation* info =
+      this->ReplyInformationVector->GetInformationObject(cc);
+    if (info->Has(UNSTRUCTURED_PRODUCER()))
+      {
+      current_producers.insert(info->Get(UNSTRUCTURED_PRODUCER()));
+      }
+    if (info->Has(NEED_ORDERED_COMPOSITING()))
+      {
+      need_ordered_compositing = true;
+      }
+    }
+
+  if (!this->GetUseOrderedCompositing() || !need_ordered_compositing)
+    {
+    this->OrderedCompositingBSPCutsSource->RemoveAllInputs();
+    previous_producers.clear();
+    return;
+    }
+
+  if (current_producers != previous_producers)
+    {
+    this->OrderedCompositingBSPCutsSource->RemoveAllInputs();
+    vtkstd::set<void*>::iterator iter;
+    for (iter = current_producers.begin(); iter != current_producers.end();
+      ++iter)
+      {
+      this->OrderedCompositingBSPCutsSource->AddInputConnection(0,
+        reinterpret_cast<vtkAlgorithm*>(*iter)->GetOutputPort(0));
+      }
+    previous_producers = current_producers;
+    }
 }
 
 //----------------------------------------------------------------------------

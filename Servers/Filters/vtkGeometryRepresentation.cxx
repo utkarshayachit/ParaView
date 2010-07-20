@@ -27,6 +27,7 @@
 #include "vtkRenderer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
+#include "vtkOrderedCompositeDistributor.h"
 
 vtkStandardNewMacro(vtkGeometryRepresentation);
 //----------------------------------------------------------------------------
@@ -39,6 +40,7 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->LODMapper = vtkPolyDataMapper::New();
   this->Actor = vtkPVLODActor::New();
   this->Property = vtkProperty::New();
+  this->Property->SetOpacity(0.5);
   this->DeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
   this->LODDeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
 
@@ -47,8 +49,12 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->DeliveryFilter->SetOutputDataType(VTK_POLY_DATA);
   this->LODDeliveryFilter->SetOutputDataType(VTK_POLY_DATA);
 
+  this->Distributor = vtkOrderedCompositeDistributor::New();
+  this->Distributor->SetController(vtkMultiProcessController::GetGlobalController());
+  this->Distributor->SetInputConnection(0, this->DeliveryFilter->GetOutputPort());
+
   this->Decimator->SetInputConnection(this->GeometryFilter->GetOutputPort());
-  this->Mapper->SetInputConnection(this->DeliveryFilter->GetOutputPort());
+  this->Mapper->SetInputConnection(this->Distributor->GetOutputPort());
   this->LODMapper->SetInputConnection(this->LODDeliveryFilter->GetOutputPort());
   this->Actor->SetMapper(this->Mapper);
   this->Actor->SetLODMapper(this->LODMapper);
@@ -66,6 +72,7 @@ vtkGeometryRepresentation::~vtkGeometryRepresentation()
   this->Property->Delete();
   this->DeliveryFilter->Delete();
   this->LODDeliveryFilter->Delete();
+  this->Distributor->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -83,13 +90,43 @@ int vtkGeometryRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type,
   vtkInformation* inInfo, vtkInformation* outInfo)
 {
-  if (request_type == vtkView::REQUEST_INFORMATION())
+  if (request_type == vtkView::REQUEST_UPDATE())
+    {
+    this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
+    outInfo->Set(vtkPVRenderView::UNSTRUCTURED_PRODUCER(),
+      this->DeliveryFilter);
+    if (this->Actor->GetProperty()->GetOpacity() < 1.0)
+      {
+      outInfo->Set(vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1);
+      }
+    }
+  else if (request_type == vtkView::REQUEST_INFORMATION())
     {
     this->RequestMetaData(inInfo, outInfo);
     }
   else if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
     {
-    this->PrepareForRendering(inInfo, outInfo);
+    // this is where we will look to see on what nodes are we going to render and
+    // render set that up.
+    this->DeliveryFilter->ProcessViewRequest(inInfo);
+    this->LODDeliveryFilter->ProcessViewRequest(inInfo);
+    this->Actor->SetEnableLOD(inInfo->Has(vtkPVRenderView::USE_LOD())? 1 : 0);
+    }
+  else if (request_type == vtkView::REQUEST_RENDER())
+    {
+    if (inInfo->Has(vtkPVRenderView::ORDERED_COMPOSITING_CUTS_SOURCE()))
+      {
+      vtkAlgorithm* cutSource = vtkAlgorithm::SafeDownCast(
+        inInfo->Get(vtkPVRenderView::ORDERED_COMPOSITING_CUTS_SOURCE()));
+      this->Distributor->SetInputConnection(1, cutSource->GetOutputPort(0));
+      this->Distributor->SetPassThrough(0);
+      }
+    else
+      {
+      this->Distributor->SetInputConnection(1, NULL);
+      this->Distributor->SetPassThrough(1);
+      }
+    this->Actor->GetMapper()->Update();
     }
 
   return this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
@@ -149,20 +186,6 @@ bool vtkGeometryRepresentation::RequestMetaData(vtkInformation*,
     outInfo->Set(vtkPVRenderView::GEOMETRY_SIZE(),geom->GetActualMemorySize());
     }
   return 1; 
-}
-
-//----------------------------------------------------------------------------
-bool vtkGeometryRepresentation::PrepareForRendering(
-  vtkInformation* inInfo, vtkInformation*)
-{
-  // this is where we will look to see on what nodes are we going to render and
-  // render set that up.
-  this->DeliveryFilter->ProcessViewRequest(inInfo);
-  this->LODDeliveryFilter->ProcessViewRequest(inInfo);
-
-  this->Actor->SetEnableLOD(inInfo->Has(vtkPVRenderView::USE_LOD())? 1 : 0);
-  this->Actor->GetMapper()->Update();
-  return true;
 }
 
 //----------------------------------------------------------------------------

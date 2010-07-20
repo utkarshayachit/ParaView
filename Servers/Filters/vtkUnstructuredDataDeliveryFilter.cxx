@@ -22,7 +22,6 @@
 #include "vtkMPIMToNSocketConnection.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
-#include "vtkOrderedCompositeDistributor.h"
 #include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
 #include "vtkPVRenderView.h"
@@ -36,9 +35,6 @@ vtkUnstructuredDataDeliveryFilter::vtkUnstructuredDataDeliveryFilter()
   this->SetNumberOfOutputPorts(1);
 
   this->MoveData = vtkMPIMoveData::New();
-  this->Distributor = vtkOrderedCompositeDistributor::New();
-  this->Distributor->SetInputConnection(this->MoveData->GetOutputPort());
-  this->Distributor->PassThroughOn();
 
   this->OutputDataType = VTK_VOID;
   this->SetOutputDataType(VTK_POLY_DATA);
@@ -51,7 +47,6 @@ vtkUnstructuredDataDeliveryFilter::vtkUnstructuredDataDeliveryFilter()
 vtkUnstructuredDataDeliveryFilter::~vtkUnstructuredDataDeliveryFilter()
 {
   this->MoveData->Delete();
-  this->Distributor->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -75,7 +70,8 @@ void vtkUnstructuredDataDeliveryFilter::SetOutputDataType(int type)
 
 //-----------------------------------------------------------------------------
 int vtkUnstructuredDataDeliveryFilter::RequestDataObject(
-  vtkInformation* request, vtkInformationVector** inputVector,
+  vtkInformation* vtkNotUsed(request),
+  vtkInformationVector** vtkNotUsed(inputVector),
   vtkInformationVector* outputVector)
 {
   vtkDataObject *output = vtkDataObject::GetData(outputVector, 0);
@@ -128,17 +124,18 @@ void vtkUnstructuredDataDeliveryFilter::InitializeForCommunication()
       pm->GetObjectFromID(pm->GetMPIMToNSocketConnectionID(), true));
   this->MoveData->SetMPIMToNSocketConnection(render_server_data_server_connector);
   this->MoveData->SetController(pm->GetController());
-  this->Distributor->SetController(pm->GetController());
 }
 
 //----------------------------------------------------------------------------
-int vtkUnstructuredDataDeliveryFilter::RequestData(vtkInformation *request,
-  vtkInformationVector **inputVector, vtkInformationVector *outputVector)
+int vtkUnstructuredDataDeliveryFilter::RequestData(
+  vtkInformation *vtkNotUsed(request),
+  vtkInformationVector **inputVector,
+  vtkInformationVector *outputVector)
 {
   vtkDataObject* input = (inputVector[0]->GetNumberOfInformationObjects() == 1)?
     vtkDataObject::GetData(inputVector[0], 0) : NULL;
   vtkDataObject* output = vtkDataObject::GetData(outputVector, 0);
- 
+
   vtkSmartPointer<vtkDataObject> inputClone;
   if (input)
     {
@@ -146,11 +143,11 @@ int vtkUnstructuredDataDeliveryFilter::RequestData(vtkInformation *request,
     inputClone->ShallowCopy(input);
     }
   this->MoveData->SetInput(inputClone);
-  this->Distributor->Update();
-  output->ShallowCopy(this->Distributor->GetOutputDataObject(0));
+  this->MoveData->Update();
+  output->ShallowCopy(this->MoveData->GetOutputDataObject(0));
   return 1;
 }
-  
+
 //----------------------------------------------------------------------------
 void vtkUnstructuredDataDeliveryFilter::ProcessViewRequest(vtkInformation* info)
 {
@@ -180,9 +177,7 @@ unsigned long vtkUnstructuredDataDeliveryFilter::GetMTime()
 {
   unsigned long mtime = this->Superclass::GetMTime();
   unsigned long md_mtime = this->MoveData->GetMTime();
-  unsigned long d_mtime = this->Distributor->GetMTime();
   mtime = mtime > md_mtime? mtime : md_mtime;
-  mtime = mtime > d_mtime? mtime :d_mtime;
   return mtime;
 }
 

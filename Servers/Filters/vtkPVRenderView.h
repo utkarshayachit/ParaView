@@ -37,14 +37,16 @@
 
 #include "vtkPVView.h"
 
+class vtkBSPCutsGenerator;
 class vtkCamera;
+class vtkInformationIntegerKey;
+class vtkInformationObjectBaseKey;
+class vtkInformationRequestKey;
 class vtkPVSynchronizedRenderer;
 class vtkPVSynchronizedRenderWindows;
-class vtkRenderViewBase;
 class vtkRenderer;
+class vtkRenderViewBase;
 class vtkRenderWindow;
-class vtkInformationIntegerKey;
-class vtkInformationRequestKey;
 
 class VTK_EXPORT vtkPVRenderView : public vtkPVView
 {
@@ -136,6 +138,10 @@ public:
   void ResetCameraClippingRange();
 
   // Description:
+  // Overridden to collect information for ordered-compositing.
+  virtual void Update();
+
+  // Description:
   // vtkDataRepresentation can use this key to publish meta-data about geometry
   // size in the VIEW_REQUEST_METADATA pass. If this meta-data is available,
   // then the view can make informed decisions about where to render/whether to
@@ -147,7 +153,9 @@ public:
   static vtkInformationIntegerKey* DELIVER_LOD_TO_CLIENT();
   static vtkInformationIntegerKey* DELIVER_OUTLINE_TO_CLIENT();
   static vtkInformationIntegerKey* LOD_RESOLUTION();
-
+  static vtkInformationObjectBaseKey* UNSTRUCTURED_PRODUCER();
+  static vtkInformationObjectBaseKey* ORDERED_COMPOSITING_CUTS_SOURCE();
+  static vtkInformationIntegerKey* NEED_ORDERED_COMPOSITING();
 //BTX
 protected:
   vtkPVRenderView();
@@ -171,13 +179,22 @@ protected:
   bool GetUseLODRendering();
 
   // Description:
+  // Returns true when ordered compositing is needed on the current group of
+  // processes. Note that unlike most other functions, this may return different
+  // values on different processes e.g.
+  // \li always false on client and dataserver
+  // \li true on pvserver or renderserver if opacity < 1 or volume present, else
+  //     false
+  bool GetUseOrderedCompositing();
+
+  // Description:
   // Returns true if outline should be delivered to client.
   bool GetDeliverOutlineToClient();
 
   // Description:
   // Update the request to enable/disable distributed rendering.
   void SetRequestDistributedRendering(bool);
-  
+
   // Description:
   // Update the request to enable/disable low-res rendering.
   void SetRequestLODRendering(bool);
@@ -195,6 +212,7 @@ protected:
   unsigned long ClientOutlineThreshold;
   double LastComputedBounds[6];
 
+  vtkBSPCutsGenerator* OrderedCompositingBSPCutsSource;
 private:
   vtkPVRenderView(const vtkPVRenderView&); // Not implemented
   void operator=(const vtkPVRenderView&); // Not implemented

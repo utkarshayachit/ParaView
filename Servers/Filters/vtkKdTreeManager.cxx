@@ -41,11 +41,21 @@ vtkCxxSetObjectMacro(vtkKdTreeManager, StructuredProducer, vtkAlgorithm);
 //----------------------------------------------------------------------------
 vtkKdTreeManager::vtkKdTreeManager()
 {
+  vtkMultiProcessController* globalController =
+    vtkMultiProcessController::GetGlobalController();
+
   this->Producers = new vtkAlgorithmSet();
   this->StructuredProducer = 0;
   this->KdTree = 0;
-  this->NumberOfPieces = 1;
+  this->NumberOfPieces = globalController->GetNumberOfProcesses();
   this->KdTreeInitialized = false;
+
+  vtkPKdTree* tree = vtkPKdTree::New();
+  tree->SetController(globalController);
+  tree->SetMinCells(0);
+  tree->SetNumberOfRegionsOrMore(this->NumberOfPieces);
+  this->SetKdTree(tree);
+  tree->FastDelete();
 }
 
 //----------------------------------------------------------------------------
@@ -184,6 +194,7 @@ void vtkKdTreeManager::Update()
 
   this->KdTree->BuildLocator();
   this->UpdateTime.Modified();
+  this->KdTree->PrintTree();
 }
 
 //-----------------------------------------------------------------------------

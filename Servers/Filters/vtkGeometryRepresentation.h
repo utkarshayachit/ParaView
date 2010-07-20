@@ -28,6 +28,7 @@ class vtkPVGeometryFilter;
 class vtkPVLODActor;
 class vtkQuadricClustering;
 class vtkUnstructuredDataDeliveryFilter;
+class vtkOrderedCompositeDistributor;
 
 class VTK_EXPORT vtkGeometryRepresentation : public vtkDataRepresentation
 {
@@ -75,7 +76,6 @@ protected:
     vtkInformationVector* outputVector);
 
   bool RequestMetaData(vtkInformation*, vtkInformation*);
-  bool PrepareForRendering(vtkInformation*, vtkInformation*);
 
   // Description:
   // Adds the representation to the view.  This is called from
@@ -97,6 +97,7 @@ protected:
   vtkProperty* Property;
   vtkUnstructuredDataDeliveryFilter* DeliveryFilter;
   vtkUnstructuredDataDeliveryFilter* LODDeliveryFilter;
+  vtkOrderedCompositeDistributor* Distributor;
 private:
   vtkGeometryRepresentation(const vtkGeometryRepresentation&); // Not implemented
   void operator=(const vtkGeometryRepresentation&); // Not implemented

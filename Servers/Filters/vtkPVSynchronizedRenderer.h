@@ -25,6 +25,7 @@
 class vtkSynchronizedRenderers;
 class vtkIceTSynchronizedRenderers;
 class vtkRenderer;
+class vtkPKdTree;
 
 class VTK_EXPORT vtkPVSynchronizedRenderer : public vtkObject
 {
@@ -32,6 +33,11 @@ public:
   static vtkPVSynchronizedRenderer* New();
   vtkTypeRevisionMacro(vtkPVSynchronizedRenderer, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  // Description:
+  // kd tree that gives processes ordering. Initial value is a NULL pointer.
+  // This is used only when UseOrderedCompositing is true.
+  void SetKdTree(vtkPKdTree *kdtree);
 
   // Description:
   // Set the renderer that is being synchronized.

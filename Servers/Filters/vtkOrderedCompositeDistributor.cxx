@@ -57,7 +57,6 @@ static void D3UpdateProgress(vtkObject *_D3, unsigned long,
 
 vtkStandardNewMacro(vtkOrderedCompositeDistributor);
 
-vtkCxxSetObjectMacro(vtkOrderedCompositeDistributor, PKdTree, vtkPKdTree);
 vtkCxxSetObjectMacro(vtkOrderedCompositeDistributor, Controller,
                      vtkMultiProcessController);
 vtkCxxSetObjectMacro(vtkOrderedCompositeDistributor, D3,
@@ -69,7 +68,8 @@ vtkCxxSetObjectMacro(vtkOrderedCompositeDistributor, ToPolyData,
 
 vtkOrderedCompositeDistributor::vtkOrderedCompositeDistributor()
 {
-  this->PKdTree = NULL;
+  this->SetNumberOfInputPorts(2);
+
   this->Controller = NULL;
 
   this->D3 = NULL;
@@ -86,12 +86,9 @@ vtkOrderedCompositeDistributor::vtkOrderedCompositeDistributor()
 
 vtkOrderedCompositeDistributor::~vtkOrderedCompositeDistributor()
 {
-  this->SetPKdTree(NULL);
   this->SetController(NULL);
-
   this->SetD3(NULL);
   this->SetToPolyData(NULL);
-
   this->SetOutputType(NULL);
 
   if (this->LastOutput) this->LastOutput->Delete();
@@ -102,7 +99,6 @@ void vtkOrderedCompositeDistributor::PrintSelf(ostream &os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  os << indent << "PKdTree: " << this->PKdTree << endl;
   os << indent << "Controller: " << this->Controller << endl;
   os << indent << "PassThrough: " << this->PassThrough << endl;
   os << indent << "OutputType: " << 
@@ -120,18 +116,20 @@ void vtkOrderedCompositeDistributor::ReportReferences(
 
   vtkGarbageCollectorReport(collector, this->D3, "D3");
   vtkGarbageCollectorReport(collector, this->ToPolyData, "ToPolyData");
-  vtkGarbageCollectorReport(collector, this->PKdTree, "PKdTree");
   vtkGarbageCollectorReport(collector, this->Controller, "Controller");
 }
 
 //-----------------------------------------------------------------------------
-
 int vtkOrderedCompositeDistributor::FillInputPortInformation(
                                                  int port, vtkInformation *info)
 {
   if (!this->Superclass::FillInputPortInformation(port, info))
     {
     return 0;
+    }
+  if (port == 1)
+    {
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkBSPCuts");
     }
   info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
   return 1;
@@ -209,14 +207,14 @@ int vtkOrderedCompositeDistributor::RequestData(
     return 1;
     }
 
-  if (!this->PKdTree)
+  vtkBSPCuts *cuts = vtkBSPCuts::GetData(inputVector[1], 0);
+  if (!cuts)
     {
-    vtkWarningMacro("No PKdTree set. vtkOrderedCompositeDistributor requires that"
-      " at least an empty PKdTree be set.");
+    vtkWarningMacro("No cuts set. vtkOrderedCompositeDistributor requires that"
+      " at least an empty cuts input be set.");
     }
 
-  vtkBSPCuts *cuts = this->PKdTree? this->PKdTree->GetCuts() : NULL;
-  if (cuts == NULL)
+  if (cuts == NULL || cuts->GetKdNodeTree() == NULL)
     {
     // No partitioning has been defined.  Just pass the data through.
     output->ShallowCopy(input);

@@ -34,6 +34,7 @@ SET(Filters_SRCS
   vtkAttributeDataReductionFilter.cxx
   vtkAttributeDataToTableFilter.cxx
   vtkBlockDeliveryPreprocessor.cxx
+  vtkBSPCutsGenerator.cxx
   vtkCameraInterpolator2.cxx
   vtkCameraManipulator.cxx
   vtkCameraManipulatorGUIHelper.cxx
