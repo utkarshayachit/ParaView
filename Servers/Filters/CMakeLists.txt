@@ -156,6 +156,7 @@ SET(Filters_SRCS
   vtkPVTrackballZoom.cxx
   vtkPVUpdateSuppressor.cxx
   vtkPVHardwareSelector.cxx
+  vtkPVView.cxx
   vtkQuerySelectionSource.cxx
   vtkRealtimeAnimationPlayer.cxx
   vtkRectilinearGridConnectivity.cxx
@@ -223,6 +224,7 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkPVClientServerRenderManager.cxx
   vtkPVJoystickFly.cxx
   vtkPVRenderViewProxy.cxx
+  vtkPVView.cxx
   vtkSciVizStatistics.cxx
   vtkTransferFunctionEditorRepresentation1D.cxx
   vtkTransferFunctionEditorRepresentation.cxx

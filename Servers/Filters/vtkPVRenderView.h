@@ -35,7 +35,7 @@
 #ifndef __vtkPVRenderView_h
 #define __vtkPVRenderView_h
 
-#include "vtkView.h"
+#include "vtkPVView.h"
 
 class vtkCamera;
 class vtkPVSynchronizedRenderer;
@@ -46,30 +46,18 @@ class vtkRenderWindow;
 class vtkInformationIntegerKey;
 class vtkInformationRequestKey;
 
-class VTK_EXPORT vtkPVRenderView : public vtkView
+class VTK_EXPORT vtkPVRenderView : public vtkPVView
 {
 public:
   static vtkPVRenderView* New();
-  vtkTypeMacro(vtkPVRenderView, vtkView);
+  vtkTypeMacro(vtkPVRenderView, vtkPVView);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
   // Initialize the view with an identifier. Unless noted otherwise, this method
   // must be called before calling any other methods on this class.
   // @CallOnAllProcessess
-  void Initialize(unsigned int id);
-
-  // Description:
-  // Set the position on this view in the multiview configuration.
-  // This can be called only after Initialize().
-  // @CallOnAllProcessess
-  void SetPosition(int, int);
-
-  // Description:
-  // Set the size of this view in the multiview configuration.
-  // This can be called only after Initialize().
-  // @CallOnAllProcessess
-  void SetSize(int, int);
+  virtual void Initialize(unsigned int id);
 
   // Description:
   // Gets the non-composited renderer for this view. This is typically used for
@@ -101,8 +89,6 @@ public:
   // result in a low-resolution rendering or a simplified geometry rendering.
   // @CallOnAllProcessess
   virtual void InteractiveRender();
-
-  void Render(bool interactive);
 
   // Description:
   // Get/Set the reduction-factor to use when for StillRender(). This is
@@ -168,6 +154,10 @@ protected:
   ~vtkPVRenderView();
 
   // Description:
+  // Actual render method.
+  void Render(bool interactive);
+
+  // Description:
   // Sychronizes the geometry size information on all nodes.
   // @CallOnAllProcessess
   void GatherGeometrySizeInformation();
@@ -192,15 +182,9 @@ protected:
   // Update the request to enable/disable low-res rendering.
   void SetRequestLODRendering(bool);
 
-  // Description:
-  // Returns true if the application is currently in tile display mode.
-  bool InTileDisplayMode();
-
   vtkRenderViewBase* RenderView;
   vtkRenderer* NonCompositedRenderer;
-  vtkPVSynchronizedRenderWindows* SynchronizedWindows;
   vtkPVSynchronizedRenderer* SynchronizedRenderers;
-  unsigned int Identifier;
 
   int StillRenderImageReductionFactor;
   int InteractiveRenderImageReductionFactor;
