@@ -17,12 +17,13 @@
 #include "vtkCommand.h"
 #include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVServerInformation.h"
 #include "vtkProcessModule.h"
+#include "vtkPVOptions.h"
+#include "vtkPVServerInformation.h"
 #include "vtkRemoteConnection.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
 #include "vtkRendererCollection.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindow.h"
 #include "vtkSmartPointer.h"
 #include "vtkSocketController.h"
 #include "vtkTilesHelper.h"
@@ -173,7 +174,11 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
     }
   else if (pm->GetActiveRemoteConnection()->IsA("vtkClientConnection"))
     {
-    this->Mode = SERVER;
+    this->Mode = RENDER_SERVER;
+    if (pm->GetOptions()->GetProcessType() == vtkPVOptions::PVDATA_SERVER)
+      {
+      this->Mode = DATA_SERVER;
+      }
     }
   else if (pm->GetActiveRemoteConnection()->IsA("vtkServerConnection"))
     {
@@ -184,6 +189,7 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
   switch (this->Mode)
     {
   case BUILTIN:
+  case DATA_SERVER:
     // nothing to do.
     break;
 
@@ -191,7 +197,7 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
     this->SetParallelController(vtkMultiProcessController::GetGlobalController());
     break;
 
-  case SERVER:
+  case RENDER_SERVER:
     this->SetParallelController(vtkMultiProcessController::GetGlobalController());
     this->SetClientServerController(pm->GetActiveRenderServerSocketController());
     break;
@@ -231,7 +237,7 @@ bool vtkPVSynchronizedRenderWindows::GetLocalProcessIsDriver()
   case CLIENT:
     return true;
 
-  case SERVER:
+  case RENDER_SERVER:
     return false;
 
   case BATCH:
@@ -240,6 +246,8 @@ bool vtkPVSynchronizedRenderWindows::GetLocalProcessIsDriver()
       {
       return true;
       }
+
+  case DATA_SERVER:
   default:
     return false;
     }
@@ -263,9 +271,9 @@ void vtkPVSynchronizedRenderWindows::SetClientServerController(
     ClientServerController, vtkMultiProcessController, controller);
   this->ClientServerRMITag = 0;
 
-  // Only the server processes needs to listen to SYNC_MULTI_RENDER_WINDOW_TAG
+  // Only the RENDER_SERVER processes needs to listen to SYNC_MULTI_RENDER_WINDOW_TAG
   // triggers from the client.
-  if (controller && this->Mode == SERVER)
+  if (controller && this->Mode == RENDER_SERVER)
     {
     this->ClientServerRMITag =
       controller->AddRMICallback(::RenderRMI, this, SYNC_MULTI_RENDER_WINDOW_TAG);
@@ -293,7 +301,7 @@ void vtkPVSynchronizedRenderWindows::SetParallelController(
   // Only satellites listen to the SYNC_MULTI_RENDER_WINDOW_TAG
   // triggers from the root.
   if (controller &&
-     (this->Mode == SERVER || this->Mode == BATCH) &&
+     (this->Mode == RENDER_SERVER || this->Mode == BATCH) &&
      controller->GetLocalProcessId() > 0)
     {
     this->ParallelRMITag =
@@ -306,6 +314,13 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
 {
   switch (this->Mode)
     {
+  case DATA_SERVER:
+      {
+      // we could very return a dummy window here.
+      vtkRenderWindow* window = vtkRenderWindow::New();
+      return window;
+      }
+
   case BUILTIN:
   case CLIENT:
       {
@@ -317,7 +332,7 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
       return window;
       }
 
-  case SERVER:
+  case RENDER_SERVER:
   case BATCH:
     // all views share the same render window.
     if (!this->Internals->SharedRenderWindow)
@@ -512,7 +527,7 @@ void vtkPVSynchronizedRenderWindows::HandleStartRender(vtkRenderWindow* renWin)
     this->ClientStartRender(renWin);
     break;
 
-  case SERVER:
+  case RENDER_SERVER:
   case BATCH:
     if (this->ParallelController->GetLocalProcessId() == 0)
       {
@@ -526,6 +541,7 @@ void vtkPVSynchronizedRenderWindows::HandleStartRender(vtkRenderWindow* renWin)
     break;
 
   case BUILTIN:
+  case DATA_SERVER:
   default:
     return;
     }
@@ -540,7 +556,7 @@ void vtkPVSynchronizedRenderWindows::HandleEndRender(vtkRenderWindow*)
     this->ClientServerController->Barrier();
     break;
 
-  case SERVER:
+  case RENDER_SERVER:
     this->ClientServerController->Barrier();
     break;
 
@@ -760,7 +776,6 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
 
   switch (this->Mode)
     {
-  case BUILTIN:
   case CLIENT:
     for (iter = this->Internals->RenderWindows.begin();
       iter != this->Internals->RenderWindows.end(); ++iter)
@@ -774,7 +789,7 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
       }
     break;
 
-  case SERVER:
+  case RENDER_SERVER:
   case BATCH:
       {
       // If we are in tile-display mode, we should update the tile-scale
@@ -842,6 +857,8 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
       }
     break;
 
+  case BUILTIN:
+  case DATA_SERVER:
   case INVALID:
     abort();
     }

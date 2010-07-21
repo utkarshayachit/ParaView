@@ -4994,7 +4994,7 @@
 #endif
 
     <RenderView2Proxy name="RenderView2" class="vtkPVRenderView"
-           processes="client|renderserver">
+           processes="client|renderserver|dataserver">
 
       <IntVectorProperty
         name="Position"

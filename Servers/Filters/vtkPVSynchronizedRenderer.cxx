@@ -58,6 +58,10 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
   else if (pm->GetActiveRemoteConnection()->IsA("vtkClientConnection"))
     {
     this->Mode = SERVER;
+    if (pm->GetOptions()->GetProcessType() == vtkPVOptions::PVDATA_SERVER)
+      {
+      this->Mode = BUILTIN;
+      }
     }
   else if (pm->GetActiveRemoteConnection()->IsA("vtkServerConnection"))
     {

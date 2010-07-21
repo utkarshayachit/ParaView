@@ -144,6 +144,7 @@ int vtkGeometryRepresentation::RequestData(vtkInformation*,
     {
     this->GeometryFilter->SetInputConnection(
       this->GetInternalOutputPort());
+    cout << "Update GeometryFilter" << endl;
     this->GeometryFilter->Update();
     this->DeliveryFilter->SetInputConnection(
       this->GeometryFilter->GetOutputPort());
@@ -152,6 +153,7 @@ int vtkGeometryRepresentation::RequestData(vtkInformation*,
     }
   else
     {
+    cout << "Nothing to do in update" << endl;
     this->DeliveryFilter->RemoveAllInputs();
     this->LODDeliveryFilter->RemoveAllInputs();
     }
@@ -202,9 +204,10 @@ bool vtkGeometryRepresentation::GenerateMetaData(vtkInformation*,
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::MarkModified()
 {
-  this->Modified();
   this->DeliveryFilter->Modified();
   this->LODDeliveryFilter->Modified();
+  this->Distributor->Modified();
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------

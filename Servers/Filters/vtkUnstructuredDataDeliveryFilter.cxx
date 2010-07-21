@@ -149,6 +149,13 @@ int vtkUnstructuredDataDeliveryFilter::RequestData(
 }
 
 //----------------------------------------------------------------------------
+void vtkUnstructuredDataDeliveryFilter::Modified()
+{
+  this->MoveData->Modified();
+  this->Superclass::Modified();
+}
+
+//----------------------------------------------------------------------------
 void vtkUnstructuredDataDeliveryFilter::ProcessViewRequest(vtkInformation* info)
 {
   if (info->Has(vtkPVRenderView::DATA_DISTRIBUTION_MODE()))

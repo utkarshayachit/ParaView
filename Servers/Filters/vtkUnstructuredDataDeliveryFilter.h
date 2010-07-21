@@ -55,6 +55,8 @@ public:
   // Return this object's modified time.
   virtual unsigned long GetMTime();
 
+  virtual void Modified();
+
 //BTX
 protected:
   vtkUnstructuredDataDeliveryFilter();

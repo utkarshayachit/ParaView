@@ -145,7 +145,7 @@ protected:
   virtual void SatelliteStartRender(vtkRenderWindow*);
 
   // Description:
-  // This method should only be called on SERVER or BATCH processes.
+  // This method should only be called on RENDER_SERVER or BATCH processes.
   // Returns true if in tile display mode and fills up tile_dims with the tile
   // dimensions.
   bool GetTileDisplayParameters(int tile_dims[2]);
@@ -155,7 +155,8 @@ protected:
     INVALID,
     BUILTIN,
     CLIENT,
-    SERVER,
+    RENDER_SERVER,
+    DATA_SERVER,
     BATCH
     };
 
