@@ -189,13 +189,16 @@ void vtkPVRenderView::InteractiveRender()
 //----------------------------------------------------------------------------
 void vtkPVRenderView::Render(bool interactive)
 {
-  // Update all representations.
-  // This should update mostly just the inputs to the representations, and maybe
-  // the internal geometry filter.
-  this->Update();
+  if (!interactive)
+    {
+    // Update all representations.
+    // This should update mostly just the inputs to the representations, and maybe
+    // the internal geometry filter.
+    this->Update();
 
-  // Do the vtkView::REQUEST_INFORMATION() pass.
-  this->GatherRepresentationInformation();
+    // Do the vtkView::REQUEST_INFORMATION() pass.
+    this->GatherRepresentationInformation();
+    }
 
   // Gather information about geometry sizes from all representations.
   this->GatherGeometrySizeInformation();
@@ -220,8 +223,6 @@ void vtkPVRenderView::Render(bool interactive)
   // Build the request for REQUEST_PREPARE_FOR_RENDER().
   this->SetRequestDistributedRendering(use_distributed_rendering);
 
-  // TODO: Add more info about ordered compositing/tile-display etc.
-
   if (in_tile_display_mode)
     {
     if (this->GetDeliverOutlineToClient())
@@ -241,6 +242,8 @@ void vtkPVRenderView::Render(bool interactive)
     this->RequestInformation->Remove(DELIVER_OUTLINE_TO_CLIENT());
     }
 
+  // In REQUEST_PREPARE_FOR_RENDER, this view expects all representations to
+  // know the data-delivery mode.
   this->CallProcessViewRequest(
     vtkView::REQUEST_PREPARE_FOR_RENDER(),
     this->RequestInformation, this->ReplyInformationVector);
