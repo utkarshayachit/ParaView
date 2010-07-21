@@ -327,10 +327,11 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
       window->AlphaBitPlanesOn();
       // SwapBuffers should be ON only on root node in BATCH mode
       // or when operating in tile-display mode.
-      bool swap_buffers = true;
+      bool swap_buffers = false;
       swap_buffers |= (this->Mode == BATCH &&
         this->ParallelController->GetLocalProcessId() == 0);
-      //FIXME: for tile-displays
+      int not_used[2];
+      swap_buffers |= this->GetTileDisplayParameters(not_used);
       window->SetSwapBuffers(swap_buffers? 1 : 0);
       this->Internals->SharedRenderWindow.TakeReference(window);
       }
@@ -782,18 +783,12 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
       vtkPVServerInformation* server_info =
         vtkProcessModule::GetProcessModule()->GetServerInformation(NULL);
       int tile_dims[2];
-      tile_dims[0] = server_info->GetTileDimensions()[0];
-      tile_dims[1] = server_info->GetTileDimensions()[1];
-      bool in_tile_display_mode = (tile_dims[0] > 0 || tile_dims[1] > 0);
-      // FIXME: at somepoint we need to set the tile-scale and tile-viewport
-      // correctly on the render-window so that 2D annotations show up
-      // correctly.
-      tile_dims[0] = (tile_dims[0] == 0)? 1 : tile_dims[0];
-      tile_dims[1] = (tile_dims[1] == 0)? 1 : tile_dims[1];
+      bool in_tile_display_mode = this->GetTileDisplayParameters(tile_dims); 
       if (in_tile_display_mode)
         {
         // FIXME: handle full-screen case
         this->Internals->SharedRenderWindow->SetSize(400, 400);
+        //this->Internals->SharedRenderWindow->SetFullScreen(1);
 
         // TileScale and TileViewport must be setup on render window correctly
         // so that 2D props show up correctly in tile display mode.
@@ -811,6 +806,9 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
         }
       else
         {
+        // NOTE: if you want to render a higher resolution image on the server,
+        // you can very easily do that simply set that size here. Just ensure
+        // that the aspect ratio remains the same.
         this->Internals->SharedRenderWindow->SetSize(full_size);
         //this->Internals->SharedRenderWindow->SetPosition(0, 0);
         }
@@ -848,6 +846,19 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
     abort();
     }
 
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVSynchronizedRenderWindows::GetTileDisplayParameters(int tile_dims[2])
+{
+  vtkPVServerInformation* server_info =
+    vtkProcessModule::GetProcessModule()->GetServerInformation(NULL);
+  tile_dims[0] = server_info->GetTileDimensions()[0];
+  tile_dims[1] = server_info->GetTileDimensions()[1];
+  bool in_tile_display_mode = (tile_dims[0] > 0 || tile_dims[1] > 0);
+  tile_dims[0] = (tile_dims[0] == 0)? 1 : tile_dims[0];
+  tile_dims[1] = (tile_dims[1] == 0)? 1 : tile_dims[1];
+  return in_tile_display_mode;
 }
 
 //----------------------------------------------------------------------------

@@ -367,9 +367,6 @@ void vtkIceTCompositePass::GetLastRenderedTile(
   int width  = this->LastTileViewport[2] - this->LastTileViewport[0];
   int height = this->LastTileViewport[3] - this->LastTileViewport[1];
 
-  // FIXME: when image_reduction_factor > 1, we need to scale width and height
-  // accordingly.
-
   if (width < 1 || height < 1)
     {
     return;

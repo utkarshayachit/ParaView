@@ -82,6 +82,10 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
     sphere->SetConnectionID(view->GetConnectionID());
     sphere->UpdateVTKObjects();
     }
+  else
+    {
+    sphere->Register(NULL);
+    }
 
   vtkSMProxy* repr = pxm->NewProxy("representations",
     "GeometryRepresentation2");
@@ -98,7 +102,7 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
   return sphere;
 }
 
-//#define SECOND_WINDOW
+#define SECOND_WINDOW
 #define REMOTE_CONNECTION
 
 int main(int argc, char** argv)
@@ -183,7 +187,7 @@ int main(int argc, char** argv)
   vtkPVRenderView* rv2 = vtkPVRenderView::SafeDownCast(view2Proxy->GetClientSideObject());
   qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv2->GetRenderWindow());
-  setupRender(proxy);
+  setupRender(view2Proxy);
 
   addSphere(view2Proxy, sphere);
 

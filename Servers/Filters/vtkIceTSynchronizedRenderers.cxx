@@ -50,6 +50,12 @@ public:
       {
       // we have a complicated relationship with tile-scale when we are in
       // tile-display mode :).
+      // vtkPVSynchronizedRenderWindows sets up the tile-scale and origin on the
+      // window so that 2D annotations work just fine. However that messes up
+      // when we are using IceT since IceT will do the camera translations. So
+      // for IceT's sake, we reset the tile_scale/tile_viewport when doing the
+      // camera transformations. Of course, this is only an issue when rendering
+      // for tile-displays.
       int tile_scale[2];
       double tile_viewport[4];
       render_state->GetRenderer()->GetRenderWindow()->GetTileScale(tile_scale);
