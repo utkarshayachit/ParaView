@@ -75,7 +75,9 @@ protected:
     vtkInformationVector** inputVector,
     vtkInformationVector* outputVector);
 
-  bool RequestMetaData(vtkInformation*, vtkInformation*);
+  // Description:
+  // Produce meta-data about this representation that the view may find useful.
+  bool GenerateMetaData(vtkInformation*, vtkInformation*);
 
   // Description:
   // Adds the representation to the view.  This is called from

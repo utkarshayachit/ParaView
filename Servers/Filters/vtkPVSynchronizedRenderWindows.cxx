@@ -463,7 +463,7 @@ const int *vtkPVSynchronizedRenderWindows::GetWindowPosition(unsigned int id)
 //----------------------------------------------------------------------------
 void vtkPVSynchronizedRenderWindows::Render(unsigned int id)
 {
-  cout << "Rendering: " << id << endl;
+  //cout << "Rendering: " << id << endl;
   vtkInternals::RenderWindowsMap::iterator iter =
     this->Internals->RenderWindows.find(id);
   if (iter == this->Internals->RenderWindows.end())
@@ -495,7 +495,7 @@ void vtkPVSynchronizedRenderWindows::Render(unsigned int id)
   this->Internals->ActiveId = id;
   iter->second.RenderWindow->Render();
   this->Internals->ActiveId = 0;
-  cout << "Done Rendering: " << id << endl;
+  //cout << "Done Rendering: " << id << endl;
 }
 
 //----------------------------------------------------------------------------
@@ -835,9 +835,9 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
 
         // This viewport is the viewport for the renderers treating the all the
         // tiles as one large display.
-        cout << "Current Viewport:" << viewport[0]
-          << ", " << viewport[1] << ", " << viewport[2]
-          << ", " << viewport[3] << endl;
+        //cout << "Current Viewport:" << viewport[0]
+        //  << ", " << viewport[1] << ", " << viewport[2]
+        //  << ", " << viewport[3] << endl;
         this->Internals->UpdateViewports(
           iter->second.Renderers, viewport);
         }

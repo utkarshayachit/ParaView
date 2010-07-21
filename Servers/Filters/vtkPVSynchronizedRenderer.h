@@ -56,6 +56,13 @@ public:
   vtkGetMacro(ImageReductionFactor, int);
 
   // Description:
+  // Set to true if data is replicated on all processes. This will enable IceT
+  // to minimize communications since data is available on all process. Off by
+  // default.
+  void SetDataReplicatedOnAllProcesses(bool);
+  vtkBooleanMacro(DataReplicatedOnAllProcesses, bool);
+
+  // Description:
   // Compute visible props bounds. This method must be called on all processes.
   // It will result is providing the full data bounds on all processes involved.
   // NOTE: If this method is not called on all processes at the same time, it

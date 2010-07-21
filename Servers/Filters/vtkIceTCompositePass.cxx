@@ -297,11 +297,11 @@ void vtkIceTCompositePass::UpdateTileInformation(
     this->PhysicalViewport[0] = this->PhysicalViewport[1] =
       this->PhysicalViewport[2] = this->PhysicalViewport[3] = 0.0;
     }
-  cout << "Physical Viewport: "
-    << this->PhysicalViewport[0] << ", "
-    << this->PhysicalViewport[1] << ", "
-    << this->PhysicalViewport[2] << ", "
-    << this->PhysicalViewport[3] << endl;
+  //cout << "Physical Viewport: "
+  //  << this->PhysicalViewport[0] << ", "
+  //  << this->PhysicalViewport[1] << ", "
+  //  << this->PhysicalViewport[2] << ", "
+  //  << this->PhysicalViewport[3] << endl;
 
   if (this->LastTileMullions[0] == this->TileMullions[0] &&
     this->LastTileMullions[1] == this->TileMullions[1] &&
@@ -313,7 +313,7 @@ void vtkIceTCompositePass::UpdateTileInformation(
     }
 
 
-  cout << "_------------------" << endl;
+  //cout << "_------------------" << endl;
   icetResetTiles();
   for (int x=0; x < this->TileDimensions[0]; x++)
     {
@@ -325,11 +325,11 @@ void vtkIceTCompositePass::UpdateTileInformation(
         {
         continue;
         }
-      cout << this << "=" << cur_rank << " : "
-        << tile_viewport[0]/image_reduction_factor << ", "
-        << tile_viewport[1]/image_reduction_factor << ", "
-        << tile_viewport[2]/image_reduction_factor << ", "
-        << tile_viewport[3]/image_reduction_factor << endl;
+      //cout << this << "=" << cur_rank << " : "
+      //  << tile_viewport[0]/image_reduction_factor << ", "
+      //  << tile_viewport[1]/image_reduction_factor << ", "
+      //  << tile_viewport[2]/image_reduction_factor << ", "
+      //  << tile_viewport[3]/image_reduction_factor << endl;
 
       icetAddTile(
         tile_viewport[0]/image_reduction_factor, tile_viewport[1]/image_reduction_factor,

@@ -191,21 +191,6 @@ vtkPVSynchronizedRenderer::~vtkPVSynchronizedRenderer()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSynchronizedRenderer::SetKdTree(vtkPKdTree* tree)
-{
-#ifdef PARAVIEW_USE_ICE_T
-  vtkIceTSynchronizedRenderers* sync =
-    vtkIceTSynchronizedRenderers::SafeDownCast(this->ParallelSynchronizer);
-  if (sync)
-    {
-    sync->SetKdTree(tree);
-    sync->SetUseOrderedCompositing(tree != NULL);
-    }
-#endif
-  (void)tree;
-}
-
-//----------------------------------------------------------------------------
 void vtkPVSynchronizedRenderer::SetEnabled(bool enabled)
 {
   if (this->ParallelSynchronizer)
@@ -260,6 +245,35 @@ void vtkPVSynchronizedRenderer::SetImageReductionFactor(int factor)
     }
 
   this->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSynchronizedRenderer::SetDataReplicatedOnAllProcesses(bool replicated)
+{
+#ifdef PARAVIEW_USE_ICE_T
+  vtkIceTSynchronizedRenderers* sync =
+    vtkIceTSynchronizedRenderers::SafeDownCast(this->ParallelSynchronizer);
+  if (sync)
+    {
+    sync->SetDataReplicatedOnAllProcesses(replicated);
+    }
+#endif
+  (void)replicated;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSynchronizedRenderer::SetKdTree(vtkPKdTree* tree)
+{
+#ifdef PARAVIEW_USE_ICE_T
+  vtkIceTSynchronizedRenderers* sync =
+    vtkIceTSynchronizedRenderers::SafeDownCast(this->ParallelSynchronizer);
+  if (sync)
+    {
+    sync->SetKdTree(tree);
+    sync->SetUseOrderedCompositing(tree != NULL);
+    }
+#endif
+  (void)tree;
 }
 
 //----------------------------------------------------------------------------

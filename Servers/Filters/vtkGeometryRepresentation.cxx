@@ -41,7 +41,7 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->LODMapper = vtkPolyDataMapper::New();
   this->Actor = vtkPVLODActor::New();
   this->Property = vtkProperty::New();
-  this->Property->SetOpacity(0.5);
+  //this->Property->SetOpacity(0.5);
   this->DeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
   this->LODDeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
 
@@ -91,16 +91,16 @@ int vtkGeometryRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type,
   vtkInformation* inInfo, vtkInformation* outInfo)
 {
-  if (request_type == vtkView::REQUEST_UPDATE())
+
+  if (request_type == vtkView::REQUEST_INFORMATION())
     {
-    this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
-    }
-  else if (request_type == vtkView::REQUEST_INFORMATION())
-    {
-    this->RequestMetaData(inInfo, outInfo);
+    this->GenerateMetaData(inInfo, outInfo);
     }
   else if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
     {
+    // In REQUEST_PREPARE_FOR_RENDER, we need to ensure all our data-deliver
+    // filters have their states updated as requested by the view.
+
     // this is where we will look to see on what nodes are we going to render and
     // render set that up.
     this->DeliveryFilter->ProcessViewRequest(inInfo);
@@ -181,7 +181,7 @@ int vtkGeometryRepresentation::RequestUpdateExtent(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-bool vtkGeometryRepresentation::RequestMetaData(vtkInformation*,
+bool vtkGeometryRepresentation::GenerateMetaData(vtkInformation*,
   vtkInformation* outInfo)
 {
   vtkDataObject* geom = this->GeometryFilter->GetOutputDataObject(0);

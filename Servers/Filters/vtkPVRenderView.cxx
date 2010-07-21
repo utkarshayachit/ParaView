@@ -205,15 +205,24 @@ void vtkPVRenderView::Render(bool interactive)
 
   // Decide if we are doing remote rendering or local rendering.
   bool use_distributed_rendering = this->GetUseDistributedRendering();
-  this->SynchronizedWindows->SetEnabled(use_distributed_rendering);
-  this->SynchronizedRenderers->SetEnabled(use_distributed_rendering);
+  bool in_tile_display_mode = this->InTileDisplayMode();
+
+  // When in tile-display mode, we are always doing shared rendering. However
+  // when use_distributed_rendering we tell IceT that geometry is duplicated on
+  // all processes.
+  this->SynchronizedWindows->SetEnabled(
+    use_distributed_rendering || in_tile_display_mode);
+  this->SynchronizedRenderers->SetEnabled(
+    use_distributed_rendering || in_tile_display_mode);
+  this->SynchronizedRenderers->SetDataReplicatedOnAllProcesses(
+    !use_distributed_rendering && in_tile_display_mode);
 
   // Build the request for REQUEST_PREPARE_FOR_RENDER().
   this->SetRequestDistributedRendering(use_distributed_rendering);
 
   // TODO: Add more info about ordered compositing/tile-display etc.
 
-  if (this->InTileDisplayMode())
+  if (in_tile_display_mode)
     {
     if (this->GetDeliverOutlineToClient())
       {
