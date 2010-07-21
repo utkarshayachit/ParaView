@@ -193,6 +193,11 @@ protected:
   void GatherGeometrySizeInformation();
 
   // Description:
+  // Synchronizes bounds information on all nodes.
+  // @CallOnAllProcessess
+  void GatherBoundsInformation();
+
+  // Description:
   // Returns true if distributed rendering should be used.
   bool GetUseDistributedRendering();
 

@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkPVSynchronizedRenderWindows.h"
 
+#include "vtkBoundingBox.h"
 #include "vtkCommand.h"
 #include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
@@ -862,7 +863,6 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
   case INVALID:
     abort();
     }
-
 }
 
 //----------------------------------------------------------------------------
@@ -876,6 +876,204 @@ bool vtkPVSynchronizedRenderWindows::GetTileDisplayParameters(int tile_dims[2])
   tile_dims[0] = (tile_dims[0] == 0)? 1 : tile_dims[0];
   tile_dims[1] = (tile_dims[1] == 0)? 1 : tile_dims[1];
   return in_tile_display_mode;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVSynchronizedRenderWindows::SynchronizeSize(unsigned long& size)
+{
+  // handle trivial case.
+  if (this->Mode == BUILTIN || this->Mode == INVALID)
+    {
+    return true;
+    }
+
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+
+  vtkMultiProcessController* parallelController =
+    this->GetParallelController();
+  vtkMultiProcessController* c_rs_controller =
+    this->GetClientServerController();
+  vtkMultiProcessController* c_ds_controller = NULL;
+
+  if (this->Mode == CLIENT)
+    {
+    vtkMultiProcessController* cs = pm->GetActiveSocketController();
+    // if both are same, then we are not connected to a separate data server
+    if (cs != c_rs_controller)
+      {
+      c_ds_controller = cs;
+      }
+    }
+  else if (this->Mode == DATA_SERVER)
+    {
+    c_ds_controller = pm->GetActiveSocketController();
+    }
+
+  // The strategy is reduce the value to client then broadcast it out to
+  // render-server and data-server.
+  if (parallelController)
+    {
+    unsigned long result = size;
+    parallelController->Reduce(&size, &result, 1, vtkCommunicator::SUM_OP, 0);
+    size = result;
+    }
+
+  // on pvdataserver/pvrenderserver/pvserver/pvbatch, we now have collected the
+  // size-sum on root node.
+  switch (this->Mode)
+    {
+  case CLIENT:
+      {
+      if (c_ds_controller)
+        {
+        unsigned long other_size;
+        c_ds_controller->Receive(&other_size, 1, 1, 41232);
+        size += other_size;
+        }
+      if (c_rs_controller)
+        {
+        unsigned long other_size;
+        c_rs_controller->Receive(&other_size, 1, 1, 41232);
+        size += other_size;
+        }
+      if (c_ds_controller)
+        {
+        c_ds_controller->Send(&size, 1, 1, 41232);
+        }
+      if (c_rs_controller)
+        {
+        c_rs_controller->Send(&size, 1, 1, 41232);
+        }
+      }
+    break;
+
+  case DATA_SERVER:
+    // both can't be set on a server process.
+    assert(c_ds_controller != NULL);
+    c_ds_controller->Send(&size, 1, 1, 41232);
+    c_ds_controller->Receive(&size, 1, 1, 41232);
+    break;
+
+  case RENDER_SERVER:
+    assert(c_rs_controller != NULL);
+    c_rs_controller->Send(&size, 1, 1, 41232);
+    c_rs_controller->Receive(&size, 1, 1, 41232);
+    break;
+
+  default:
+    assert(c_ds_controller==NULL && c_rs_controller == NULL);
+    }
+
+  if (parallelController)
+    {
+    parallelController->Broadcast(&size, 1, 0);
+    }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVSynchronizedRenderWindows::SynchronizeBounds(double bounds[6])
+{
+  // handle trivial case.
+  if (this->Mode == BUILTIN || this->Mode == INVALID)
+    {
+    return true;
+    }
+
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+
+  vtkMultiProcessController* parallelController =
+    this->GetParallelController();
+  vtkMultiProcessController* c_rs_controller =
+    this->GetClientServerController();
+  vtkMultiProcessController* c_ds_controller = NULL;
+
+  if (this->Mode == CLIENT)
+    {
+    vtkMultiProcessController* cs = pm->GetActiveSocketController();
+    // if both are same, then we are not connected to a separate data server
+    if (cs != c_rs_controller)
+      {
+      c_ds_controller = cs;
+      }
+    }
+  else if (this->Mode == DATA_SERVER)
+    {
+    c_ds_controller = pm->GetActiveSocketController();
+    }
+
+  // The strategy is reduce the value to client then broadcast it out to
+  // render-server and data-server.
+  if (parallelController)
+    {
+    double min_bounds[3] = {bounds[0], bounds[2], bounds[4]};
+    double max_bounds[3] = {bounds[1], bounds[3], bounds[5]};
+    double min_result[3], max_result[3];
+    this->ParallelController->Reduce(min_bounds, min_result, 3,
+      vtkCommunicator::MIN_OP, 0);
+    this->ParallelController->Reduce(max_bounds, max_result, 3,
+      vtkCommunicator::MAX_OP, 0);
+    bounds[0] = min_result[0];
+    bounds[2] = min_result[1];
+    bounds[4] = min_result[2];
+    bounds[1] = max_result[0];
+    bounds[3] = max_result[1];
+    bounds[5] = max_result[2];
+    }
+
+  // on pvdataserver/pvrenderserver/pvserver/pvbatch, we now have collected the
+  // size-sum on root node.
+  switch (this->Mode)
+    {
+  case CLIENT:
+      {
+      vtkBoundingBox bbox;
+      bbox.AddBounds(bounds);
+
+      if (c_ds_controller)
+        {
+        c_ds_controller->Receive(bounds, 6, 1, 41232);
+        bbox.AddBounds(bounds);
+        }
+      if (c_rs_controller)
+        {
+        c_rs_controller->Receive(bounds, 6, 1, 41232);
+        bbox.AddBounds(bounds);
+        }
+      bbox.GetBounds(bounds);
+      if (c_ds_controller)
+        {
+        c_ds_controller->Send(bounds, 6, 1, 41232);
+        }
+      if (c_rs_controller)
+        {
+        c_rs_controller->Send(bounds, 6, 1, 41232);
+        }
+      }
+    break;
+
+  case DATA_SERVER:
+    // both can't be set on a server process.
+    assert(c_ds_controller != NULL);
+    c_ds_controller->Send(bounds, 6, 1, 41232);
+    c_ds_controller->Receive(bounds, 6, 1, 41232);
+    break;
+
+  case RENDER_SERVER:
+    assert(c_rs_controller != NULL);
+    c_rs_controller->Send(bounds, 6, 1, 41232);
+    c_rs_controller->Receive(bounds, 6, 1, 41232);
+    break;
+
+  default:
+    assert(c_ds_controller==NULL && c_rs_controller == NULL);
+    }
+
+  if (parallelController)
+    {
+    parallelController->Broadcast(bounds, 6, 0);
+    }
+  return true;
 }
 
 //----------------------------------------------------------------------------

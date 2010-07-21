@@ -158,12 +158,18 @@ void vtkPVRenderView::ResetCameraClippingRange()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::GatherBoundsInformation()
+{
+  this->GetRenderer()->ComputeVisiblePropBounds(this->LastComputedBounds);
+  this->SynchronizedWindows->SynchronizeBounds(this->LastComputedBounds);
+}
+
+//----------------------------------------------------------------------------
 // Note this is called on all processes.
 void vtkPVRenderView::ResetCamera()
 {
   this->Update();
-
-  this->SynchronizedRenderers->ComputeVisiblePropBounds(this->LastComputedBounds);
+  this->GatherBoundsInformation();
 
   // Remember, vtkRenderer::ResetCamera() call
   // vtkRenderer::ResetCameraClippingPlanes() with the given bounds.
@@ -277,7 +283,7 @@ void vtkPVRenderView::Render(bool interactive)
     // Keep bounds information up-to-date.
     // FIXME: How can be make this so that we don't have to do parallel
     // communication each time.
-    this->SynchronizedRenderers->ComputeVisiblePropBounds(this->LastComputedBounds);
+    this->GatherBoundsInformation();
     }
 
   // Call Render() on local render window only if
@@ -383,54 +389,8 @@ void vtkPVRenderView::GatherRepresentationInformation()
 //----------------------------------------------------------------------------
 void vtkPVRenderView::GatherGeometrySizeInformation()
 {
-  this->GeometrySize = 0;
-  unsigned long geometry_size = this->LocalGeometrySize;
-
-  // Now synchronize the geometry size.
-  vtkMultiProcessController* parallelController =
-    this->SynchronizedWindows->GetParallelController();
-  vtkMultiProcessController* csController =
-    this->SynchronizedWindows->GetClientServerController();
-
-  if (parallelController)
-    {
-    unsigned long reduced_value=0;
-    parallelController->AllReduce(&geometry_size, &reduced_value, 1,
-      vtkCommunicator::SUM_OP);
-    geometry_size = reduced_value;
-    }
-
-  if (csController)
-    {
-    // FIXME: won't it be easier to add some support for collective operations
-    // to the vtkSocketCommunicator?
-    if (this->SynchronizedWindows->GetLocalProcessIsDriver())
-      {
-      // client
-      unsigned long value;
-      csController->Broadcast(&geometry_size, 1, 0);
-      csController->Broadcast(&value, 1, 1);
-      geometry_size += value;
-      }
-    else
-      {
-      // server-root.
-      unsigned long value;
-      csController->Broadcast(&value, 1, 1);
-      csController->Broadcast(&geometry_size, 1, 0);
-      geometry_size += value;
-      }
-    }
-
-  if (parallelController)
-    {
-    unsigned long reduced_value=0;
-    parallelController->AllReduce(&geometry_size, &reduced_value, 1,
-      vtkCommunicator::SUM_OP);
-    geometry_size = reduced_value;
-    }
-
-  this->GeometrySize = geometry_size;
+  this->GeometrySize = this->LocalGeometrySize;
+  this->SynchronizedWindows->SynchronizeSize(this->GeometrySize);
 }
 
 //----------------------------------------------------------------------------
