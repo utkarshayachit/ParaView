@@ -138,10 +138,6 @@ public:
   void ResetCameraClippingRange();
 
   // Description:
-  // Overridden to collect information for ordered-compositing.
-  virtual void Update();
-
-  // Description:
   // vtkDataRepresentation can use this key to publish meta-data about geometry
   // size in the VIEW_REQUEST_METADATA pass. If this meta-data is available,
   // then the view can make informed decisions about where to render/whether to

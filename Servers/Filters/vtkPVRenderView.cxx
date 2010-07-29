@@ -431,14 +431,6 @@ bool vtkPVRenderView::GetUseOrderedCompositing()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderView::Update()
-{
-  this->Superclass::Update();
-
-
-}
-
-//----------------------------------------------------------------------------
 void vtkPVRenderView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

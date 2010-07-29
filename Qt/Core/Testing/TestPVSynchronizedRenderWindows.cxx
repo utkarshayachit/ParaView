@@ -38,10 +38,13 @@ static void callbackRender(
 }
 
 static void callbackStartEndInteraction(
-  vtkObject *, unsigned long eid, void *, void *)
+  vtkObject *, unsigned long eid, void *clientdata, void *)
 {
+  vtkSMProxy* proxy = reinterpret_cast<vtkSMProxy*>(clientdata);
   if (eid == vtkCommand::StartInteractionEvent)
     {
+    // ensure that StillRender is called before InteractiveRender
+    proxy->InvokeCommand("StillRender");
     ::InInteraction = true;
     }
   else
@@ -65,6 +68,7 @@ void setupRender(vtkSMProxy* proxy)
 
   observer = vtkCallbackCommand::New();
   observer->SetCallback(::callbackStartEndInteraction);
+  observer->SetClientData(proxy);
   rv->GetRenderWindow()->GetInteractor()->AddObserver(
     vtkCommand::StartInteractionEvent, observer);
   rv->GetRenderWindow()->GetInteractor()->AddObserver(
@@ -102,8 +106,9 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
   return sphere;
 }
 
-#define SECOND_WINDOW
-#define REMOTE_CONNECTION
+//#define SECOND_WINDOW
+//#define REMOTE_CONNECTION_CS
+#define REMOTE_CONNECTION_CRS
 
 int main(int argc, char** argv)
 {
@@ -119,10 +124,15 @@ int main(int argc, char** argv)
   options->Delete();
 
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-#ifdef REMOTE_CONNECTION
+#ifdef REMOTE_CONNECTION_CS
   vtkIdType connectionID = pm->ConnectToRemote("localhost", 11111);
 #else
+# ifdef REMOTE_CONNECTION_CRS
+  vtkIdType connectionID = pm->ConnectToRemote("localhost", 11111,
+    "localhost", 22221);
+# else
   vtkIdType connectionID = pm->ConnectToSelf();
+# endif
 #endif
 
   vtkSMProxy* viewProxy = vtkSMProxyManager::GetProxyManager()->NewProxy("views",

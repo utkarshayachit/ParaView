@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkGeometryRepresentation.h"
 
+#include "vtkCommand.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMultiProcessController.h"
@@ -91,7 +92,6 @@ int vtkGeometryRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type,
   vtkInformation* inInfo, vtkInformation* outInfo)
 {
-
   if (request_type == vtkView::REQUEST_INFORMATION())
     {
     this->GenerateMetaData(inInfo, outInfo);
@@ -118,6 +118,9 @@ int vtkGeometryRepresentation::ProcessViewRequest(
     }
   else if (request_type == vtkView::REQUEST_RENDER())
     {
+    // typically, representations don't do anything special in this pass.
+    // However, when we are doing ordered compositing, we need to ensure that
+    // the redistribution of data happens in this pass.
     if (inInfo->Has(vtkPVRenderView::KD_TREE()))
       {
       vtkPKdTree* kdTree = vtkPKdTree::SafeDownCast(
@@ -153,10 +156,16 @@ int vtkGeometryRepresentation::RequestData(vtkInformation*,
     }
   else
     {
-    cout << "Nothing to do in update" << endl;
+    cout << "Process has not input data" << endl;
     this->DeliveryFilter->RemoveAllInputs();
     this->LODDeliveryFilter->RemoveAllInputs();
     }
+
+  // We fire UpdateDataEvent to notify the representation proxy that the
+  // representation was updated. The representation proxty will then call
+  // PostUpdateData(). We do this since now representations are not updated at
+  // the proxy level.
+  this->InvokeEvent(vtkCommand::UpdateDataEvent);
   return 1;
 }
 
@@ -171,7 +180,7 @@ int vtkGeometryRepresentation::RequestUpdateExtent(vtkInformation* request,
     vtkMultiProcessController::GetGlobalController();
   if (controller && inputVector[0]->GetNumberOfInformationObjects() == 1)
     {
-    vtkStreamingDemandDrivenPipeline* sddp = 
+    vtkStreamingDemandDrivenPipeline* sddp =
       vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
     sddp->SetUpdateExtent(inputVector[0]->GetInformationObject(0),
       controller->GetLocalProcessId(),
@@ -198,12 +207,13 @@ bool vtkGeometryRepresentation::GenerateMetaData(vtkInformation*,
     {
     outInfo->Set(vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1);
     }
-  return 1; 
+  return 1;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::MarkModified()
 {
+  this->GeometryFilter->Modified();
   this->DeliveryFilter->Modified();
   this->LODDeliveryFilter->Modified();
   this->Distributor->Modified();

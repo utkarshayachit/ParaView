@@ -30,12 +30,16 @@ public:
 
   // Description:
   // Calls MarkDirty() and invokes ModifiedEvent.
-  virtual void MarkModified(vtkSMProxy* modifiedProxy);
+  virtual void MarkDirty(vtkSMProxy* modifiedProxy);
 
 //BTX
 protected:
   vtkSMRepresentationProxy2();
   ~vtkSMRepresentationProxy2();
+
+  virtual void CreateVTKObjects();
+
+  void RepresentationUpdated();
 
 private:
   vtkSMRepresentationProxy2(const vtkSMRepresentationProxy2&); // Not implemented

@@ -17,11 +17,13 @@
 #include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
+#include "vtkMemberFunctionCommand.h"
 
 vtkStandardNewMacro(vtkSMRepresentationProxy2);
 //----------------------------------------------------------------------------
 vtkSMRepresentationProxy2::vtkSMRepresentationProxy2()
 {
+
 }
 
 //----------------------------------------------------------------------------
@@ -30,8 +32,27 @@ vtkSMRepresentationProxy2::~vtkSMRepresentationProxy2()
 }
 
 //----------------------------------------------------------------------------
-void vtkSMRepresentationProxy2::MarkModified(vtkSMProxy* modifiedProxy)
+void vtkSMRepresentationProxy2::CreateVTKObjects()
 {
+  if (this->ObjectsCreated)
+    {
+    return;
+    }
+  this->Superclass::CreateVTKObjects();
+
+  vtkMemberFunctionCommand<vtkSMRepresentationProxy2>* observer =
+    vtkMemberFunctionCommand<vtkSMRepresentationProxy2>::New();
+  observer->SetCallback(*this, &vtkSMRepresentationProxy2::RepresentationUpdated);
+
+  vtkObject::SafeDownCast(this->GetClientSideObject())->AddObserver(
+    vtkCommand::UpdateDataEvent, observer);
+  observer->Delete();
+}
+
+//----------------------------------------------------------------------------
+void vtkSMRepresentationProxy2::MarkDirty(vtkSMProxy* modifiedProxy)
+{
+  cout << "MarkModified" << endl;
   if (modifiedProxy != this && this->ObjectsCreated && !this->NeedsUpdate)
     {
     vtkClientServerStream stream;
@@ -44,6 +65,13 @@ void vtkSMRepresentationProxy2::MarkModified(vtkSMProxy* modifiedProxy)
       this->Servers, stream);
     }
   this->Superclass::MarkModified(modifiedProxy);
+}
+
+//----------------------------------------------------------------------------
+void vtkSMRepresentationProxy2::RepresentationUpdated()
+{
+  cout << "RepresentationUpdated" << endl;
+  this->PostUpdateData();
 }
 
 //----------------------------------------------------------------------------
