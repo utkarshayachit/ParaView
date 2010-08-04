@@ -172,6 +172,19 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
       {
       this->Mode = BATCH;
       }
+    // It's possible that is this is a satellite node on render-server or
+    // data-server.
+    switch (pm->GetOptions()->GetProcessType())
+      {
+    case vtkPVOptions::PVDATA_SERVER:
+      this->Mode = DATA_SERVER;
+      break;
+
+    case vtkPVOptions::PVRENDER_SERVER:
+    case vtkPVOptions::PVSERVER:
+      this->Mode = RENDER_SERVER;
+      break;
+      }
     }
   else if (pm->GetActiveRemoteConnection()->IsA("vtkClientConnection"))
     {
@@ -200,6 +213,7 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
 
   case RENDER_SERVER:
     this->SetParallelController(vtkMultiProcessController::GetGlobalController());
+    // this will be NULL on satellites.
     this->SetClientServerController(pm->GetActiveRenderServerSocketController());
     break;
 
@@ -558,7 +572,10 @@ void vtkPVSynchronizedRenderWindows::HandleEndRender(vtkRenderWindow*)
     break;
 
   case RENDER_SERVER:
-    this->ClientServerController->Barrier();
+    if (this->ParallelController->GetLocalProcessId() == 0)
+      {
+      this->ClientServerController->Barrier();
+      }
     break;
 
   default:
@@ -949,15 +966,19 @@ bool vtkPVSynchronizedRenderWindows::SynchronizeSize(unsigned long& size)
 
   case DATA_SERVER:
     // both can't be set on a server process.
-    assert(c_ds_controller != NULL);
-    c_ds_controller->Send(&size, 1, 1, 41232);
-    c_ds_controller->Receive(&size, 1, 1, 41232);
+    if (c_ds_controller)
+      {
+      c_ds_controller->Send(&size, 1, 1, 41232);
+      c_ds_controller->Receive(&size, 1, 1, 41232);
+      }
     break;
 
   case RENDER_SERVER:
-    assert(c_rs_controller != NULL);
-    c_rs_controller->Send(&size, 1, 1, 41232);
-    c_rs_controller->Receive(&size, 1, 1, 41232);
+    if (c_rs_controller)
+      {
+      c_rs_controller->Send(&size, 1, 1, 41232);
+      c_rs_controller->Receive(&size, 1, 1, 41232);
+      }
     break;
 
   default:
@@ -1054,15 +1075,19 @@ bool vtkPVSynchronizedRenderWindows::SynchronizeBounds(double bounds[6])
 
   case DATA_SERVER:
     // both can't be set on a server process.
-    assert(c_ds_controller != NULL);
-    c_ds_controller->Send(bounds, 6, 1, 41232);
-    c_ds_controller->Receive(bounds, 6, 1, 41232);
+    if (c_ds_controller != NULL)
+      {
+      c_ds_controller->Send(bounds, 6, 1, 41232);
+      c_ds_controller->Receive(bounds, 6, 1, 41232);
+      }
     break;
 
   case RENDER_SERVER:
-    assert(c_rs_controller != NULL);
-    c_rs_controller->Send(bounds, 6, 1, 41232);
-    c_rs_controller->Receive(bounds, 6, 1, 41232);
+    if (c_rs_controller != NULL)
+      {
+      c_rs_controller->Send(bounds, 6, 1, 41232);
+      c_rs_controller->Receive(bounds, 6, 1, 41232);
+      }
     break;
 
   default:
