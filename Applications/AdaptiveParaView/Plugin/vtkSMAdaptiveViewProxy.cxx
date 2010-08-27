@@ -19,6 +19,7 @@
 #include "vtkCamera.h"
 #include "vtkClientServerStream.h"
 #include "vtkCollectionIterator.h"
+#include "vtkErrorCode.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
@@ -170,6 +171,18 @@ void vtkSMAdaptiveViewProxy::EndCreateVTKObjects()
   vtkPVGenericRenderWindowInteractor *iren = 
     this->Internals->RootView->GetInteractor();
   iren->SetPVRenderView(this->RenderViewHelper);
+
+  //turn off the axes widgets by default
+  vtkSMIntVectorProperty *vis;
+  vtkSMProxy *annotation;
+  annotation = this->Internals->RootView->GetOrientationWidgetProxy();
+  vis = vtkSMIntVectorProperty::SafeDownCast(annotation->GetProperty("Visibility"));
+  vis->SetElement(0,0);
+  annotation = this->Internals->RootView->GetCenterAxesProxy();
+  vis = vtkSMIntVectorProperty::SafeDownCast(annotation->GetProperty("Visibility"));
+  vis->SetElement(0,0);
+
+  this->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------
@@ -304,6 +317,20 @@ int vtkSMAdaptiveViewProxy::WriteImage(const char* filename, int magnification)
   vtkSmartPointer<vtkImageData> shot;
   shot.TakeReference(this->CaptureWindow(magnification));
   return vtkSMUtilities::SaveImage(shot, filename);
+}
+
+//-----------------------------------------------------------------------------
+int vtkSMAdaptiveViewProxy::WriteImage(const char* filename,
+  const char* writerName, int magnification)
+{
+  if (!filename || !writerName)
+    {
+    return vtkErrorCode::UnknownError;
+    }
+
+  vtkSmartPointer<vtkImageData> shot;
+  shot.TakeReference(this->CaptureWindow(magnification));
+  return vtkSMUtilities::SaveImageOnProcessZero(shot, filename, writerName);
 }
 
 //STUFF TO MAKE A PLUGIN VIEW WITH SPECIALIZED STREAMING REPS and STRATS

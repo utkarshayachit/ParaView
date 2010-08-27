@@ -72,7 +72,10 @@ def _wrap_property(proxy, smproperty):
             iter = smproperty.NewDomainIterator()
             isFileName = False
             while not iter.IsAtEnd():
-                if iter.GetDomain().IsA("vtkSMFileListDomain"):
+                # Refer to BUG #9710 to see why optional domains need to be
+                # ignored.
+                if iter.GetDomain().IsA("vtkSMFileListDomain") and \
+                  iter.GetDomain().GetIsOptional() == 0 :
                     isFileName = True
                     break
                 iter.Next()
@@ -182,9 +185,15 @@ class Proxy(object):
                 del args['registrationName']
             pxm = ProxyManager()
             pxm.RegisterProxy(registrationGroup, registrationName, self.SMProxy)
+        update = True
+        if 'no_update' in args:
+            if args['no_update']:
+                update = False
+            del args['no_update']
+        if update:
+            self.UpdateVTKObjects()
         for key in args.keys():
             setattr(self, key, args[key])
-        self.UpdateVTKObjects()
         # Visit all properties so that they are created
         for prop in self:
             pass
@@ -234,6 +243,11 @@ class Proxy(object):
     def __eq__(self, other):
         "Returns true if the underlying SMProxies are the same."
         if isinstance(other, Proxy):
+            try:
+                if self.Port != other.Port:
+                    return False
+            except:
+                pass
             return self.SMProxy == other.SMProxy
         return self.SMProxy == other
 
@@ -369,7 +383,7 @@ class SourceProxy(Proxy):
         """This method updates the server-side VTK pipeline and the associated
         data information. Make sure to update a source to validate the output
         meta-data."""
-        if time:
+        if time != None:
             self.SMProxy.UpdatePipeline(time)
         else:
             self.SMProxy.UpdatePipeline()
@@ -390,7 +404,7 @@ class SourceProxy(Proxy):
     def GetDataInformation(self, idx=None):
         """This method returns a DataInformation wrapper around a
         vtkPVDataInformation"""
-        if not idx:
+        if idx == None:
             idx = self.Port
         if self.SMProxy:
             return DataInformation( \
@@ -528,6 +542,9 @@ class Property(object):
     def __getattr__(self, name):
         "Unknown attribute requests get forwarded to SMProperty."
         return getattr(self.SMProperty, name)
+
+    Name = property(_FindPropertyName, None, None,
+           "Returns the name for the property")
 
 class GenericIterator(object):
     """Iterator for container type objects"""
@@ -790,6 +807,10 @@ class ArraySelectionProperty(VectorProperty):
         elif len(values) == 2:
             if isinstance(values[0], str):
                 val = str(ASSOCIATIONS[values[0]])
+            else:
+                # In case user didn't specify valid association,
+                # just pick POINTS.
+                val = str(ASSOCIATIONS['POINTS'])
             self.SMProperty.SetElement(3,  str(val))
             self.SMProperty.SetElement(4, values[1])
         else:
@@ -2436,6 +2457,7 @@ def updateModules():
     createModule("views", rendering)
     createModule("lookup_tables", rendering)
     createModule("textures", rendering)
+    createModule('cameramanipulators', rendering)
     createModule("animation", animation)
     createModule("misc", misc)
     createModule('animation_keyframes', animation)
@@ -2457,6 +2479,7 @@ def _createModules():
     createModule('views', rendering)
     createModule("lookup_tables", rendering)
     createModule("textures", rendering)
+    createModule('cameramanipulators', rendering)
     animation = createModule('animation')
     createModule('animation_keyframes', animation)
     implicit_functions = createModule('implicit_functions')
@@ -2575,6 +2598,8 @@ def __determineGroup(proxy):
         return "implicit_functions"
     elif xmlgroup == "piecewise_functions":
         return "piecewise_functions"
+    elif xmlgroup == "animation" or xmlgroup == "animation_keyframes":
+        return "animation"
     return None
 
 __nameCounter = {}
@@ -2600,6 +2625,10 @@ def __getName(proxy, group):
 class MissingRegistrationInformation(Exception):
     """Exception for missing registration information. Raised when a name or group 
     is not specified or when a group cannot be deduced."""
+    pass
+
+class MissingProxy(Exception):
+    """Exception fired when the requested proxy is missing."""
     pass
     
 def Register(proxy, **extraArgs):
@@ -2886,7 +2915,13 @@ ActiveConnection = None
 # Needs to be called when paraview module is loaded from python instead
 # of pvpython, pvbatch or GUI.
 if not vtkSMObject.GetProxyManager():
-    vtkInitializationHelper.Initialize(sys.executable)
+    pvoptions = None
+    if paraview.options.batch:
+      pvoptions = vtkPVOptions();
+      pvoptions.SetProcessType(0x40)
+      if paraview.options.symmetric:
+        pvoptions.SetSymmetricMPIMode(True)
+    vtkInitializationHelper.Initialize(sys.executable, pvoptions)
 
 # Initialize progress printing. Can be turned off by calling
 # ToggleProgressPrinting() again.
@@ -2904,6 +2939,36 @@ _createModules()
 # Set up our custom importer (if possible)
 loader = _ModuleLoader()
 sys.meta_path.append(loader)
+
+def _proxyDefinitionsUpdated(caller, event):
+    """callback that gets called when RegisterEvent or UnRegisterEvent gets
+       fired from the proxy manager. These events are fired when definitions are
+       added or proxys are registered. We need to ensure that we update the
+       modules only when definitions have changed."""
+    if vtkSMObject.GetProxyManager().GetProxyDefinitionsUpdated():
+        updateModules()
+
+class __DefinitionUpdater(object):
+    """Internal class used to add observer to the proxy manager to handle
+       addition of new definitions."""
+    def __init__(self):
+        # Setup observer to update the modules when new proxy definitions are
+        # added. Unfortunately, we don't have a specific even when a definition
+        # is added. So this callback will get called even when proxy is
+        # registered :(
+        self.Tag = vtkSMObject.GetProxyManager().AddObserver("RegisterEvent",
+          _proxyDefinitionsUpdated)
+        pass
+
+    def __del__(self):
+        if vtkSMObject.GetProxyManager():
+            vtkSMObject.GetProxyManager().RemoveObserver(self.Tag)
+
+if not paraview.fromFilter:
+    # fromFilter is set when this module is imported from the programmable
+    # filter
+    global _defUpdater
+    _defUpdater = __DefinitionUpdater()
 
 if hasattr(sys, "ps1"):
     # session is interactive.

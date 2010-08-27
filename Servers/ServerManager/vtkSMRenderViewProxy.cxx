@@ -37,6 +37,7 @@
 #include "vtkPointData.h"
 #include "vtkProcessModuleConnectionManager.h"
 #include "vtkProcessModule.h"
+#include "vtkPVAxesWidget.h"
 #include "vtkPVClientServerIdCollectionInformation.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
 #include "vtkPVGeometryInformation.h"
@@ -112,6 +113,8 @@ vtkSMRenderViewProxy::vtkSMRenderViewProxy()
   this->InteractorProxy = 0;
   this->InteractorStyleProxy = 0;
   this->LightKitProxy = 0;
+  this->CenterAxesProxy = 0;
+  this->OrientationWidgetProxy = 0;
   this->RenderInterruptsEnabled = 1;
 
   this->Renderer = 0;
@@ -131,6 +134,7 @@ vtkSMRenderViewProxy::vtkSMRenderViewProxy()
   this->ResetPolygonsPerSecondResults();
   this->MeasurePolygonsPerSecond = 0;
   this->UseOffscreenRenderingForScreenshots = 0;
+  this->UseInteractiveRenderingForSceenshots = 0;
 
   this->LODThreshold = 0.0;
 
@@ -142,6 +146,8 @@ vtkSMRenderViewProxy::vtkSMRenderViewProxy()
   this->Information->Set(USE_COMPOSITING(), 0);
 
   this->LightKitAdded = false;
+
+  this->HardwareSelector = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -158,6 +164,8 @@ vtkSMRenderViewProxy::~vtkSMRenderViewProxy()
   this->RenderWindowProxy = 0;
   this->InteractorProxy = 0;
   this->LightKitProxy = 0;
+  this->CenterAxesProxy = 0;
+  this->OrientationWidgetProxy = 0;
 
   this->Renderer = 0;
   this->Renderer2D = 0;
@@ -170,6 +178,12 @@ vtkSMRenderViewProxy::~vtkSMRenderViewProxy()
     {
     this->OpenGLExtensionsInformation->Delete();
     this->OpenGLExtensionsInformation = 0;
+    }
+
+  if (this->HardwareSelector)
+    {
+    this->HardwareSelector->Delete();
+    this->HardwareSelector = NULL;
     }
 }
 
@@ -247,6 +261,8 @@ bool vtkSMRenderViewProxy::BeginCreateVTKObjects()
   this->InteractorStyleProxy = this->GetSubProxy("InteractorStyle");
   this->LightKitProxy = this->GetSubProxy("LightKit");
   this->LightProxy = this->GetSubProxy("Light");
+  this->CenterAxesProxy = this->GetSubProxy("CenterAxes");
+  this->OrientationWidgetProxy = this->GetSubProxy("OrientationWidget");
 
   if (!this->RendererProxy)
     {
@@ -304,6 +320,19 @@ bool vtkSMRenderViewProxy::BeginCreateVTKObjects()
     return false;
     }
 
+  if (!this->CenterAxesProxy)
+    {
+    vtkErrorMacro("CenterAxes subproxy missing.");
+    return false;
+    }
+
+  if (!this->OrientationWidgetProxy)
+    {
+    vtkErrorMacro("OrientationWidget subproxy missing.");
+    return false;
+    }
+
+
   // Set the servers on which each of the subproxies is to be created.
 
   this->RendererProxy->SetServers(
@@ -327,6 +356,7 @@ bool vtkSMRenderViewProxy::BeginCreateVTKObjects()
     vtkProcessModule::CLIENT | vtkProcessModule::RENDER_SERVER);
   this->LightProxy->SetServers(
     vtkProcessModule::CLIENT | vtkProcessModule::RENDER_SERVER);
+  this->OrientationWidgetProxy->SetServers(vtkProcessModule::CLIENT);
 
   return this->Superclass::BeginCreateVTKObjects();
 }
@@ -353,6 +383,10 @@ void vtkSMRenderViewProxy::EndCreateVTKObjects()
 
   // Set the helper for interaction.
   this->Interactor->SetPVRenderView(this->RenderViewHelper);
+  this->Interactor->AddObserver(vtkCommand::StartInteractionEvent,
+    this->GetObserver());
+  this->Interactor->AddObserver(vtkCommand::EndInteractionEvent,
+    this->GetObserver());
 
   // Mark 2D renderer as non-interactive, since it's a slave to the 3D renderer.
   this->Renderer2D->SetInteractive(0);
@@ -441,7 +475,38 @@ void vtkSMRenderViewProxy::EndCreateVTKObjects()
       }
     }
 
+  // Setup and add the center axes.
+  vtkSMPropertyHelper(this->CenterAxesProxy, "Scale").Set(0, 0.25);
+  vtkSMPropertyHelper(this->CenterAxesProxy, "Scale").Set(1, 0.25);
+  vtkSMPropertyHelper(this->CenterAxesProxy, "Scale").Set(2, 0.25);
+  vtkSMPropertyHelper(this->CenterAxesProxy, "Pickable").Set(0);
+  this->CenterAxesProxy->UpdateVTKObjects();
+  this->AddRepresentation(
+    vtkSMRepresentationProxy::SafeDownCast(this->CenterAxesProxy));
+
   this->Interactor->Enable();
+
+  if (this->GetProperty("CenterOfRotation"))
+    {
+    this->GetProperty("CenterOfRotation")->AddObserver(
+      vtkCommand::ModifiedEvent, this->GetObserver());
+    }
+
+  // Updates the position and scale for the center axes.
+  this->UpdateCenterAxesPositionAndScale();
+
+  vtkPVAxesWidget* orientationWidget = vtkPVAxesWidget::SafeDownCast(
+    this->OrientationWidgetProxy->GetClientSideObject());
+
+  if (
+    (pm->GetOptions()->GetProcessType() & vtkPVOptions::PVBATCH) == 0 &&
+    pm->GetNumberOfLocalPartitions() == 1)
+    {
+    orientationWidget->SetParentRenderer(this->Renderer);
+    orientationWidget->SetViewport(0, 0, 0.25, 0.25);
+    orientationWidget->SetInteractor(this->GetInteractor());
+    }
+  this->OrientationWidgetProxy->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------
@@ -467,6 +532,28 @@ void vtkSMRenderViewProxy::ProcessEvents(vtkObject* caller, unsigned long eventI
     // At the start of every render ensure that the 2D renderer and 3D renderer
     // have the same camera.
     this->SynchronizeRenderers();
+    }
+  else if (eventId == vtkCommand::ModifiedEvent && caller ==
+    this->GetProperty("CenterOfRotation"))
+    {
+    this->UpdateCenterAxesPositionAndScale();
+    }
+
+  // REFER TO BUG #10672.
+  // Sending Prepare/Cleanup and start/end on inteaction ensures we don't send
+  // repeated progress on/off while interacting, ensuring better performance
+  // when interacting.
+  else if (eventId == vtkCommand::StartInteractionEvent &&
+    caller == this->GetInteractor())
+    {
+    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+    pm->SendPrepareProgress(this->ConnectionID);
+    }
+  else if (eventId == vtkCommand::EndInteractionEvent &&
+    caller == this->GetInteractor())
+    {
+    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+    pm->SendCleanupPendingProgress(this->ConnectionID);
     }
 
   this->Superclass::ProcessEvents(caller, eventId, callData);
@@ -593,7 +680,7 @@ void vtkSMRenderViewProxy::PerformRender()
     this->RenderTimer->StartTimer();
     } 
 
-  this->GetRenderer()->ResetCameraClippingRange();
+  this->ResetCameraClippingRange();
 
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke
@@ -623,6 +710,11 @@ void vtkSMRenderViewProxy::AddRepresentationInternal(
   SetIntVectorProperty(repr, "ImmediateModeRendering", this->UseImmediateMode, false);
 
   this->Superclass::AddRepresentationInternal(repr);
+
+  if (this->HardwareSelector)
+    {
+    this->HardwareSelector->ClearBuffers();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -722,87 +814,6 @@ double vtkSMRenderViewProxy::GetZBufferValue(int x, int y)
 }
 
 //----------------------------------------------------------------------------
-vtkPVClientServerIdCollectionInformation* vtkSMRenderViewProxy
-  ::Pick(int xs, int ys, int xe, int ye)
-{
-  vtkProcessModule* processModule = NULL;
-  vtkSMProxyManager* proxyManager = NULL;
-  vtkSMProxy *areaPickerProxy = NULL;
-  vtkSMProxyProperty *setRendererMethod = NULL;
-  vtkSMDoubleVectorProperty *setCoordsMethod = NULL;
-  vtkSMProperty *pickMethod = NULL;
-
-  bool OK = true;
-
-  //create an areapicker and find its methods
-  processModule = vtkProcessModule::GetProcessModule();
-  if (!processModule)
-    {
-    vtkErrorMacro("Failed to find processmodule.");
-    OK = false;
-    }  
-  proxyManager = vtkSMObject::GetProxyManager();  
-  if (OK && !proxyManager)
-    {
-    vtkErrorMacro("Failed to find the proxy manager.");
-    OK = false;
-    }
-  areaPickerProxy = proxyManager->NewProxy("PropPickers", "AreaPicker"); 
-  if (OK && !areaPickerProxy)
-    {
-    vtkErrorMacro("Failed to make AreaPicker proxy.");
-    OK = false;
-    }
-  setRendererMethod = vtkSMProxyProperty::SafeDownCast(
-    areaPickerProxy->GetProperty("SetRenderer"));
-  if (OK && !setRendererMethod)
-    {
-    vtkErrorMacro("Failed to find the set renderer property.");
-    OK = false;
-    }
-  setCoordsMethod = vtkSMDoubleVectorProperty::SafeDownCast(
-    areaPickerProxy->GetProperty("SetPickCoords"));
-  if (OK && !setCoordsMethod)
-    {
-    vtkErrorMacro("Failed to find the set pick coords property.");
-    OK = false;
-    }
-  pickMethod = areaPickerProxy->GetProperty("Pick");
-  if (OK && !pickMethod)
-    {
-    vtkErrorMacro("Failed to find the pick property.");
-    OK = false;
-    }
-
-  vtkPVClientServerIdCollectionInformation *propCollectionInfo = NULL;    
-  if (OK)
-    {
-    //execute the areapick
-    setRendererMethod->AddProxy(this->RendererProxy);
-    setCoordsMethod->SetElements4(xs, ys, xe, ye);
-    areaPickerProxy->UpdateVTKObjects();   
-    pickMethod->Modified();
-    areaPickerProxy->UpdateVTKObjects();   
-    
-    //gather the results from the AreaPicker
-    propCollectionInfo = vtkPVClientServerIdCollectionInformation::New();
-    processModule->GatherInformation(
-      vtkProcessModuleConnectionManager::GetRootServerConnectionID(),
-      vtkProcessModule::RENDER_SERVER, 
-      propCollectionInfo, 
-      areaPickerProxy->GetID()
-      );
-    }
-
-  if (areaPickerProxy)
-    {
-    areaPickerProxy->Delete();
-    }
-  
-  return propCollectionInfo;
-}
-
-//-----------------------------------------------------------------------------
 void vtkSMRenderViewProxy::ResetCamera()
 {
   // Dont' call UpdateAllRepresentations() explicitly, since
@@ -828,6 +839,8 @@ void vtkSMRenderViewProxy::ResetCamera(double bds[6])
   this->GetRenderer()->ResetCamera(bds);
   this->ActiveCameraProxy->UpdatePropertyInformation();
   this->SynchronizeCameraProperties();
+
+  this->UpdateCenterAxesPositionAndScale();
 
   this->Modified();
   this->InvokeEvent(vtkCommand::ResetCameraEvent);
@@ -1078,7 +1091,16 @@ vtkImageData* vtkSMRenderViewProxy::CaptureWindow(int magnification)
 #endif
 
   this->GetRenderWindow()->SwapBuffersOff();
-  this->StillRender();
+
+  if(this->UseInteractiveRenderingForSceenshots)
+    {
+    this->InteractiveRender();
+    }
+  else
+    {
+    this->StillRender();
+    }
+
 
   vtkWindowToImageFilter* w2i = vtkWindowToImageFilter::New();
   w2i->SetInput(this->GetRenderWindow());
@@ -1173,7 +1195,15 @@ int vtkSMRenderViewProxy::WriteImage(const char* filename,
 
   vtkSmartPointer<vtkImageData> shot;
   shot.TakeReference(this->CaptureWindow(magnification));
-  return vtkSMUtilities::SaveImageOnProcessZero(shot, filename, writerName);
+
+  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSymmetricMPIMode())
+    {
+    return vtkSMUtilities::SaveImageOnProcessZero(shot, filename, writerName);
+    }
+  else
+    {
+    return vtkSMUtilities::SaveImage(shot, filename, writerName);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -1431,6 +1461,41 @@ bool vtkSMRenderViewProxy::SelectOnSurface(unsigned int x0,
   return true;
 }
 
+//-----------------------------------------------------------------------------
+vtkSMRepresentationProxy* vtkSMRenderViewProxy::Pick(unsigned int x, unsigned int y)
+{
+  // 1) Create surface selection.
+  //   Will returns a surface selection in terms of cells selected on the
+  //   visible props from all representations.
+  vtkSmartPointer<vtkSelection> surfaceSel;
+  surfaceSel.TakeReference(this->SelectVisibleCells(x, y, x, y, false));
+  vtkSMRenderViewProxyShrinkSelection(surfaceSel);
+
+  if (surfaceSel->GetNumberOfNodes() == 0)
+    {
+    return NULL;
+    }
+
+  vtkClientServerID propID(
+    surfaceSel->GetNode(0)->GetProperties()->Get(vtkSelectionNode::PROP_ID()));
+
+  vtkProp3D* prop = vtkProp3D::SafeDownCast(
+    vtkProcessModule::GetProcessModule()->GetObjectFromID(propID));
+
+  vtkSmartPointer<vtkCollectionIterator> iter;
+  iter.TakeReference(this->Representations->NewIterator());
+  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+    {
+    vtkSMPropRepresentationProxy* repr =
+      vtkSMPropRepresentationProxy::SafeDownCast(iter->GetCurrentObject());
+    if (repr && repr->HasVisibleProp3D(prop))
+      {
+      return repr;
+      }
+    }
+
+  return NULL;
+}
 
 //-----------------------------------------------------------------------------
 bool vtkSMRenderViewProxy::SelectFrustum(unsigned int x0, 
@@ -1588,9 +1653,9 @@ bool vtkSMRenderViewProxy::SelectFrustum(unsigned int x0,
 }
 
 //-----------------------------------------------------------------------------
-vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0, 
+vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0,
   unsigned int y0, unsigned int x1, unsigned int y1, int ofPoints)
-{  
+{
   if (!this->IsSelectionAvailable())
     {
     vtkSelection *selection = vtkSelection::New();
@@ -1616,7 +1681,7 @@ vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0,
   vtkCollectionIterator* iter = this->Representations->NewIterator();
   for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
     {
-    vtkSMRepresentationProxy* repr = 
+    vtkSMRepresentationProxy* repr =
       vtkSMRepresentationProxy::SafeDownCast(iter->GetCurrentObject());
     if (!repr || !repr->GetVisibility())
       {
@@ -1636,11 +1701,17 @@ vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0,
     }
   iter->Delete();
 
-  vtkSMProxyManager* proxyManager = vtkSMObject::GetProxyManager();  
-  vtkSMHardwareSelector *vcsProxy = vtkSMHardwareSelector::SafeDownCast(
+  if (this->HardwareSelector == NULL)
+    {
+    vtkSMProxyManager* proxyManager = vtkSMObject::GetProxyManager();
+    this->HardwareSelector = vtkSMHardwareSelector::SafeDownCast(
       proxyManager->NewProxy("PropPickers", "HardwareSelector"));
-  vcsProxy->SetConnectionID(this->ConnectionID);
-  vcsProxy->SetServers(vtkProcessModule::CLIENT|vtkProcessModule::RENDER_SERVER);
+    this->HardwareSelector->SetConnectionID(this->ConnectionID);
+    this->HardwareSelector->SetServers(
+      vtkProcessModule::CLIENT|vtkProcessModule::RENDER_SERVER);
+    }
+
+  vtkSMHardwareSelector *vcsProxy = this->HardwareSelector;
 
   //don't let the RenderSyncManager control back/front buffer swapping so that
   //we can do it here instead.
@@ -1658,13 +1729,16 @@ vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0,
     }
 
   // Set default property values for the selector.
-  int area[4] = {x0, y0, x1, y1};
+  // if any of the properties here change, then the hardware selector ensures
+  // that it clears the old buffers.
+  //int area[4] = {x0, y0, x1, y1};
+  int area[4] = {0, 0, win_size[0] - 1, win_size[1] - 1};
   vtkSMPropertyHelper(vcsProxy, "Renderer").Set(this->RendererProxy);
   vtkSMPropertyHelper(vcsProxy, "Area").Set(area, 4);
   vtkSMPropertyHelper(vcsProxy, "FieldAssociation").Set(ofPoints? 0 : 1);
   vtkSMPropertyHelper(vcsProxy, "NumberOfProcesses").Set(numProcessors);
   vtkSMPropertyHelper(vcsProxy, "NumberOfIDs").Set(maxNumCells);
-  vcsProxy->UpdateVTKObjects();   
+  vcsProxy->UpdateVTKObjects();
 
   //don't draw the scalar bar, text annotation, orientation axes
   vtkRendererCollection *rcol = this->RenderWindow->GetRenderers();
@@ -1672,7 +1746,7 @@ vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0,
   int *renOldVis = new int[numlayers];
   for (int i = 0; i < numlayers; i++)
     {
-    //I tried Using vtkRendererCollection::GetItem but that was giving me 
+    //I tried Using vtkRendererCollection::GetItem but that was giving me
     //NULL for i=1,2 so I am doing it the long way
     vtkObject *anObj = rcol->GetItemAsObject(i);
     if (!anObj)
@@ -1687,11 +1761,11 @@ vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0,
     renOldVis[i] = nextRen->GetDraw();
     if (nextRen != this->Renderer)
       {
-      nextRen->DrawOff();      
+      nextRen->DrawOff();
       }
     }
 
-  //If stripping is on, turn it off (if anything has been changed since the 
+  //If stripping is on, turn it off (if anything has been changed since the
   //last time we turned it off)
   //TODO: encode the cell original ids directly into the color and
   //to make this ugly hack uneccessary
@@ -1699,11 +1773,12 @@ vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0,
   if (use_strips)
     {
     this->ForceTriStripUpdate = 1;
-    this->SetUseTriangleStrips(0);    
+    this->SetUseTriangleStrips(0);
     this->ForceTriStripUpdate = 0;
     }
 
-  vtkSelection* selection = vcsProxy->Select(); 
+  unsigned int region[4] = {x0, y0, x1, y1};
+  vtkSelection* selection = vcsProxy->Select(region);
 
   //Turn stripping back on if we had turned it off
   if (use_strips)
@@ -1733,8 +1808,7 @@ vtkSelection* vtkSMRenderViewProxy::SelectVisibleCells(unsigned int x0,
     setAllowBuffSwap->SetElements1(1);
     renderSyncManager->UpdateVTKObjects();
     }
-  
-  vcsProxy->Delete();
+
   return selection;
 }
 
@@ -1875,6 +1949,43 @@ const char* vtkSMRenderViewProxy::GetSuggestedViewType(vtkIdType connectionID)
     }
   
   return renderViewName;
+}
+
+namespace
+{
+  static double vtkMAX(double x, double y) { return x > y ? x : y; }
+}
+
+//-----------------------------------------------------------------------------
+void vtkSMRenderViewProxy::UpdateCenterAxesPositionAndScale()
+{
+  // Position of the axes is same as the center of rotation.
+  double center[3];
+  vtkSMPropertyHelper(this, "CenterOfRotation").Get(center, 3);
+  vtkSMPropertyHelper(this->CenterAxesProxy, "Position").Set(center, 3);
+
+  // FIXME: We may want to look at the 3D widget code to automatically scale the
+  // axes instead of computing the bounds.
+  // Reset size of the axes.
+  double bounds[6];
+  this->ComputeVisiblePropBounds(bounds);
+
+  double widths[3];
+  widths[0] = (bounds[1]-bounds[0]);
+  widths[1] = (bounds[3]-bounds[2]);
+  widths[2] = (bounds[5]-bounds[4]);
+
+  // lets make some thickness in all directions
+  double diameterOverTen = vtkMAX(widths[0], vtkMAX(widths[1], widths[2])) / 10.0;
+  widths[0] = widths[0] < diameterOverTen ? diameterOverTen : widths[0];
+  widths[1] = widths[1] < diameterOverTen ? diameterOverTen : widths[1];
+  widths[2] = widths[2] < diameterOverTen ? diameterOverTen : widths[2];
+
+  widths[0] *= 0.25;
+  widths[1] *= 0.25;
+  widths[2] *= 0.25;
+  vtkSMPropertyHelper(this->CenterAxesProxy, "Scale").Set(widths, 3);
+  this->CenterAxesProxy->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------

@@ -21,11 +21,10 @@
 #include "vtkCommand.h"
 #include "vtkConnectionIterator.h"
 #include "vtkMPISelfConnection.h"
-#include "vtkMPISelfConnection.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
 #include "vtkProcessModuleConnection.h"
 #include "vtkProcessModuleConnectionManagerInternals.h"
+#include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
 #include "vtkPVServerSocket.h"
 #include "vtkSelfConnection.h"
@@ -34,6 +33,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkSocketCollection.h"
 #include "vtkSocketController.h"
+#include "vtkSynchronousMPISelfConnection.h"
 #include "vtkTimerLog.h"
 
 #include "vtksys/SystemTools.hxx"
@@ -131,6 +131,11 @@ int vtkProcessModuleConnectionManager::Initialize(int argc, char** argv,
       {
       // No MPI needed in on a pure Client.
       sc = vtkSelfConnection::New();
+      }
+    else if (vtkProcessModule::GetProcessModule()->GetOptions()->
+      GetSymmetricMPIMode())
+      {
+      sc = vtkSynchronousMPISelfConnection::New();
       }
     else
       {
@@ -251,6 +256,8 @@ vtkIdType vtkProcessModuleConnectionManager::OpenSelfConnection()
   vtkIdType cid = this->GetUniqueConnectionID();
   vtkSelfConnection* selfConnection = vtkSelfConnection::New();
   this->SetConnection(cid, selfConnection);
+  int partitionId;
+  selfConnection->Initialize(0, NULL, &partitionId);
   selfConnection->Delete();
   this->InvokeEvent(vtkCommand::ConnectionCreatedEvent, &cid);
   return cid;

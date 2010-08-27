@@ -25,9 +25,7 @@
 class vtkContextView;
 class vtkChart;
 class vtkImageData;
-//BTX
-class QVTKWidget;
-//ETX
+class vtkRenderWindow;
 
 class VTK_EXPORT vtkSMContextViewProxy : public vtkSMViewProxy
 {
@@ -42,10 +40,6 @@ public:
 
 //BTX
   // Description:
-  // Provides access to the chart view's widget.
-  QVTKWidget* GetChartWidget();
-
-  // Description:
   // Provides access to the vtk chart view.
   vtkContextView* GetChartView();
 
@@ -57,6 +51,11 @@ public:
   // Description:
   // Capture the contents of the window at the specified magnification level.
   vtkImageData* CaptureWindow(int magnification);
+
+  // Description:
+  // Return the render window from which offscreen rendering and interactor can
+  // be accessed
+  vtkRenderWindow* GetRenderWindow();
 
 //BTX
 protected:

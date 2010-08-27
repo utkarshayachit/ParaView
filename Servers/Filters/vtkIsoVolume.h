@@ -23,17 +23,16 @@
 #ifndef __vtkIsoVolume_h
 #define __vtkIsoVolume_h
 
-#include "vtkUnstructuredGridAlgorithm.h"
+#include "vtkDataObjectAlgorithm.h"
 
 // Forware declarations.
 class vtkPVClipDataSet;
-class vtkThreshold;
 
-class VTK_EXPORT vtkIsoVolume : public vtkUnstructuredGridAlgorithm
+class VTK_EXPORT vtkIsoVolume : public vtkDataObjectAlgorithm
 {
 public:
-  static vtkIsoVolume *New();
-  vtkTypeMacro(vtkIsoVolume,vtkUnstructuredGridAlgorithm);
+  static vtkIsoVolume* New();
+  vtkTypeMacro(vtkIsoVolume, vtkDataObjectAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -43,34 +42,29 @@ public:
 
   // Description:
   // Get the Upper and Lower thresholds.
-  vtkGetMacro(UpperThreshold,double);
-  vtkGetMacro(LowerThreshold,double);
-
+  vtkGetMacro(UpperThreshold, double);
+  vtkGetMacro(LowerThreshold, double);
 
 protected:
   vtkIsoVolume();
  ~vtkIsoVolume();
 
   // Usual data generation methods.
-  virtual int RequestData(vtkInformation*, vtkInformationVector**,
+  virtual int RequestData(vtkInformation* request, vtkInformationVector**,
                           vtkInformationVector*);
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  // Description:
+  // This filter produces a vtkMultiBlockDataSet when the input is a
+  // vtkCompositeDataSet otherwise, it produces a vtkUnstructuredGrid.
+  virtual int RequestDataObject(vtkInformation* request,
+                                vtkInformationVector** inputVector,
+                                vtkInformationVector* outputVector);
 
-  virtual int ProcessRequest(vtkInformation*, vtkInformationVector**,
-                             vtkInformationVector*);
-
-  vtkGetMacro(UsingPointScalars, int);
+  vtkDataObject* Clip(vtkDataObject* input,
+    double value, const char* array_name, int fieldAssociation, bool invert);
 
   double LowerThreshold;
   double UpperThreshold;
-
-  bool   UsingPointScalars;
-
-  vtkPVClipDataSet*   LowerBoundClipDS;
-  vtkPVClipDataSet*   UpperBoundClipDS;
-
-  vtkThreshold*       Threshold;
 
 private:
   vtkIsoVolume(const vtkIsoVolume&);  // Not implemented.

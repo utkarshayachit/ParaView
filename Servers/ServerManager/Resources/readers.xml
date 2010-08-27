@@ -1922,6 +1922,32 @@
 
    </SourceProxy>
 
+   <SourceProxy name="PNGReaderCore"
+                class="vtkPNGReader"
+                label="PNG Reader">
+     <Documentation
+       short_help="Read a PNG file."
+       long_help="Read a PNG file into an image data.">
+       The PNG reader reads PNG (Portable Network Graphics) files, and the output is a uniform rectilinear (image/volume) dataset. The default file extension is .png.
+     </Documentation>
+     <StringVectorProperty
+        name="FileName"
+        animateable="0"
+        command="SetFileName"
+        number_of_elements="1">
+        <FileListDomain name="files"/>
+        <Documentation>
+          This property specifies the file name for the PNG reader.
+        </Documentation>
+      </StringVectorProperty>
+
+      <Hints>
+        <ReaderFactory extensions="png"
+          file_description="PNG Image Files" />
+      </Hints>
+     <!-- End PNGReader -->
+   </SourceProxy>
+
     <!-- End of "internal_sources" -->
   </ProxyGroup>
 
@@ -2804,7 +2830,7 @@
    </SourceProxy>
 
    <SourceProxy name="ensight" 
-                class="vtkGenericEnSightReader2"
+                class="vtkPGenericEnSightReader"
                 label="EnSight Reader">
      <Documentation
        short_help="Read EnSight files."
@@ -4010,6 +4036,55 @@
 
    </SourceProxy> <!-- NrrdReader -->
 
+   <FileSeriesReaderProxy name="PNGReader"
+                          class="vtkFileSeriesReader"
+                          label="PNG Reader"
+                          file_name_method="SetFileName">
+     <Documentation
+       short_help="Read a PNG file."
+       long_help="Read a PNG file into an image data.">
+       The PNG reader reads PNG (Portable Network Graphics) files, and the output is a uniform rectilinear (image/volume) dataset. The default file extension is .png.
+     </Documentation>
+
+     <StringVectorProperty
+        name="FileNames"
+        clean_command="RemoveAllFileNames"
+        command="AddFileName"
+        animateable="0"
+        number_of_elements="0"
+        repeat_command="1">
+        <FileListDomain name="files"/>
+       <Documentation>
+         The list of files to be read by the reader. If more than 1 file is specified,
+         the reader will switch to file series mode in which it will pretend that it
+         can support time and provide 1 file per time step.
+       </Documentation>
+     </StringVectorProperty>
+
+     <DoubleVectorProperty
+        name="TimestepValues"
+        repeatable="1"
+        information_only="1">
+        <TimeStepsInformationHelper/>
+        <Documentation>
+          Available timestep values.
+        </Documentation>
+     </DoubleVectorProperty>
+
+     <SubProxy>
+        <Proxy name="Reader"
+          proxygroup="internal_sources" proxyname="PNGReaderCore">
+        </Proxy>
+      </SubProxy>
+
+     <Hints>
+        <ReaderFactory extensions="png"
+          file_description="PNG Image Files" />
+     </Hints>
+
+     <!-- End FileSeriesPNGReader -->
+   </FileSeriesReaderProxy>
+
    <SourceProxy name="XdmfReader" 
                 class="vtkXdmfReader"
                 label="XDMF Reader">
@@ -4546,32 +4621,6 @@
           file_description="Meta Image Data Files" />
      </Hints>
    <!-- End Meta Image Reader -->
-   </SourceProxy>
-
-   <SourceProxy name="PNGReader" 
-                class="vtkPNGReader"
-                label="PNG Reader">
-     <Documentation
-       short_help="Read a PNG file."
-       long_help="Read a PNG file into an image data.">
-       The PNG reader reads PNG (Portable Network Graphics) files, and the output is a uniform rectilinear (image/volume) dataset. The default file extension is .png.
-     </Documentation>
-     <StringVectorProperty
-        name="FileName"
-        animateable="0"
-        command="SetFileName"
-        number_of_elements="1">
-        <FileListDomain name="files"/>
-        <Documentation>
-          This property specifies the file name for the PNG reader.
-        </Documentation>
-     </StringVectorProperty>
-
-     <Hints>
-      <ReaderFactory extensions="png"
-          file_description="PNG Image Files" />
-     </Hints>
-   <!-- End PNGReader -->
    </SourceProxy>
 
   <SourceProxy name="TIFFReader" 
@@ -5890,9 +5939,10 @@
      <OutputPort name="Field" index="0" />
      <OutputPort name="Blade" index="1" />
 
-      <StringVectorProperty name="Filename"
+      <StringVectorProperty name="FileName"
         command="SetFilename"
-        animateable="0" >
+        animateable="0"
+        number_of_elements="1" >
         <FileListDomain name="files"/>
       </StringVectorProperty>
 
@@ -5935,20 +5985,23 @@
    <!-- End WindBladeReader -->
    <SourceProxy name="NetCDFPOPReader"
               class="vtkNetCDFPOPReader"
-              label="NetCDF reader">
+              label="NetCDF POP reader">
    <Documentation
      short_help="Read raw regular rectilinear grid data from a file."
      long_help="Read raw regular rectilinear grid data from a file. The dimensions and type of the data must be specified.">
      The Image reader reads raw regular rectilinear grid (image/volume) data from a file. Because no metadata is provided, the user must specify information about the size, spacing, dimensionality, etc. about the dataset.
    </Documentation>
-    <StringVectorProperty name="FileName"
-      command="SetFilename"
-      animateable="0" >
-      <FileListDomain name="files"/>
-      <Documentation>
-        This property specifies the file name to read.
-      </Documentation>
-    </StringVectorProperty>
+
+     <StringVectorProperty
+        name="FileName"
+        animateable="0"
+        command="SetFileName"
+        number_of_elements="1">
+        <FileListDomain name="files"/>
+        <Documentation>
+          This property specifies the file name to read.
+        </Documentation>
+     </StringVectorProperty>
 
     <StringVectorProperty name="VariableArrayInfo"
                           information_only="1">
@@ -5971,6 +6024,19 @@
         This property lists which netCDF variables to load.
       </Documentation>
     </StringVectorProperty>
+
+     <IntVectorProperty
+        name="Stride"
+        command="SetStride"
+        number_of_elements="3"
+        default_values="1 1 1"
+        animateable="0">
+        <IntRangeDomain name="range" min="1 1 1" />
+        <Documentation>
+         This property indicate the number of indices per dimension (i,j,k) to skip between each point included
+         in this output.
+        </Documentation>
+     </IntVectorProperty>
     
     <Hints>
       <ReaderFactory extensions="pop.ncdf pop.nc"
@@ -6036,6 +6102,106 @@
        <ReaderFactory extensions="cosmo gadget2" file_description="Cosmology files" />
      </Hints>
    </FileSeriesReaderProxy>
+
+   <SourceProxy name="MPASReader"
+                class="vtkMPASReader"
+                label="NetCDF MPAS reader">
+     <Documentation
+         short_help="Read unstructured grid MPAS data from a file."
+         long_help="Read unstructured grid data from a file. ">
+       The Image reader reads unstructured grid from a file.  Grid is dual grid.
+     </Documentation>
+
+     <StringVectorProperty name="FileName"
+                           command="SetFileName"
+                           animateable="0" >
+       <FileListDomain name="files"/>
+       <Documentation>
+         This property specifies the file name to read.
+       </Documentation>
+     </StringVectorProperty>
+
+     <StringVectorProperty
+         name="PointArrayInfo"
+         information_only="1">
+       <ArraySelectionInformationHelper attribute_name="Point"/>
+     </StringVectorProperty>
+
+     <StringVectorProperty
+         name="PointArrayStatus"
+         command="SetPointArrayStatus"
+         number_of_elements="2"
+         repeat_command="1"
+         number_of_elements_per_command="2"
+         element_types="2 0"
+         information_property="PointArrayInfo" >
+       <ArraySelectionDomain name="array_list" >
+         <RequiredProperties>
+           <Property name="PointArrayInfo" function="ArrayList"/>
+         </RequiredProperties>
+       </ArraySelectionDomain>
+       <Documentation>
+         This property lists which netCDF dual-grid point variables to load.
+       </Documentation>
+     </StringVectorProperty>
+
+     <StringVectorProperty
+         name="CellArrayInfo"
+         information_only="1">
+       <ArraySelectionInformationHelper attribute_name="Cell"/>
+     </StringVectorProperty>
+
+     <StringVectorProperty
+         name="CellArrayStatus"
+         command="SetCellArrayStatus"
+         number_of_elements="2"
+         repeat_command="1"
+         number_of_elements_per_command="2"
+         element_types="2 0"
+         information_property="CellArrayInfo" >
+       <ArraySelectionDomain name="array_list" >
+         <RequiredProperties>
+           <Property name="CellArrayInfo" function="ArrayList"/>
+         </RequiredProperties>
+       </ArraySelectionDomain>
+       <Documentation>
+         This property lists which netCDF dual-grid cell variables to load.
+       </Documentation>
+     </StringVectorProperty>
+
+     <IntVectorProperty
+         name="VerticalLevelRangeInfo"
+         command="GetVerticalLevelRange"
+         information_only="1">
+       <SimpleIntInformationHelper/>
+     </IntVectorProperty>
+
+     <IntVectorProperty
+         name="VerticalLevel"
+         command="SetVerticalLevel"
+         number_of_elements="1"
+         default_values="0">
+       <IntRangeDomain name="range" >
+         <RequiredProperties>
+           <Property name="VerticalLevelRangeInfo" function="Range"/>
+         </RequiredProperties>
+       </IntRangeDomain>
+     </IntVectorProperty>
+
+     <DoubleVectorProperty
+         name="TimestepValues"
+         repeatable="1"
+         information_only="1">
+       <TimeStepsInformationHelper/>
+     </DoubleVectorProperty>
+
+     <Hints>
+       <ReaderFactory extensions="mpas.ncdf mpas.nc"
+                      file_description="MPAS Netcdf Files" />
+     </Hints>
+
+   </SourceProxy>
+   <!-- End MPASReader -->
 
   </ProxyGroup>
 </ServerManagerConfiguration>

@@ -135,7 +135,7 @@ vtkPVGeometryFilter::vtkPVGeometryFilter ()
   this->OutlineFlag = 0;
   this->UseOutline = 1;
   this->UseStrips = 0;
-  this->GenerateCellNormals = 0;
+  this->GenerateCellNormals = 1;
   this->NonlinearSubdivisionLevel = 1;
 
   this->DataSetSurfaceFilter = vtkDataSetSurfaceFilter::New();
@@ -621,7 +621,7 @@ int vtkPVGeometryFilter::RequestCompositeData(vtkInformation*,
       for (blocksIter = blocks.begin(); blocksIter != blocks.end();
         ++blocksIter)
         {
-        (*blocksIter)->FastDelete();
+        (*blocksIter)->Delete();
         }
       vtkTimerLog::MarkEndEvent("Append Blocks");
 

@@ -8,8 +8,9 @@ INCLUDE("${VTK_MAKE_INSTANTIATOR}/vtkMakeInstantiator.cmake")
 MACRO(internal_paraview_install_plugin name)
   IF (PV_INSTALL_PLUGIN_DIR)
     INSTALL(TARGETS ${name}
-      DESTINATION "${PV_INSTALL_PLUGIN_DIR}"
-      COMPONENT Runtime)
+      RUNTIME DESTINATION ${PV_INSTALL_BIN_DIR} COMPONENT RuntimeLibraries
+      LIBRARY DESTINATION ${PV_INSTALL_LIB_DIR} COMPONENT RuntimeLibraries
+      ARCHIVE DESTINATION ${PV_INSTALL_LIB_DIR} COMPONENT Development)
   ENDIF (PV_INSTALL_PLUGIN_DIR)
 ENDMACRO(internal_paraview_install_plugin)
 
@@ -960,10 +961,6 @@ FUNCTION(ADD_PARAVIEW_PLUGIN NAME VERSION)
     ${PY_SRCS})
 
   IF(GUI_SRCS OR SM_SRCS OR ARG_SOURCES OR ARG_PYTHON_MODULES)
-    IF(PARAVIEW_PLUGINLIST_TXT)
-      FILE(APPEND ${PARAVIEW_PLUGINLIST_TXT} "${LIBRARY_OUTPUT_PATH}/lib${NAME}.dylib;")
-    ENDIF(PARAVIEW_PLUGINLIST_TXT)
-
     CONFIGURE_FILE(
       ${ParaView_CMAKE_DIR}/pqParaViewPlugin.h.in
       ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}_Plugin.h @ONLY)
@@ -1009,12 +1006,10 @@ FUNCTION(ADD_PARAVIEW_PLUGIN NAME VERSION)
 
     # this builds a list of actual plugin names added by plugins provided in the
     # ParaView source directory itself.
-    # This is used to generate the ".plugins" configuration file.
-    if (BUILD_PARAVIEW_PLUGINLIST)
-      SET(PARAVIEW_PLUGINLIST ${PARAVIEW_PLUGINLIST} ${NAME} CACHE INTERNAL
+    # This is used to generate the ".plugins" configuration file, as well as
+    # when creating the mac bundle.
+    SET(PARAVIEW_PLUGINLIST ${PARAVIEW_PLUGINLIST} ${NAME} CACHE INTERNAL
         "List of configured plugins")
-    endif (BUILD_PARAVIEW_PLUGINLIST)
-
   ENDIF(GUI_SRCS OR SM_SRCS OR ARG_SOURCES OR ARG_PYTHON_MODULES)
   
 ENDFUNCTION(ADD_PARAVIEW_PLUGIN)

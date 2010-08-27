@@ -32,6 +32,7 @@ class vtkPVOpenGLExtensionsInformation;
 class vtkRenderer;
 class vtkRenderWindow;
 class vtkSelection;
+class vtkSMHardwareSelector;
 class vtkSMRenderViewHelper;
 class vtkSMRepresentationProxy;
 class vtkTimerLog;
@@ -80,7 +81,9 @@ public:
   vtkGetObjectMacro(Renderer2DProxy, vtkSMProxy);
   vtkGetObjectMacro(RenderWindowProxy, vtkSMProxy);
   vtkGetObjectMacro(InteractorProxy, vtkSMProxy);
-  
+  vtkGetObjectMacro(CenterAxesProxy, vtkSMProxy);
+  vtkGetObjectMacro(OrientationWidgetProxy, vtkSMProxy);
+
   // Description:
   // Convenience method to set the background color.
   void SetBackgroundColorCM(double rgb[3]);
@@ -99,12 +102,6 @@ public:
   // Get the value of the z buffer at a position. 
   // This is necessary for picking the center of rotation.
   virtual double GetZBufferValue(int x, int y);
-
-  // Description:
-  // Performs a pick in the selected screen area and returns a list
-  // of ClientServerIds for the representation proxies hit.
-  vtkPVClientServerIdCollectionInformation* 
-    Pick(int xs, int ys, int xe, int ye);
 
   // Description:
   // Reset camera to the given bounds.
@@ -168,6 +165,13 @@ public:
   vtkSetClampMacro(UseOffscreenRenderingForScreenshots, int, 0, 1);
   vtkBooleanMacro(UseOffscreenRenderingForScreenshots, int);
   vtkGetMacro(UseOffscreenRenderingForScreenshots, int);
+
+  // Description:
+  // Set or get whether capture should be done as
+  // StillRender or InteractiveRender inside CaptureWindow calls.
+  vtkSetClampMacro(UseInteractiveRenderingForSceenshots, int, 0, 1);
+  vtkBooleanMacro(UseInteractiveRenderingForSceenshots, int);
+  vtkGetMacro(UseInteractiveRenderingForSceenshots, int);
 
   // Description:
   // Switches the render window into an offscreen mode.
@@ -235,6 +239,13 @@ public:
     vtkCollection* frustumSelection=0,
     bool multiple_selections=true,
     bool ofPoints = false);
+
+  // Description:
+  // Locates the representation at the given location, if any, and returns it.
+  // Returns NULL, if the location does not have a valid representation visible.
+  // The implementation currently uses hardware selection alone. Hence it is
+  // supported only on nodes that can support hardware selection.
+  vtkSMRepresentationProxy* Pick(unsigned int x, unsigned int y);
 
   // Description:
   // Methods called by Representation proxies to add/remove the
@@ -324,6 +335,10 @@ protected:
   void SynchronizeRenderers();
 
   // Description:
+  // Updates the position and scale for the center axes.
+  void UpdateCenterAxesPositionAndScale();
+
+  // Description:
   // Returns a new selection consisting of all the selections with the given
   // prop id in the surfaceSelection.
   vtkSelection* NewSelectionForProp(vtkSelection* surfaceSelection, 
@@ -343,6 +358,8 @@ protected:
   vtkSMProxy* InteractorProxy;
   vtkSMProxy* LightKitProxy;
   vtkSMProxy* LightProxy;
+  vtkSMProxy* CenterAxesProxy;
+  vtkSMProxy* OrientationWidgetProxy;
 
   // Pointer to client side objects,
   // for convienience.
@@ -391,11 +408,19 @@ protected:
   int MeasurePolygonsPerSecond;
   int UseOffscreenRenderingForScreenshots;
   bool LightKitAdded;
+  int UseInteractiveRenderingForSceenshots;
 
   // Description:
   // Get the number of polygons this render module is rendering
   vtkIdType GetTotalNumberOfPolygons();
 
+  // Description:
+  // The hardware selector is created the first time it's needed.
+  // vtkSMHardwareSelector has the ability to cache buffers. This makes it
+  // possible to do repeated selections without having to re-capture the
+  // buffers. We clear the buffers if camera changes or any of the selection
+  // parameters change or the window size changes.
+  vtkSMHardwareSelector* HardwareSelector;
 private:
   vtkSMRenderViewProxy(const vtkSMRenderViewProxy&); // Not implemented.
   void operator=(const vtkSMRenderViewProxy&); // Not implemented.

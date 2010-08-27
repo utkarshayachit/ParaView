@@ -48,6 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QtDebug>
 #include <QFileInfo>
 
+#include "pqAnimationCue.h"
 #include "pqAnimationScene.h"
 #include "pqApplicationCore.h"
 #include "pqDataRepresentation.h"
@@ -384,6 +385,7 @@ pqView* pqObjectBuilder::createView(const QString& type,
     }
 
   proxy->SetConnectionID(server->GetConnectionID());
+  proxy->UpdateVTKObjects();
 
   QString name = ::pqObjectBuilderGetName(proxy, this->NameGenerator);
   pxm->RegisterProxy("views", name.toAscii().data(), proxy);
@@ -906,6 +908,26 @@ void pqObjectBuilder::removeServer(pqServer* server)
   vtkProcessModule::GetProcessModule()->Disconnect(
     server->GetConnectionID());
   core->getServerManagerModel()->endRemoveServer();
+}
+
+//-----------------------------------------------------------------------------
+void pqObjectBuilder::destroy(pqAnimationCue* cue)
+{
+  if (!cue)
+    {
+    return;
+    }
+
+  vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+
+  QList<vtkSMProxy*> keyframes = cue->getKeyFrames();
+  // unregister all the keyframes.
+  foreach (vtkSMProxy* kf, keyframes)
+    {
+    pxm->UnRegisterProxy("animation",
+      pxm->GetProxyName("animation", kf), kf);
+    }
+  this->destroy(static_cast<pqProxy*>(cue));
 }
 
 //-----------------------------------------------------------------------------

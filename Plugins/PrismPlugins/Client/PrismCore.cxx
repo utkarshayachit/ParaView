@@ -20,13 +20,20 @@
 #include "pqDataRepresentation.h"
 #include "pqSMAdaptor.h"
 #include "pqObjectBuilder.h"
+#include "pqCoreUtilities.h"
 #include <QApplication>
+#include <QActionGroup>
 #include <QStyle>
 #include <QMessageBox>
 #include <QtDebug>
 #include <pqFileDialog.h>
 #include <QAction>
+#include <QMainWindow>
 #include "pqUndoStack.h"
+#include "vtkSMPropertyLink.h"
+#include "vtkSMSelectionHelper.h"
+#include "vtkSelection.h"
+#include "vtkSelectionNode.h"
 //-----------------------------------------------------------------------------
 static PrismCore* Instance = 0;
 PrismCore::PrismCore(QObject* p)
@@ -34,23 +41,14 @@ PrismCore::PrismCore(QObject* p)
     {
     this->ProcessingEvent=false;
     this->VTKConnections = NULL;
-
-    this->PrismViewAction = new QAction("Prism View",this);
-    this->PrismViewAction->setToolTip("Create Prism View");
-    this->PrismViewAction->setIcon(QIcon(":/Prism/Icons/PrismSmall.png"));
-
-    QObject::connect(this->PrismViewAction, SIGNAL(triggered(bool)), this, SLOT(onCreatePrismView()));
-
-    this->SesameViewAction = new QAction("SESAME Surface",this);
-    this->SesameViewAction->setToolTip("Open SESAME Surface");
-    this->SesameViewAction->setIcon(QIcon(":/Prism/Icons/CreateSESAME.png"));
-
-    QObject::connect(this->SesameViewAction, SIGNAL(triggered(bool)), this, SLOT(onSESAMEFileOpen()));
+    this->PrismViewAction=NULL;
+    this->SesameViewAction=NULL;
 
     pqServerManagerModel* model=pqApplicationCore::instance()->getServerManagerModel();
 
     this->connect(model, SIGNAL(connectionAdded(pqPipelineSource*,pqPipelineSource*, int)),
         this, SLOT(onConnectionAdded(pqPipelineSource*,pqPipelineSource*)));
+    this->setParent(model);
 
     pqServerManagerSelectionModel *selection =
         pqApplicationCore::instance()->getSelectionModel();
@@ -72,10 +70,8 @@ PrismCore::PrismCore(QObject* p)
 
 PrismCore::~PrismCore()
     {
-    if(this->VTKConnections!=NULL)
-        {
-        this->VTKConnections->Delete();
-        }
+
+    Instance=NULL;
     }
 
 
@@ -94,11 +90,24 @@ PrismCore* PrismCore::instance()
 
 
 
-void PrismCore::actions(QList<QAction*>& tmp)
+void PrismCore::createActions(QActionGroup* ag)
     {
-    tmp.clear();
-    tmp.push_back(this->SesameViewAction);
-    tmp.push_back(this->PrismViewAction);
+      if(!this->PrismViewAction)
+      {
+        this->PrismViewAction = new QAction("Prism View",ag);
+        this->PrismViewAction->setToolTip("Create Prism View");
+        this->PrismViewAction->setIcon(QIcon(":/Prism/Icons/PrismSmall.png"));
+
+        QObject::connect(this->PrismViewAction, SIGNAL(triggered(bool)), this, SLOT(onCreatePrismView()));
+      }
+      if(!this->SesameViewAction)
+      {
+        this->SesameViewAction = new QAction("SESAME Surface",ag);
+        this->SesameViewAction->setToolTip("Open SESAME Surface");
+        this->SesameViewAction->setIcon(QIcon(":/Prism/Icons/CreateSESAME.png"));
+
+        QObject::connect(this->SesameViewAction, SIGNAL(triggered(bool)), this, SLOT(onSESAMEFileOpen()));
+      }
     }
 
 pqPipelineSource* PrismCore::getActiveSource() const
@@ -133,7 +142,7 @@ pqServer* PrismCore::getActiveServer() const
     pqServerManagerSelection::ConstIterator iter = sels.begin();
 
     item = *iter;
-    source = dynamic_cast<pqPipelineSource*>(item);   
+    source = dynamic_cast<pqPipelineSource*>(item);
 
     if(source)
     {
@@ -141,14 +150,14 @@ pqServer* PrismCore::getActiveServer() const
     }
     else
     {
-    outputPort=dynamic_cast<pqOutputPort*>(item); 
+    outputPort=dynamic_cast<pqOutputPort*>(item);
     if(outputPort)
     {
     server= outputPort->getServer();
     }
     else
     {
-    server = dynamic_cast<pqServer*>(item);  
+    server = dynamic_cast<pqServer*>(item);
     }
     }
     */
@@ -167,9 +176,12 @@ void PrismCore::onSESAMEFileOpen()
         qDebug() << "No active server selected.";
         }
 
+
+
+
     QString filters = "All files (*)";
     pqFileDialog* const file_dialog = new pqFileDialog(server, 
-        NULL, tr("Open File:"), QString(), filters);
+        pqCoreUtilities::mainWidget(), tr("Open File:"), QString(), filters);
 
     file_dialog->setAttribute(Qt::WA_DeleteOnClose);
     file_dialog->setObjectName("FileOpenDialog");
@@ -254,7 +266,7 @@ void PrismCore::onCreatePrismView()
 
     QString filters = "All files (*)";
     pqFileDialog* const file_dialog = new pqFileDialog(server, 
-        NULL, tr("Open File:"), QString(), filters);
+         pqCoreUtilities::mainWidget(), tr("Open File:"), QString(), filters);
 
     file_dialog->setAttribute(Qt::WA_DeleteOnClose);
     file_dialog->setObjectName("FileOpenDialog");
@@ -276,7 +288,7 @@ void PrismCore::onCreatePrismView(const QStringList& files)
     QList<pqOutputPort*> inputs;
 
 
-    source = this->getActiveSource();   
+    source = this->getActiveSource();
 
     if(!source)
     {
@@ -340,7 +352,7 @@ void PrismCore::onConnectionAdded(pqPipelineSource* source,
 
             if(this->VTKConnections==NULL)
                 {
-                this->VTKConnections = vtkEventQtSlotConnect::New();
+                this->VTKConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
                 }
 
             this->VTKConnections->Connect(sourceP, vtkCommand::SelectionChangedEvent,
@@ -357,6 +369,7 @@ void PrismCore::onConnectionAdded(pqPipelineSource* source,
                 this, SLOT(onPrismRepresentationAdded(pqPipelineSource*,
                 pqDataRepresentation*,
                 int)));
+
             }
         }
     }
@@ -386,54 +399,101 @@ void PrismCore::onPrismSelection(vtkObject* caller,
         vtkSMSourceProxy* sourceP=static_cast<vtkSMSourceProxy*>(client_data);
 
         pqServerManagerModel* model= pqApplicationCore::instance()->getServerManagerModel();
-        pqPipelineSource* pqPrismSourceP=model->findItem<pqPipelineSource*>(prismP);
+        pqPipelineSource* pqPrismP=model->findItem<pqPipelineSource*>(prismP);
 
-        pqOutputPort* opport = pqPrismSourceP->getOutputPort(portIndex);
-
-        vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-        vtkSMSourceProxy* selSource =vtkSMSourceProxy::SafeDownCast(
-            pxm->NewProxy("sources", "CompositeDataIDSelectionSource"));
 
         vtkSMSourceProxy* selPrism = prismP->GetSelectionInput(portIndex);
-
         if(!selPrism)
-            {
-            sourceP->CleanSelectionInputs(0);
-            this->ProcessingEvent=false;
-            pqPipelineSource* pqSourceP=model->findItem<pqPipelineSource*>(sourceP);
+        {
+          sourceP->CleanSelectionInputs(0);
+          this->ProcessingEvent=false;
+          pqPipelineSource* pqSourceP=model->findItem<pqPipelineSource*>(sourceP);
+          if(pqSourceP)
+          {
             QList<pqView*> Views=pqSourceP->getViews();
 
             foreach(pqView* v,Views)
-                {
-                v->render();
-                }
-
-            return;
+            {
+              v->render();
             }
+          }
+          return;
+        }
+
         pqApplicationCore* const core = pqApplicationCore::instance();
         pqSelectionManager* slmanager = qobject_cast<pqSelectionManager*>(
-            core->manager("SELECTION_MANAGER"));
+            core->manager("SelectionManager"));
+        pqOutputPort* opport = pqPrismP->getOutputPort(portIndex);
 
-        QList<QPair<int, vtkIdType> > indices = slmanager->getIndices(selPrism,opport);
-        QList<QVariant> ids;
-        int cc;
-        for (cc=0; cc < indices.size(); cc++)
-            {
-            ids.push_back(indices[cc].first);
-            ids.push_back(indices[cc].second);
-            }
+        slmanager->select(opport);
 
 
-        pqSMAdaptor::setMultipleElementProperty(
-            selSource->GetProperty("IDs"), ids);
-        selSource->GetProperty("FieldType")->Copy(selPrism->GetProperty("FieldType"));
+
+        if (strcmp(selPrism->GetXMLName(), "FrustumSelectionSource") == 0 ||
+          strcmp(selPrism->GetXMLName(), "ThresholdSelectionSource") == 0)
+        {
+          vtkSMSourceProxy* newSource = vtkSMSourceProxy::SafeDownCast(
+            vtkSMSelectionHelper::ConvertSelection(vtkSelectionNode::GLOBALIDS,
+            selPrism,
+            prismP,
+            portIndex));
+
+          if(!newSource)
+          {
+            return;
+          }
+          newSource->UpdateVTKObjects();
+          prismP->SetSelectionInput(portIndex,newSource, 0);
+          selPrism=newSource;
+        }
+
+
+
+       vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+
+       vtkSMSourceProxy* selSource=vtkSMSourceProxy::SafeDownCast(
+           pxm->NewProxy("sources", "GlobalIDSelectionSource"));
+
+
+
+
+
+        pxm->UnRegisterLink(prismP->GetSelfIDAsString());//TODO we need a unique id that represents the connection.
+        //Otherwise we geometry in multiple SESAME views and vise versa.
+
+
+
+
+        vtkSMPropertyLink* link = vtkSMPropertyLink::New();
+
+        // bi-directional link
+
+        link->AddLinkedProperty(selPrism,
+          "IDs",
+          vtkSMLink::INPUT);
+        link->AddLinkedProperty(selSource,
+          "IDs",
+          vtkSMLink::OUTPUT);
+        link->AddLinkedProperty(selSource,
+          "IDs",
+          vtkSMLink::INPUT);
+        link->AddLinkedProperty(selPrism,
+          "IDs",
+          vtkSMLink::OUTPUT);
+        pxm->RegisterLink(prismP->GetSelfIDAsString(), link);
+        link->Delete();
+
+
+
 
         selSource->UpdateVTKObjects();
         sourceP->SetSelectionInput(0,selSource,0);
         selSource->UnRegister(NULL);
 
-        pqPipelineSource* pqSourceP=model->findItem<pqPipelineSource*>(sourceP);
-        QList<pqView*> Views=pqSourceP->getViews();
+
+
+        pqPipelineSource* pqPrismSourceP=model->findItem<pqPipelineSource*>(sourceP);
+        QList<pqView*> Views=pqPrismSourceP->getViews();
 
         foreach(pqView* v,Views)
             {
@@ -459,47 +519,93 @@ void PrismCore::onGeometrySelection(vtkObject* caller,
         pqServerManagerModel* model= pqApplicationCore::instance()->getServerManagerModel();
         pqPipelineSource* pqSourceP=model->findItem<pqPipelineSource*>(sourceP);
 
-        pqOutputPort* opport = pqSourceP->getOutputPort(portIndex);
-
         vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-        vtkSMSourceProxy* selPrism =vtkSMSourceProxy::SafeDownCast(
-            pxm->NewProxy("sources", "CompositeDataIDSelectionSource"));
 
         vtkSMSourceProxy* selSource = sourceP->GetSelectionInput(portIndex);
         if(!selSource)
-            {
-            prismP->CleanSelectionInputs(1);
-            this->ProcessingEvent=false;
-            pqPipelineSource* pqPrismP=model->findItem<pqPipelineSource*>(prismP);
+        {
+          prismP->CleanSelectionInputs(2);
+          this->ProcessingEvent=false;
+          pqPipelineSource* pqPrismP=model->findItem<pqPipelineSource*>(prismP);
+          if(pqPrismP)
+          {
             QList<pqView*> Views=pqPrismP->getViews();
 
             foreach(pqView* v,Views)
-                {
-                v->render();
-                }
-            return;
+            {
+              v->render();
             }
+          }
+          return;
+        }
 
         pqApplicationCore* const core = pqApplicationCore::instance();
         pqSelectionManager* slmanager = qobject_cast<pqSelectionManager*>(
-            core->manager("SELECTION_MANAGER"));
-        QList<QPair<int, vtkIdType> > indices = slmanager->getIndices(selSource,opport);
-        QList<QVariant> ids;
-        int cc;
-        for (cc=0; cc < indices.size(); cc++)
-            {
-            ids.push_back(indices[cc].first);
-            ids.push_back(indices[cc].second);
-            }
+            core->manager("SelectionManager"));
+        pqOutputPort* opport = pqSourceP->getOutputPort(portIndex);
+
+        slmanager->select(opport);
 
 
-        pqSMAdaptor::setMultipleElementProperty(
-            selPrism->GetProperty("IDs"), ids);
-        selPrism->GetProperty("FieldType")->Copy(selSource->GetProperty("FieldType"));
+
+        if (strcmp(selSource->GetXMLName(), "FrustumSelectionSource") == 0 ||
+          strcmp(selSource->GetXMLName(), "ThresholdSelectionSource") == 0)
+        {
+          vtkSMSourceProxy* newSource = vtkSMSourceProxy::SafeDownCast(
+            vtkSMSelectionHelper::ConvertSelection(vtkSelectionNode::GLOBALIDS,
+            selSource,
+            sourceP,
+            portIndex));
+
+          if(!newSource)
+          {
+            return;
+          }
+          newSource->UpdateVTKObjects();
+          sourceP->SetSelectionInput(portIndex,newSource, 0);
+          selSource=newSource;
+        }
+
+
+        vtkSMSourceProxy* selPrism=vtkSMSourceProxy::SafeDownCast(
+            pxm->NewProxy("sources", "GlobalIDSelectionSource"));
+
+
+
+
+        pxm->UnRegisterLink(prismP->GetSelfIDAsString());//TODO we need a unique id that represents the connection.
+        //Otherwise we geometry in multiple SESAME views and vise versa.
+
+
+
+
+        vtkSMPropertyLink* link = vtkSMPropertyLink::New();
+
+        // bi-directional link
+
+        link->AddLinkedProperty(selSource,
+          "IDs",
+          vtkSMLink::INPUT);
+        link->AddLinkedProperty(selPrism,
+          "IDs",
+          vtkSMLink::OUTPUT);
+        link->AddLinkedProperty(selPrism,
+          "IDs",
+          vtkSMLink::INPUT);
+        link->AddLinkedProperty(selSource,
+          "IDs",
+          vtkSMLink::OUTPUT);
+        pxm->RegisterLink(prismP->GetSelfIDAsString(), link);
+        link->Delete();
+
 
         selPrism->UpdateVTKObjects();
-        prismP->SetSelectionInput(1,selPrism,0);
+        prismP->SetSelectionInput(2,selPrism,0);
         selPrism->UnRegister(NULL);
+
+
+
+
 
         pqPipelineSource* pqPrismSourceP=model->findItem<pqPipelineSource*>(prismP);
         QList<pqView*> Views=pqPrismSourceP->getViews();
@@ -528,14 +634,20 @@ void PrismCore::onSelectionChanged()
             pqSMAdaptor::setUncheckedProxyProperty(input, source->getProxy());
             if(input->IsInDomains())
                 {
-                this->PrismViewAction->setEnabled(true);
+                  if(this->PrismViewAction)
+                  {
+                    this->PrismViewAction->setEnabled(true);
+                  }
                 return;
                 }
             }
-        }
+      }
 
-    this->PrismViewAction->setEnabled(false);
-    }
+    if(this->PrismViewAction)
+      {
+      this->PrismViewAction->setEnabled(false);
+      }
+}
 
 pqServerManagerModelItem *PrismCore::getActiveObject() const
     {
@@ -558,5 +670,3 @@ pqServerManagerModelItem *PrismCore::getActiveObject() const
 
     return item;
     }
-
-

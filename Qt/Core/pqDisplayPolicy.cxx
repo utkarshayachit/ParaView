@@ -45,13 +45,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 
 #include "pqApplicationCore.h"
-#include "pqBarChartView.h"
 #include "pqDataRepresentation.h"
 #include "pqObjectBuilder.h"
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 #include "pqRenderView.h"
 #include "pqServer.h"
+#include "pqSpreadSheetView.h"
 #include "pqTwoDRenderView.h"
 #include "pqXYBarChartView.h"
 #include "pqXYChartView.h"
@@ -83,27 +83,39 @@ QString pqDisplayPolicy::getPreferredViewType(pqOutputPort* opPort,
     source->updatePipeline();
     }
 
+  // Some sources have hints that say that the output is to be treated as raw
+  // text. We flag such sources.
+  bool is_text = false;
+
   vtkPVXMLElement* hints = source->getHints();
   if (hints)
     {
     for (unsigned int cc=0; cc < hints->GetNumberOfNestedElements(); cc++)
       {
       vtkPVXMLElement* child = hints->GetNestedElement(cc);
-      if (child && child->GetName() &&
-        strcmp(child->GetName(), "View") == 0)
+      if (child && child->GetName())
         {
-        int port;
-        // If port exists, then it must match the port number for this port.
-        if (child->GetScalarAttribute("port", &port))
+        if (strcmp(child->GetName(), "View") == 0)
           {
-          if (opPort->getPortNumber() != port)
+          int port;
+          // If port exists, then it must match the port number for this port.
+          if (child->GetScalarAttribute("port", &port))
             {
-            continue;
+            if (opPort->getPortNumber() != port)
+              {
+              continue;
+              }
+            }
+          if (child->GetAttribute("type"))
+            {
+            return child->GetAttribute("type");
             }
           }
-        if (child->GetAttribute("type"))
+        else if (strcmp(child->GetName(), "OutputPort") == 0 &&
+          child->GetAttribute("type") &&
+          strcmp(child->GetAttribute("type"), "text") ==  0)
           {
-          return child->GetAttribute("type");
+          is_text = true;
           }
         }
       }
@@ -166,6 +178,13 @@ QString pqDisplayPolicy::getPreferredViewType(pqOutputPort* opPort,
       // No cell data, but some point data -- may be a XY line plot.
       view_type = pqXYChartView::XYChartViewType();
       }
+    }
+
+  // Show table in spreadsheet view by default (unless the table is to be
+  // treated as a "string" source).
+  if (className == "vtkTable" && !is_text)
+    {
+    return pqSpreadSheetView::spreadsheetViewType(); 
     }
 
    // The proxy gives us no hint. In that case we try to determine the

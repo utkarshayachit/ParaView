@@ -21,11 +21,7 @@
 #include "vtkErrorCode.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkSMChartOptionsProxy.h"
 #include "vtkSMUtilities.h"
-
-#include "QVTKWidget.h"
-#include <QPointer>
 
 //-----------------------------------------------------------------------------
 // Minimal storage class for STL containers etc.
@@ -35,10 +31,7 @@ public:
   Private() { }
   ~Private()
   {
-  delete this->Widget;
   }
-
-  QPointer<QVTKWidget> Widget;
 };
 
 
@@ -77,16 +70,9 @@ void vtkSMContextViewProxy::CreateVTKObjects()
 }
 
 //----------------------------------------------------------------------------
-QVTKWidget* vtkSMContextViewProxy::GetChartWidget()
+vtkRenderWindow* vtkSMContextViewProxy::GetRenderWindow()
 {
-  if (!this->Storage->Widget)
-    {
-    this->Storage->Widget = new QVTKWidget;
-    this->ChartView->SetInteractor(this->Storage->Widget->GetInteractor());
-    this->Storage->Widget->SetRenderWindow(this->ChartView->GetRenderWindow());
-    }
-
-  return this->Storage->Widget;
+  return this->ChartView->GetRenderWindow();
 }
 
 //----------------------------------------------------------------------------
@@ -104,6 +90,11 @@ vtkChart* vtkSMContextViewProxy::GetChart()
 //-----------------------------------------------------------------------------
 vtkImageData* vtkSMContextViewProxy::CaptureWindow(int magnification)
 {
+  // Now update all representation pipelines - should not be necessary once
+  // ParaView is ported to use vtkRenderViewBase, and handle the logic
+  // centrally for all views derived from the base view.
+  this->UpdateAllRepresentations();
+
   this->GetChartView()->Render();
 
   vtkWindowToImageFilter* w2i = vtkWindowToImageFilter::New();
@@ -148,6 +139,7 @@ void vtkSMContextViewProxy::PerformRender()
 {
   int size[2];
   this->GetGUISize(size);
+  this->GetChartView()->Render();
 }
 
 //----------------------------------------------------------------------------
@@ -155,5 +147,3 @@ void vtkSMContextViewProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
-
-

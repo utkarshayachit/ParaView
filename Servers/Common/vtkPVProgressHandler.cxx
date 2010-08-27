@@ -43,7 +43,9 @@
 #endif
 
 
-#define MIN_PROGRESS_INTERVAL_IN_SECS 0.3
+// define this variable to disable progress all together. This may be useful to
+// doing really large runs.
+// #define PV_DISABLE_PROGRESS_HANDLING
 
 inline const char* vtkGetProgressText(vtkObjectBase* o)
 {
@@ -250,7 +252,9 @@ vtkPVProgressHandler::vtkPVProgressHandler()
   this->Internals = new vtkInternals();
   this->Observer = vtkPVProgressHandler::vtkObserver::New();
   this->Observer->SetTarget(this);
-  this->ProcessType = INVALID; 
+  this->ProcessType = INVALID;
+  this->ProgressFrequency = 2.0; // seconds
+
 }
 
 //----------------------------------------------------------------------------
@@ -274,9 +278,24 @@ void vtkPVProgressHandler::RegisterProgressEvent(vtkObject* object, int id)
 }
 
 //----------------------------------------------------------------------------
+void vtkPVProgressHandler::SetConnection(vtkProcessModuleConnection* conn)
+{
+  if (this->Connection != conn)
+    {
+    this->Connection = conn;
+    this->DetermineProcessType();
+    this->Modified();
+    }
+}
+
+//----------------------------------------------------------------------------
 void vtkPVProgressHandler::DetermineProcessType()
 {
   this->ProcessType = INVALID;
+#ifdef PV_DISABLE_PROGRESS_HANDLING
+  return;
+#endif
+
   if (!this->Connection)
     {
     return;
@@ -306,12 +325,20 @@ void vtkPVProgressHandler::DetermineProcessType()
 //----------------------------------------------------------------------------
 void vtkPVProgressHandler::PrepareProgress()
 {
+#ifdef PV_DISABLE_PROGRESS_HANDLING
+  return;
+#endif
+
   this->Internals->EnableProgress = true;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVProgressHandler::CleanupPendingProgress()
 {
+#ifdef PV_DISABLE_PROGRESS_HANDLING
+  return;
+#endif
+
   if (!this->Internals->EnableProgress)
     {
     vtkErrorMacro("Non-critical internal ParaView Error: "
@@ -408,6 +435,10 @@ void vtkPVProgressHandler::CleanupSatellites()
 void vtkPVProgressHandler::OnProgressEvent(vtkObject* obj,
   double progress)
 {
+#ifdef PV_DISABLE_PROGRESS_HANDLING
+  return;
+#endif
+
   if (!this->Internals->EnableProgress)
     {
     return;
@@ -480,9 +511,8 @@ bool vtkPVProgressHandler::GetIsRoot()
 bool vtkPVProgressHandler::ReportProgress(double progress)
 {
   this->Internals->ProgressTimer->StopTimer();
-  if (progress <= 0.0 ||
-    progress >= 1.0 ||
-    this->Internals->ProgressTimer->GetElapsedTime() > MIN_PROGRESS_INTERVAL_IN_SECS)
+  if (progress <= 0.0 || progress >= 1.0 ||
+    this->Internals->ProgressTimer->GetElapsedTime() > this->ProgressFrequency)
     {
     this->Internals->ProgressTimer->StartTimer();
     return true;
@@ -527,16 +557,18 @@ void vtkPVProgressHandler::ReceiveProgressFromServer()
 //----------------------------------------------------------------------------
 void vtkPVProgressHandler::HandleServerProgress(int progress, const char* text)
 {
+#ifdef PV_DISABLE_PROGRESS_HANDLING
+  return;
+#endif
+
   vtkProcessModule::GetProcessModule()->SetLocalProgress(text, progress);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVProgressHandler::SetLocalProgress(int progress, const char* text)
 {
-  this->Internals->ProgressTimer->StopTimer();
-  //if (this->Internals->ProgressTimer->GetElapsedTime() > MIN_PROGRESS_INTERVAL_IN_SECS)
+  if (this->ReportProgress(progress/100.0))
     {
-    this->Internals->ProgressTimer->StartTimer();
     vtkProcessModule::GetProcessModule()->SetLocalProgress(text, progress);
     }
 }
@@ -636,8 +668,8 @@ void vtkPVProgressHandler::SendProgressToRoot()
   if (this->Internals->AsyncRequestValid &&
     this->Internals->AsyncRequest.Test())
     {
-    // The previous Send() has been consumed by the root, so we no longer have
-    // a pending send.
+    // This simply marks whether the previously sent message caused any errors.
+    // This does not imply that the message has been received by the root node.
     this->Internals->AsyncRequestValid =false;
     }
 

@@ -4,6 +4,7 @@ SET (TESTS_WITHOUT_BASELINES
 )
 
 SET (TESTS_WITH_BASELINES
+  ${CMAKE_CURRENT_SOURCE_DIR}/AnalyzeReaderWriterPlugin.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/AnimatePipelineTime.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/3DWidgetInCustomFilter.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/CalcParens.xml
@@ -21,6 +22,7 @@ SET (TESTS_WITH_BASELINES
   ${CMAKE_CURRENT_SOURCE_DIR}/CustomSourceProbe.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/D3SmallCells.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/DualSphereAnimation.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/EnSight.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/ExodusIIPanel.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/ExodusModeShapes.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/ExodusXML.xml
@@ -34,10 +36,14 @@ SET (TESTS_WITH_BASELINES
   ${CMAKE_CURRENT_SOURCE_DIR}/Flow2.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/Fractal2D.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/GlobalProperties.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/GridConnectivity.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/LinePlot.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/H5PartReaderPlugin.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/LoadPlugins.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/LoadSaveStateAnimation.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/LoadState.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/NormalGlyphs.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/NiftiReaderWriterPlugin.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/ObjectInspectorSphere.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/OpenSaveData.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/Plot3DReader.xml
@@ -81,7 +87,8 @@ SET (TESTS_WITH_BASELINES
   ${CMAKE_CURRENT_SOURCE_DIR}/XdmfReadStructuredGridCollection.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/XdmfGridAttributes.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/XYChart.xml
-#  ${CMAKE_CURRENT_SOURCE_DIR}/XYBarChart.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/XYHistogram.xml
+  #  ${CMAKE_CURRENT_SOURCE_DIR}/XYBarChart.xml
 )
 
 # Mark tests that change change state considerably requires a restart of the
@@ -105,11 +112,14 @@ set (ColorEditor1_BREAK TRUE)
 set (ColorEditor2_BREAK TRUE)
 set (ColorEditor3_BREAK TRUE)
 set (ColorEditor4_BREAK TRUE)
+set (GridConnectivity_BREAK_TRUE)
+set (H5PartReaderPlugin_BREAK_TRUE)
 set (ReadXMLPolyDataFileSeries_BREAK TRUE)
 set (ExodusXML_BREAK TRUE)
 SET (ComparativeVisPanel_BREAK TRUE)
 SET (SpreadSheet1_BREAK TRUE)
 SET (SPTimeseries_BREAK TRUE)
+SET (XYChart_BREAK TRUE)
 
 
 # Add image threshold overrides for tests.
@@ -120,6 +130,7 @@ SET (UndoRedo4_THRESHOLD 15)
 
 # Since often there are issues with fonts etc.
 SET (XYChart_THRESHOLD 150)
+SET (XYHistogram_THRESHOLD 60)
 
 # These Xdmf tests have wireframes, hence the increased thresholds.
 SET (XdmfReadImageData_THRESHOLD 20)
@@ -134,6 +145,7 @@ SET (XdmfReadImageDataCollection_THRESHOLD 20)
 SET (SaveCSV_THRESHOLD 40)
 
 # Disable some testing configurations for these tests.
+
 ## Disable ClientRenderServer tests for FFTOverTime. This is done since
 ## selection is not supported in render server mode esp. when number of render
 ## server processess is not same as the data server processes
@@ -149,16 +161,36 @@ SET (ColorEditor3_DISABLE_CRS TRUE)
 SET (ViewSettingsDialog_DISABLE_CS TRUE)
 SET (ViewSettingsDialog_DISABLE_CRS TRUE)
 
+# Plugins are only built as shared libraries.
+IF (NOT BUILD_SHARED_LIBS)
+  SET (AnalyzeReaderWriterPlugin_DISABLE_C TRUE)
+  SET (H5PartReaderPlugin_DISABLE_C TRUE)
+  SET (LoadPlugins_DISABLE_C TRUE)
+  SET (NiftiReaderWriterPlugin_DISABLE_C TRUE)
+ENDIF (NOT BUILD_SHARED_LIBS)
+# There should be a client server specific version of this test.
+SET (AnalyzeReaderWriterPlugin_DISABLE_CS TRUE)
+SET (H5PartReaderPlugin_DISABLE_CS TRUE)
+SET (LoadPlugins_DISABLE_CS TRUE)
+SET (NiftiReaderWriterPlugin_DISABLE_CS TRUE)
+SET (AnalyzeReaderWriterPlugin_DISABLE_CRS TRUE)
+SET (H5PartReaderPlugin_DISABLE_CRS TRUE)
+SET (LoadPlugins_DISABLE_CRS TRUE)
+SET (NiftiReaderWriterPlugin_DISABLE_CRS TRUE)
+
 # Make these tests use reverse connection.
 SET (CutMulti_REVERSE_CONNECT TRUE)
 
 add_client_tests("pv"
-  TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES})
+  TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES}
+  PARALLEL
+  )
 
 IF (PARAVIEW_DATA_ROOT)
   add_client_tests("pv"
     BASELINE_DIR ${PARAVIEW_DATA_ROOT}/Baseline
     TEST_SCRIPTS ${TESTS_WITH_BASELINES}
+    PARALLEL
   )
 
   add_client_server_tests("pvcs"

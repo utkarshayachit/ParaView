@@ -7,7 +7,7 @@
    All rights reserved.
 
    ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
+   under the terms of the ParaView license version 1.2.
 
    See License_v1.2.txt for the full ParaView license.
    A copy of this license can be obtained by contacting
@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProxy.h"
 
 // Qt Includes.
+#include <QDoubleValidator>
 
 // ParaView Includes.
 #include "pqApplicationCore.h"
@@ -88,7 +89,7 @@ pqCubeAxesEditorDialog::pqCubeAxesEditorDialog(
   QObject::connect(this->Internal->Ok, SIGNAL(clicked()),
     this, SLOT(accept()), Qt::QueuedConnection);
   QObject::connect(this->Internal->Cancel, SIGNAL(clicked()),
-    this, SLOT(reject()), Qt::QueuedConnection);  
+    this, SLOT(reject()), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
@@ -99,10 +100,10 @@ pqCubeAxesEditorDialog::~pqCubeAxesEditorDialog()
 
 
 
-#define PV_SPINBOX_REGISTER(ui, propName, index)\
+#define PV_LINEEDIT_REGISTER(ui, propName, index)\
 {\
   this->Internal->PropertyManager->registerLink(\
-    this->Internal->ui, "value",SIGNAL(valueChanged(double)),\
+    this->Internal->ui, "text",SIGNAL(textChanged(const QString &)),\
     repr, repr->GetProperty(propName), index);\
 }
 
@@ -127,25 +128,24 @@ void pqCubeAxesEditorDialog::setRepresentationProxy(vtkSMProxy* repr)
     // set up links between the property manager and the widgets.
     pqNamedWidgets::link(this, repr, this->Internal->PropertyManager);
     this->Internal->PropertyManager->registerLink(
-      this->Internal->ColorAdaptor, "color", 
+      this->Internal->ColorAdaptor, "color",
       SIGNAL(colorChanged(const QVariant&)),
       repr, repr->GetProperty("CubeAxesColor"));
     new pqStandardColorLinkAdaptor(this->Internal->Color,
       repr, "CubeAxesColor");
-   
+
     //fill the ui elements with the correct object bounds
     double pvBounds[6];
     vtkSMPVRepresentationProxy *pvProxy = vtkSMPVRepresentationProxy::SafeDownCast(repr);
     if ( pvProxy )
-      {                
-      
+      {
       //link the ui elements to the vtkSMCubeAxesRepresentationProxy
-      PV_SPINBOX_REGISTER(CubeAxesXCustomBoundsMin, "CustomBounds", 0);
-      PV_SPINBOX_REGISTER(CubeAxesXCustomBoundsMax, "CustomBounds", 1);
-      PV_SPINBOX_REGISTER(CubeAxesYCustomBoundsMin, "CustomBounds", 2);
-      PV_SPINBOX_REGISTER(CubeAxesYCustomBoundsMax, "CustomBounds", 3);
-      PV_SPINBOX_REGISTER(CubeAxesZCustomBoundsMin, "CustomBounds", 4);
-      PV_SPINBOX_REGISTER(CubeAxesZCustomBoundsMax, "CustomBounds", 5);
+      PV_LINEEDIT_REGISTER(CubeAxesXCustomBoundsMin, "CustomBounds", 0);
+      PV_LINEEDIT_REGISTER(CubeAxesXCustomBoundsMax, "CustomBounds", 1);
+      PV_LINEEDIT_REGISTER(CubeAxesYCustomBoundsMin, "CustomBounds", 2);
+      PV_LINEEDIT_REGISTER(CubeAxesYCustomBoundsMax, "CustomBounds", 3);
+      PV_LINEEDIT_REGISTER(CubeAxesZCustomBoundsMin, "CustomBounds", 4);
+      PV_LINEEDIT_REGISTER(CubeAxesZCustomBoundsMax, "CustomBounds", 5);
 
       //link the activation of the group boxes to vtkSMCubeAxesRepresentationProxy
       PV_GROUPBOX_REGISTER(CubeAxesXCustomBounds, "CustomBoundsActive", 0);
@@ -157,45 +157,45 @@ void pqCubeAxesEditorDialog::setRepresentationProxy(vtkSMProxy* repr)
       this->setupCustomAxes( pvBounds[0],pvBounds[1],
         !this->Internal->CubeAxesXCustomBounds->isChecked(),
         this->Internal->CubeAxesXCustomBoundsMin,
-        this->Internal->CubeAxesXCustomBoundsMax);       
+        this->Internal->CubeAxesXCustomBoundsMax);
 
       this->setupCustomAxes( pvBounds[2], pvBounds[3],
         !this->Internal->CubeAxesYCustomBounds->isChecked(),
         this->Internal->CubeAxesYCustomBoundsMin,
-        this->Internal->CubeAxesYCustomBoundsMax);       
+        this->Internal->CubeAxesYCustomBoundsMax);
 
       this->setupCustomAxes( pvBounds[4], pvBounds[5],
         !this->Internal->CubeAxesZCustomBounds->isChecked(),
         this->Internal->CubeAxesZCustomBoundsMin,
-        this->Internal->CubeAxesZCustomBoundsMax);       
+        this->Internal->CubeAxesZCustomBoundsMax);
 
       }
     }
 }
 
-#undef PV_SPINBOX_REGISTER
+#undef PV_LINEEDIT_REGISTER
 #undef PV_GROUPBOX_REGISTER
 
 //-----------------------------------------------------------------------------
-void pqCubeAxesEditorDialog::setupCustomAxes( const double &min, const double &max, 
-    const bool &enabled, QDoubleSpinBox *minWidget, QDoubleSpinBox *maxWidget)
+void pqCubeAxesEditorDialog::setupCustomAxes( const double &min, const double &max,
+    const bool &enabled, QLineEdit *minWidget, QLineEdit *maxWidget)
 {
-  double stepSize = (max-min) * 0.05;
+  //setup the validator for this axes]
+  if (minWidget->validator() == NULL )
+    {
+    minWidget->setValidator(new QDoubleValidator(minWidget));
+    }
+  if (maxWidget->validator() == NULL )
+    {
+    maxWidget->setValidator(new QDoubleValidator(maxWidget));
+    }
 
-  //setup min & max constraints
-  minWidget->setRange( min, max );      
-  maxWidget->setRange( min, max );      
-
-  //setup step size
-  minWidget->setSingleStep( stepSize );
-  maxWidget->setSingleStep( stepSize );
-  
   //setup initial values
   if ( enabled )
     {
-    minWidget->setValue( min );
-    maxWidget->setValue( max );
-    }       
+    minWidget->setText( QString::number(min) );
+    maxWidget->setText( QString::number(max) );
+    }
 }
 
 

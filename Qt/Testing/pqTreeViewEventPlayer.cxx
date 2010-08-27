@@ -7,7 +7,7 @@
    All rights reserved.
 
    ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
+   under the terms of the ParaView license version 1.2.
 
    See License_v1.2.txt for the full ParaView license.
    A copy of this license can be obtained by contacting
@@ -46,6 +46,7 @@ pqTreeViewEventPlayer::~pqTreeViewEventPlayer()
 {
 }
 
+//-----------------------------------------------------------------------------
 QModelIndex pqTreeViewEventPlayerGetIndex(const QString& str_index,
   QTreeView* treeView, bool &error)
 {
@@ -66,9 +67,9 @@ QModelIndex pqTreeViewEventPlayerGetIndex(const QString& str_index,
   return index;
 }
 
-//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------0000000
 bool pqTreeViewEventPlayer::playEvent(
-  QObject* object, const QString& command, 
+  QObject* object, const QString& command,
   const QString& arguments, bool& error)
 {
   QTreeView* treeView= qobject_cast<QTreeView*>(object);
@@ -76,7 +77,7 @@ bool pqTreeViewEventPlayer::playEvent(
     {
     return false;
     }
-  
+
   QRegExp regExp0("^([\\d\\.]+),(\\d+),(\\d+)$");
   if (command == "setTreeItemCheckState" && regExp0.indexIn(arguments) != -1)
     {
@@ -89,7 +90,7 @@ bool pqTreeViewEventPlayer::playEvent(
     QString str_index = regExp0.cap(1);
     int column = regExp0.cap(2).toInt();
     int check_state = regExp0.cap(3).toInt();
-    
+
     QStringList indices = str_index.split(".",QString::SkipEmptyParts);
     QTreeWidgetItem* cur_item = NULL;
     foreach (QString cur_index, indices)
@@ -120,7 +121,7 @@ bool pqTreeViewEventPlayer::playEvent(
     {
     QString str_index = regExp1.cap(1);
     int check_state = regExp1.cap(2).toInt();
-    
+
     QModelIndex index = ::pqTreeViewEventPlayerGetIndex(str_index, treeView, error);
     if (error)
       {

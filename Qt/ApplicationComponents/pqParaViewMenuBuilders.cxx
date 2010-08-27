@@ -7,7 +7,7 @@
    All rights reserved.
 
    ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
+   under the terms of the ParaView license version 1.2.
 
    See License_v1.2.txt for the full ParaView license.
    A copy of this license can be obtained by contacting
@@ -205,7 +205,7 @@ void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
   action2->setStatusTip(action2->toolTip());
 #endif
 
-   
+
   menu.addSeparator();
   //<addaction name="actionToolsDumpWidgetNames" />
   new pqTestingReaction(menu.addAction("Record Test")
@@ -213,7 +213,7 @@ void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
     pqTestingReaction::RECORD);
   new pqTestingReaction(menu.addAction("Play Test")
     << pqSetName("actionToolsPlayTest"),
-    pqTestingReaction::PLAYBACK);
+    pqTestingReaction::PLAYBACK,Qt::QueuedConnection);
   new pqTestingReaction(menu.addAction("Lock View Size")
     << pqSetName("actionTesting_Window_Size"),
     pqTestingReaction::LOCK_VIEW_SIZE);
@@ -249,7 +249,8 @@ void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QWidget& widget)
   widget.setObjectName(objectName);
   widget.setContextMenuPolicy(Qt::ActionsContextMenu);
 
-  if (widget.metaObject()->indexOfSignal("deleteKey()") != -1)
+  QByteArray signalName=QMetaObject::normalizedSignature("deleteKey()");
+  if (widget.metaObject()->indexOfSignal(signalName) != -1)
     {
     // Trigger a delete when the user requests a delete.
     QObject::connect(&widget, SIGNAL(deleteKey()),

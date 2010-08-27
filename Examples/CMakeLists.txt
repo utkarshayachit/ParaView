@@ -2,6 +2,10 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 
 IF(NOT ParaView_BINARY_DIR)
+  if(COMMAND cmake_policy)
+    cmake_policy(SET CMP0003 NEW)
+  endif(COMMAND cmake_policy)
+
   # we're building outside the ParaView tree.
   PROJECT(ParaViewExamples)
   FIND_PACKAGE(ParaView REQUIRED)
@@ -64,7 +68,7 @@ ELSE(NOT ParaView_BINARY_DIR)
   ADD_CUSTOM_TARGET(ParaViewExamplesTarget ALL DEPENDS
                     ${ParaView_BINARY_DIR}/ParaViewExamples)
 
-  ADD_DEPENDENCIES(ParaViewExamplesTarget vtkPVFiltersCS)
+  ADD_DEPENDENCIES(ParaViewExamplesTarget vtkPVServerManager)
   IF(PARAVIEW_BUILD_QT_GUI)
     ADD_DEPENDENCIES(ParaViewExamplesTarget pqComponents pqApplicationComponents)
   ENDIF(PARAVIEW_BUILD_QT_GUI)

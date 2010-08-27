@@ -105,7 +105,7 @@ static void vtkPythonAppInitPrependPath(const char* self_dir)
   pkg_prefix += "/..";
 #endif
   vtkPythonAppInitPrependPath2(pkg_prefix, "Utilities/mpi4py");
-  if (vtkPythonAppInitPrependPath2(pkg_prefix, "Utilities/VTKPythonWrapping"))
+  if (vtkPythonAppInitPrependPath2(pkg_prefix, "Utilities/VTKPythonWrapping/site-packages"))
     {
     // This executable is running from the build tree.  Prepend the
     // library directory to the search path.
@@ -132,8 +132,8 @@ static void vtkPythonAppInitPrependPath(const char* self_dir)
       0
     };
     vtkstd::string prefix = self_dir;
-#if defined(__APPLE__)
     vtkPythonAppInitPrependPythonPath(self_dir);
+#if defined(__APPLE__)
     // On OS X distributions, the libraries are in a different directory
     // than the module. They are in a place relative to the executable.
     vtkstd::string libs_dir = vtkstd::string(self_dir) + "/../Libraries";

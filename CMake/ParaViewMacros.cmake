@@ -159,7 +159,7 @@ FUNCTION (add_executable_with_forwarding2
   ENDIF (APPLE)
 
   SET(PV_EXE_SUFFIX)
-  IF (BUILD_SHARED_LIBS AND CMAKE_SKIP_RPATH AND NOT mac_bundle)
+  IF (BUILD_SHARED_LIBS AND NOT mac_bundle)
     IF(NOT WIN32)
       SET(exe_output_path ${EXECUTABLE_OUTPUT_PATH})
       IF (NOT EXECUTABLE_OUTPUT_PATH)
@@ -177,18 +177,22 @@ FUNCTION (add_executable_with_forwarding2
         SET (PV_FORWARD_PATH_INSTALL "${PV_FORWARD_PATH_INSTALL},\"${dir}\"")
       ENDFOREACH(dir)
 
-      SET(PV_FORWARD_EXE ${exe_name}${PV_EXE_SUFFIX})
+      SET(PV_FORWARD_EXE ${exe_name})
       CONFIGURE_FILE(
         ${ParaView_CMAKE_DIR}/pv-forward.c.in
         ${CMAKE_CURRENT_BINARY_DIR}/${exe_name}-forward.c
         @ONLY IMMEDIATE)
       add_executable(${exe_name}
         ${CMAKE_CURRENT_BINARY_DIR}/${exe_name}-forward.c)
+      set_target_properties(${exe_name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/launcher)
       ADD_DEPENDENCIES(${exe_name} ${exe_name}${PV_EXE_SUFFIX})
     ENDIF(NOT WIN32)
-  ENDIF (BUILD_SHARED_LIBS AND CMAKE_SKIP_RPATH AND NOT mac_bundle)
+  ENDIF (BUILD_SHARED_LIBS AND NOT mac_bundle)
 
   add_executable(${exe_name}${PV_EXE_SUFFIX} ${ARGN})
+  set_target_properties(${exe_name}${PV_EXE_SUFFIX} PROPERTIES
+        OUTPUT_NAME ${exe_name})
 
   set (${out_real_exe_suffix} "${PV_EXE_SUFFIX}" PARENT_SCOPE)
 ENDFUNCTION (add_executable_with_forwarding2)
