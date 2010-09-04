@@ -186,6 +186,8 @@ protected:
   vtkPKdTree *KdTree;
   vtkRenderPass* RenderPass;
   vtkIceTContext* IceTContext;
+  bool IceTTilesExternallyInitialized;
+  friend class vtkIceTRendererWithRenderPass;
 
   bool UseOrderedCompositing;
   bool DepthOnly;

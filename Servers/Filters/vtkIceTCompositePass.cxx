@@ -87,6 +87,8 @@ vtkIceTCompositePass::vtkIceTCompositePass()
   this->FixBackground=false;
   this->BackgroundTexture=0;
   this->IceTTexture=0;
+
+  this->IceTTilesExternallyInitialized = false;
 }
 
 //----------------------------------------------------------------------------
@@ -419,6 +421,11 @@ void vtkIceTCompositePass::Draw(const vtkRenderState* render_state)
 void vtkIceTCompositePass::UpdateTileInformation(
   const vtkRenderState* render_state)
 {
+  if (this->IceTTilesExternallyInitialized)
+    {
+    return;
+    }
+
   double image_reduction_factor = this->ImageReductionFactor > 0?
     this->ImageReductionFactor : 1.0;
 

@@ -24,6 +24,7 @@
 #include "vtkFloatArray.h"
 #include "vtkIceTContext.h"
 #include "vtkIceTRenderer.h"
+#include "vtkIceTRendererWithRenderPass.h"
 #include "vtkIntArray.h"
 #include "vtkMath.h"
 #include "vtkMPIController.h"
@@ -217,6 +218,8 @@ void vtkIceTRenderManager::UpdateIceTContext()
   while ((ren = renderers->GetNextRenderer(cookie)) != NULL)
     {
     vtkIceTRenderer *icetRen = vtkIceTRenderer::SafeDownCast(ren);
+    vtkIceTRendererWithRenderPass *icetRenWithPass =
+      vtkIceTRendererWithRenderPass::SafeDownCast(icetRen);
     if (icetRen == NULL)
       {
       // Assuming this renderer will be rendered after all IceT renderers
@@ -229,6 +232,14 @@ void vtkIceTRenderManager::UpdateIceTContext()
 
     icetRen->SetController(this->Controller);
     icetRen->GetContext()->MakeCurrent();
+
+    if (icetRenWithPass)
+      {
+      icetRenWithPass->SetTileDimensions(this->TileDimensions[0],
+        this->TileDimensions[1]);
+      icetRenWithPass->SetTileMullions(this->TileMullions[0],
+        this->TileMullions[1]);
+      }
 
     if (   this->ContextDirty || this->TilesDirty
         || (this->CleanScreenWidth != this->FullImageSize[0])

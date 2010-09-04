@@ -41,7 +41,7 @@ public:
 
   // Description:
   // Basically a callback to be used internally.
-  void RenderWithoutCamera();
+  virtual void RenderWithoutCamera();
 
   // Description:
   // Renders next frame with composition.  If not continually called, this
