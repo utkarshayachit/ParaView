@@ -91,7 +91,7 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
     sphere->Register(NULL);
     }
 
-  vtkSMProxy* repr = pxm->NewProxy("representations",
+  vtkSMProxy* repr = pxm->NewProxy("new_representations",
     "GeometryRepresentation2");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(sphere);
@@ -107,8 +107,8 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
 }
 
 //#define SECOND_WINDOW
-//#define REMOTE_CONNECTION_CS
-#define REMOTE_CONNECTION_CRS
+#define REMOTE_CONNECTION_CS
+////#define REMOTE_CONNECTION_CRS
 
 int main(int argc, char** argv)
 {
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
 # endif
 #endif
 
-  vtkSMProxy* viewProxy = vtkSMProxyManager::GetProxyManager()->NewProxy("views",
+  vtkSMProxy* viewProxy = vtkSMProxyManager::GetProxyManager()->NewProxy("new_views",
     "RenderView2");
   viewProxy->SetConnectionID(connectionID);
   vtkSMPropertyHelper(viewProxy,"Size").Set(0, 400);
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 
 #ifdef SECOND_WINDOW
 
-  vtkSMProxy* view2Proxy = vtkSMProxyManager::GetProxyManager()->NewProxy("views",
+  vtkSMProxy* view2Proxy = vtkSMProxyManager::GetProxyManager()->NewProxy("new_views",
     "RenderView2");
   view2Proxy->SetConnectionID(connectionID);
   vtkSMPropertyHelper(view2Proxy, "Size").Set(0, 400);
