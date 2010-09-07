@@ -133,7 +133,7 @@ bool vtkSMIceTDesktopRenderViewProxy::BeginCreateVTKObjects()
     this->RendererProxy->GetID(); // this calls CreateVTKObjects().
     
     stream  << vtkClientServerStream::New 
-            << "vtkIceTRenderer" 
+            << "vtkIceTRendererWithRenderPass"
             << this->RendererProxy->GetID()
             << vtkClientServerStream::End;
     pm->SendStream(this->ConnectionID, vtkProcessModule::RENDER_SERVER, stream);

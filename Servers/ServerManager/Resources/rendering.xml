@@ -251,7 +251,7 @@
     <Proxy name="IceTRenderer"
            base_proxygroup="renderers"
            base_proxyname="Renderer"
-           class="vtkIceTRenderer">
+           class="vtkIceTRendererWithRenderPass">
     </Proxy>
 
   <!-- End of group "renderers" -->
