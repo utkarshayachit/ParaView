@@ -1107,70 +1107,13 @@ void vtkIceTRenderManager::RecordIceTImage(vtkIceTRenderer *icetRen)
   // not used.
   this->Timer->StartTimer();
 
-  icetRen->GetContext()->MakeCurrent();
-
-  GLint color_format;
-  icetGetIntegerv(ICET_COLOR_FORMAT, &color_format);
-
-  if (color_format == GL_RGBA)
-    {
-    this->ReducedImage->SetNumberOfComponents(4);
-    this->ReducedImage->SetNumberOfTuples(  this->ReducedImageSize[0]
-                                          * this->ReducedImageSize[1]);
-
-    // Copy as 4-bytes.  It's faster.
-    GLuint *dest = (GLuint *)this->ReducedImage->WritePointer(
-                      0, 4*this->ReducedImageSize[0]*this->ReducedImageSize[1]);
-    GLuint *src = (GLuint *)icetGetColorBuffer();
-    dest += physicalViewport[1]*this->ReducedImageSize[0];
-    for (int j = 0; j < height; j++)
-      {
-      dest += physicalViewport[0];
-      for (int i = 0; i < width; i++)
-        {
-        dest[0] = src[0];
-        dest++;  src++;
-        }
-      dest += (this->ReducedImageSize[0] - physicalViewport[2]);
-      }
-    }
-  else if ((GLenum)color_format == vtkgl::BGRA)
-    {
-    this->ReducedImage->SetNumberOfComponents(4);
-    this->ReducedImage->SetNumberOfTuples(  this->ReducedImageSize[0]
-                                          * this->ReducedImageSize[1]);
-    // Note: you could probably speed this up by copying as 4-bytes and
-    // doing integer arithmetic to convert from BGRA to RGBA.
-    unsigned char *dest
-      = this->ReducedImage->WritePointer(0,
-                                         4*this->ReducedImageSize[0]
-                                         *this->ReducedImageSize[1]);
-    unsigned char *src = icetGetColorBuffer();
-    dest += 4*physicalViewport[1]*this->ReducedImageSize[0];
-    for (int j = 0; j < height; j++)
-      {
-      dest += 4*physicalViewport[0];
-      for (int i = 0; i < width; i++)
-        {
-        dest[0] = src[2];
-        dest[1] = src[1];
-        dest[2] = src[0];
-        dest[3] = src[3];
-        dest += 4;  src += 4;
-        }
-      dest += 4*(this->ReducedImageSize[0] - physicalViewport[2]);
-      }
-    }
-  else
-    {
-    vtkErrorMacro("ICE-T using unknown image format.");
-    return;
-    }
+  icetRen->RecordIceTImage(this->ReducedImage, this->ReducedImageSize[0],
+    this->ReducedImageSize[1]);
 
   if (icetRen->GetCollectDepthBuffer())
     {
     memcpy(this->PhysicalViewport, physicalViewport, 4*sizeof(int));
-    
+
     // Get depth buffer.
     GLuint *zbuffer = (GLuint *)icetGetDepthBuffer();
     if (zbuffer)
@@ -1188,7 +1131,7 @@ void vtkIceTRenderManager::RecordIceTImage(vtkIceTRenderer *icetRen)
     {
     this->ReducedZBuffer->Initialize();
     }
-  
+
 
   this->Timer->StopTimer();
   this->ImageProcessingTime += this->Timer->GetElapsedTime();

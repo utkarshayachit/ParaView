@@ -26,6 +26,7 @@
 
 #include "vtkIceTRenderManager.h"       // For enumeration types.
 
+class vtkUnsignedCharArray;
 class vtkIceTContext;
 
 class VTK_EXPORT vtkIceTRenderer : public vtkOpenGLRenderer
@@ -169,6 +170,10 @@ public:
   vtkSetMacro(CollectDepthBuffer, int);
   vtkGetMacro(CollectDepthBuffer, int);
 
+  // Description:
+  // Capture the rendered image from IceT and place it in the buffer.
+  virtual bool RecordIceTImage(vtkUnsignedCharArray* buffer,
+    int image_width, int image_height);
 
 protected:
   vtkIceTRenderer();

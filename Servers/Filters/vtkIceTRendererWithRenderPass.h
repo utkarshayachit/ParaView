@@ -39,6 +39,13 @@ public:
 
   void SetTileDimensions(int tilesX, int tilesY);
   void SetTileMullions(int mullX, int mullY);
+
+  // Description:
+  // Overridden to capture the image from the renderer buffers itself, rather
+  // than icet buffers, since render passes may have rendered over what ice-t
+  // delivered.
+  virtual bool RecordIceTImage(vtkUnsignedCharArray* buffer,
+    int image_width, int image_height);
 //BTX
 protected:
   vtkIceTRendererWithRenderPass();

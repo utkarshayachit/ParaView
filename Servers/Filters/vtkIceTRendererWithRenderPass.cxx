@@ -14,14 +14,15 @@
 =========================================================================*/
 #include "vtkIceTRendererWithRenderPass.h"
 
-#include "vtkObjectFactory.h"
-#include "vtkRenderPass.h"
 #include "vtkCameraPass.h"
 #include "vtkIceTCompositePass.h"
+#include "vtkIceTContext.h"
+#include "vtkObjectFactory.h"
+#include "vtkRenderPass.h"
 #include "vtkRenderState.h"
 #include "vtkRenderWindow.h"
 #include "vtkTimerLog.h"
-#include "vtkIceTContext.h"
+#include "vtkUnsignedCharArray.h"
 
 #include <vtkgl.h>
 #include <GL/ice-t.h>
@@ -107,9 +108,9 @@ public:
     // explicitly if needed. This is required since IceT/Viewport interactions
     // lead to weird results in multi-view configurations. Much easier to simply
     // paste back the image to the correct region after icet has rendered.
-    icetDisable(ICET_DISPLAY);
+    icetEnable(ICET_DISPLAY);
     icetDisable(ICET_DISPLAY_INFLATE);
-    icetDisable(ICET_CORRECT_COLORED_BACKGROUND);
+    icetEnable(ICET_CORRECT_COLORED_BACKGROUND);
 
     int *size = window->GetActualSize();
     glViewport(0, 0, size[0], size[1]);
@@ -178,6 +179,8 @@ protected:
     }
 };
 
+#include "vtkSobelGradientMagnitudePass.h"
+
 vtkStandardNewMacro(vtkIceTRendererWithRenderPass);
 vtkCxxSetObjectMacro(vtkIceTRendererWithRenderPass,
   CompositedPass, vtkRenderPass);
@@ -209,6 +212,12 @@ vtkIceTRendererWithRenderPass::vtkIceTRendererWithRenderPass()
   // set.
   this->SetPass(cameraPass);
   cameraPass->Delete();
+
+  vtkSobelGradientMagnitudePass *sobelPass =
+    vtkSobelGradientMagnitudePass::New();
+  sobelPass->SetDelegatePass(this->GetPass());
+  this->SetPass(sobelPass);
+  sobelPass->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -232,6 +241,51 @@ void vtkIceTRendererWithRenderPass::SetTileDimensions(int tilesX, int tilesY)
 void vtkIceTRendererWithRenderPass::SetTileMullions(int mullX, int mullY)
 {
   this->IceTCompositePass->SetTileMullions(mullX, mullY);
+}
+
+//----------------------------------------------------------------------------
+bool vtkIceTRendererWithRenderPass::RecordIceTImage(vtkUnsignedCharArray* buffer,
+  int buffer_width, int buffer_height)
+{
+  int physicalViewport[4];
+  this->GetPhysicalViewport(physicalViewport);
+
+  int width  = physicalViewport[2] - physicalViewport[0];
+  int height = physicalViewport[3] - physicalViewport[1];
+
+  // See if this renderer is displaying anything in this tile.
+  if (width < 1 || height < 1)
+    {
+    return false;
+    }
+
+  vtkUnsignedCharArray* screencapture = vtkUnsignedCharArray::New();
+  screencapture->SetNumberOfComponents(4);
+  screencapture->SetNumberOfTuples(width*height);
+
+  this->GetRenderWindow()->GetRGBACharPixelData(
+    physicalViewport[0], physicalViewport[1],
+    physicalViewport[2]-1, physicalViewport[3]-1,
+    this->GetRenderWindow()->GetDoubleBuffer()? 0 : 1,
+    screencapture);
+
+  // Copy as 4-bytes.  It's faster.
+  GLuint *dest = (GLuint *)buffer->WritePointer(
+    0, 4*buffer_width*buffer_height);
+  GLuint *src = (GLuint *)screencapture->GetVoidPointer(0);
+  dest += physicalViewport[1]*buffer_width;
+  for (int j = 0; j < height; j++)
+    {
+    dest += physicalViewport[0];
+    for (int i = 0; i < width; i++)
+      {
+      dest[0] = src[0];
+      dest++;  src++;
+      }
+    dest += (buffer_width - physicalViewport[2]);
+    }
+  screencapture->Delete();
+  return true;
 }
 
 //----------------------------------------------------------------------------

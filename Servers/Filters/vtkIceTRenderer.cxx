@@ -29,9 +29,10 @@
 #include "vtkPKdTree.h"
 #include "vtkRenderWindow.h"
 #include "vtkTimerLog.h"
+#include "vtkUnsignedCharArray.h"
 
 #include <GL/ice-t.h>
-
+#include <vtkgl.h>
 #include <vtkstd/algorithm>
 
 //******************************************************************
@@ -666,6 +667,81 @@ double vtkIceTRenderer::GetCompositeTime()
     {
     return 0.0;
     }
+}
+
+//-----------------------------------------------------------------------------
+bool vtkIceTRenderer::RecordIceTImage(vtkUnsignedCharArray* buffer,
+  int buffer_width, int buffer_height)
+{
+  int physicalViewport[4];
+  this->GetPhysicalViewport(physicalViewport);
+  int width  = physicalViewport[2] - physicalViewport[0];
+  int height = physicalViewport[3] - physicalViewport[1];
+
+  // See if this renderer is displaying anything in this tile.
+  if (width < 1 || height < 1)
+    {
+    return false;
+    }
+
+
+  this->GetContext()->MakeCurrent();
+
+  GLint color_format;
+  icetGetIntegerv(ICET_COLOR_FORMAT, &color_format);
+
+  if (color_format == GL_RGBA)
+    {
+    buffer->SetNumberOfComponents(4);
+    buffer->SetNumberOfTuples(  buffer_width * buffer_height);
+
+    // Copy as 4-bytes.  It's faster.
+    GLuint *dest = (GLuint *)buffer->WritePointer(
+      0, 4*buffer_width*buffer_height);
+    GLuint *src = (GLuint *)icetGetColorBuffer();
+    dest += physicalViewport[1]*buffer_width;
+    for (int j = 0; j < height; j++)
+      {
+      dest += physicalViewport[0];
+      for (int i = 0; i < width; i++)
+        {
+        dest[0] = src[0];
+        dest++;  src++;
+        }
+      dest += (buffer_width - physicalViewport[2]);
+      }
+    }
+  else if ((GLenum)color_format == vtkgl::BGRA)
+    {
+    buffer->SetNumberOfComponents(4);
+    buffer->SetNumberOfTuples(  buffer_width
+      * buffer_height);
+    // Note: you could probably speed this up by copying as 4-bytes and
+    // doing integer arithmetic to convert from BGRA to RGBA.
+    unsigned char *dest = buffer->WritePointer(0,
+        4*buffer_width *buffer_height);
+    unsigned char *src = icetGetColorBuffer();
+    dest += 4*physicalViewport[1]*buffer_width;
+    for (int j = 0; j < height; j++)
+      {
+      dest += 4*physicalViewport[0];
+      for (int i = 0; i < width; i++)
+        {
+        dest[0] = src[2];
+        dest[1] = src[1];
+        dest[2] = src[0];
+        dest[3] = src[3];
+        dest += 4;  src += 4;
+        }
+      dest += 4*(buffer_width - physicalViewport[2]);
+      }
+    }
+  else
+    {
+    vtkErrorMacro("ICE-T using unknown image format.");
+    return false;
+    }
+  return true;
 }
 
 //-----------------------------------------------------------------------------
