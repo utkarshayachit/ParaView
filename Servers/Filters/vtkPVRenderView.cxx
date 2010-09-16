@@ -515,6 +515,30 @@ bool vtkPVRenderView::GetLightSwitch()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::AddPropToNonCompositedRenderer(vtkProp* prop)
+{
+  this->GetNonCompositedRenderer()->AddActor(prop);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::RemovePropFromNonCompositedRenderer(vtkProp* prop)
+{
+  this->GetNonCompositedRenderer()->RemoveActor(prop);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::AddPropToRenderer(vtkProp* prop)
+{
+  this->GetRenderer()->AddActor(prop);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::RemovePropFromRenderer(vtkProp* prop)
+{
+  this->GetRenderer()->RemoveActor(prop);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

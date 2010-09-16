@@ -112,6 +112,21 @@
         command="AddRepresentation"
         remove_command="RemoveRepresentation"
         repeatable="1">
+        <Documentation>
+          Representations in this view.
+        </Documentation>
+      </ProxyProperty>
+
+      <ProxyProperty name="Props"
+        command="AddPropToRenderer"
+        remove_command="RemovePropFromRenderer"
+        repeatable="1">
+      </ProxyProperty>
+
+      <ProxyProperty name="NonCompositedProps"
+        command="AddPropToNonCompositedRenderer"
+        remove_command="RemovePropFromNonCompositedRenderer"
+        repeatable="1">
       </ProxyProperty>
 
       <Property name="ResetCamera" command="ResetCamera" />
