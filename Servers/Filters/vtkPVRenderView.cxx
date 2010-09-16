@@ -115,8 +115,6 @@ vtkPVRenderView::vtkPVRenderView()
   window->AddRenderer(this->NonCompositedRenderer);
   window->SetNumberOfLayers(3);
 
-  ::Create2DPipeline(this->NonCompositedRenderer);
-
   vtkMemberFunctionCommand<vtkPVRenderView>* observer =
     vtkMemberFunctionCommand<vtkPVRenderView>::New();
   observer->SetCallback(*this, &vtkPVRenderView::ResetCameraClippingRange);

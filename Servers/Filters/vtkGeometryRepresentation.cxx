@@ -231,8 +231,13 @@ void vtkGeometryRepresentation::MarkModified()
 bool vtkGeometryRepresentation::AddToView(vtkView* view)
 {
   // FIXME: Need generic view API to add props.
-  vtkPVRenderView::SafeDownCast(view)->GetRenderer()->AddActor(this->Actor);
-  return true;
+  vtkPVRenderView* rview = vtkPVRenderView::SafeDownCast(view);
+  if (rview)
+    {
+    rview->GetRenderer()->AddActor(this->Actor);
+    return true;
+    }
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -242,8 +247,9 @@ bool vtkGeometryRepresentation::RemoveFromView(vtkView* view)
   if (rview)
     {
     rview->GetRenderer()->RemoveActor(this->Actor);
+    return true;
     }
-  return true;
+  return false;
 }
 
 //----------------------------------------------------------------------------

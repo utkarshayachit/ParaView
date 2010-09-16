@@ -25,6 +25,7 @@ IF(PARAVIEW_ENABLE_PYTHON)
 ENDIF(PARAVIEW_ENABLE_PYTHON)
 
 SET(Filters_SRCS
+  vtk3DWidgetRepresentation.cxx
   vtkAMRDualClip.cxx
   vtkAMRDualContour.cxx
   vtkAMRDualGridHelper.cxx

@@ -54,7 +54,30 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
   return sphere;
 }
 
-//#define SECOND_WINDOW
+vtkSMProxy* createScalarBar(vtkSMProxy* view)
+{
+  vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+  vtkSMProxy* sb = pxm->NewProxy("representations",
+    "ScalarBarWidgetRepresentation");
+  sb->SetConnectionID(view->GetConnectionID());
+
+  vtkSMProxy* lut = pxm->NewProxy("lookup_tables",
+    "LookupTable");
+  lut->SetConnectionID(view->GetConnectionID());
+  lut->SetServers(vtkProcessModule::CLIENT_AND_SERVERS);
+  lut->UpdateVTKObjects();
+
+  vtkSMPropertyHelper(sb, "LookupTable").Set(lut);
+  vtkSMPropertyHelper(sb, "Enabled").Set(1);
+  sb->UpdateVTKObjects();
+  lut->Delete();
+
+  vtkSMPropertyHelper(view, "Representations").Add(sb);
+  sb->Delete();
+  return sb;
+}
+
+#define SECOND_WINDOW
 #define REMOTE_CONNECTION_CS
 ////#define REMOTE_CONNECTION_CRS
 
@@ -95,6 +118,7 @@ int main(int argc, char** argv)
   QVTKWidget* qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv->GetRenderWindow());
   vtkSMProxy* sphere = addSphere(viewProxy);
+  createScalarBar(viewProxy);
 
   QWidget *centralWidget = new QWidget(&mainWindow);
   QVBoxLayout* vbox = new QVBoxLayout(centralWidget);
@@ -146,6 +170,7 @@ int main(int argc, char** argv)
   qwidget->SetRenderWindow(rv2->GetRenderWindow());
 
   addSphere(view2Proxy, sphere);
+  createScalarBar(view2Proxy);
 
   hbox->addWidget(qwidget);
   view2Proxy->InvokeCommand("StillRender");

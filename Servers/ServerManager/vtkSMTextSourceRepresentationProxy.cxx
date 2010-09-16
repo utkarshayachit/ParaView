@@ -40,10 +40,12 @@ vtkSMTextSourceRepresentationProxy::~vtkSMTextSourceRepresentationProxy()
 bool vtkSMTextSourceRepresentationProxy::AddToView(vtkSMViewProxy* view)
 {
   this->CreateVTKObjects();
+#ifdef FIXME
   if (!this->TextWidgetProxy->AddToView(view))
     {
     return false;
     }
+#endif
 
   return this->Superclass::AddToView(view);
 }
@@ -51,11 +53,12 @@ bool vtkSMTextSourceRepresentationProxy::AddToView(vtkSMViewProxy* view)
 //----------------------------------------------------------------------------
 bool vtkSMTextSourceRepresentationProxy::RemoveFromView(vtkSMViewProxy* view)
 {
+#ifdef FIXME
   if (!this->TextWidgetProxy->RemoveFromView(view))
     {
     return false;
     }
-
+#endif
   return this->Superclass::RemoveFromView(view);
 }
 

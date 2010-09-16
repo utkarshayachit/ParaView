@@ -157,6 +157,164 @@
       </InputProperty>
     </RepresentationProxy2>
 
+    <!-- ================================================================== -->
+    <ScalarBarWidgetRepresentationProxy name="ScalarBarWidgetRepresentation"
+        class="vtk3DWidgetRepresentation">
+      <Documentation>
+        ScalarBarWidgetRepresentation is a representation for a scalar bar
+        including a widget to control the position and orientation of the scalar
+        bar.
+      </Documentation>
+      <IntVectorProperty name="Enabled"
+                         command="SetEnabled"
+                         number_of_elements="1"
+                         default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="UseNonCompositedRenderer"
+        command="SetUseNonCompositedRenderer"
+        number_of_elements="1"
+        default_values="1">
+      </IntVectorProperty>
+
+      <SubProxy>
+        <Proxy name="Prop2D"
+               proxygroup="props" proxyname="ScalarBarRepresentation">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Visibility"/>
+          <Property name="Position"/>
+          <Property name="Position2"/>
+          <Property name="Orientation" />
+          <Property name="PositionInfo"/>
+          <Property name="Position2Info"/>
+          <Property name="OrientationInfo" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Prop2DActor"
+               proxygroup="annotations" proxyname="ScalarBarActor">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="LookupTable" />
+          <Property name="Title" />
+          <Property name="ComponentTitle" />
+          <Property name="AutomaticLabelFormat" />
+          <Property name="LabelFormat" />
+          <Property name="NumberOfLabels" />
+          <Property name="AspectRatio" />
+          <!-- properties for Label -->
+          <Property name="LabelColor"     />
+          <Property name="LabelOpacity"   />
+          <Property name="LabelFontFamily"/>
+          <Property name="LabelBold"      />
+          <Property name="LabelItalic"    />
+          <Property name="LabelShadow"    />
+          <Property name="LabelFontSize"  />
+          <!-- properties for Title -->
+          <Property name="TitleColor"     />
+          <Property name="TitleOpacity"   />
+          <Property name="TitleFontFamily"/>
+          <Property name="TitleBold"      />
+          <Property name="TitleItalic"    />
+          <Property name="TitleShadow"    />
+          <Property name="TitleFontSize"  />
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Widget"
+               proxygroup="3d_widgets" proxyname="ScalarBarWidget">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Selectable" />
+          <Property name="Resizable" />
+          <Property name="Repositionable" />
+        </ExposedProperties>
+      </SubProxy>
+    </ScalarBarWidgetRepresentationProxy>
+
+    <!-- ================================================================== -->
+    <TextWidgetRepresentationProxy name="TextWidgetRepresentation"
+      class="vtk3DWidgetRepresentation" >
+      <Documentation>
+        TextWidgetRepresentation is a representation for text widget as well as
+        the representation for the text shown in the widget.
+      </Documentation>
+      <IntVectorProperty name="Enabled"
+        command="SetEnabled"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="UseNonCompositedRenderer"
+        command="SetUseNonCompositedRenderer"
+        number_of_elements="1"
+        default_values="1">
+      </IntVectorProperty>
+
+      <SubProxy>
+        <Proxy name="Prop2D"
+          proxygroup="props" proxyname="TextRepresentation">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Visibility"/>
+          <Property name="Text"/>
+          <Property name="Position"/>
+          <Property name="Position2"/>
+          <Property name="PositionInfo"/>
+          <Property name="Position2Info"/>
+          <Property name="WindowLocation"/>
+          <Property name="TextActor"/>
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Prop2DActor"
+          proxygroup="props" proxyname="TextActor">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="TextScaleMode"/>
+          <Property name="TextProperty"/>
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Prop2DProperty"
+          proxygroup="properties" proxyname="TextProperty">
+        </Proxy>
+
+        <ExposedProperties>
+          <Property name="Justification"/>
+          <Property name="Orientation"/>
+          <Property name="Color"/>
+          <Property name="Opacity"/>
+          <Property name="FontFamily"/>
+          <Property name="Bold"/>
+          <Property name="Italic"/>
+          <Property name="Shadow"/>
+          <Property name="FontSize"/>
+        </ExposedProperties>
+
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Widget"
+          proxygroup="3d_widgets" proxyname="TextWidget">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="ProcessEvents"/>
+          <Property name="Selectable"/>
+          <Property name="Resizable"/>
+        </ExposedProperties>
+      </SubProxy>
+
+      <!-- End of TextWidgetRepresentation -->
+    </TextWidgetRepresentationProxy>
+
   </ProxyGroup>
 
 </ServerManagerConfiguration>
