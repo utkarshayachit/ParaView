@@ -108,6 +108,12 @@ int vtkGeometryRepresentation::ProcessViewRequest(
     bool lod = inInfo->Has(vtkPVRenderView::USE_LOD());
     if (lod)
       {
+      if (inInfo->Has(vtkPVRenderView::LOD_RESOLUTION()))
+        {
+        int division = static_cast<int>(150 *
+          inInfo->Get(vtkPVRenderView::LOD_RESOLUTION())) + 10;
+        this->Decimator->SetNumberOfDivisions(division, division, division);
+        }
       this->LODDeliveryFilter->Update();
       }
     else
@@ -174,6 +180,9 @@ int vtkGeometryRepresentation::RequestUpdateExtent(vtkInformation* request,
   vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
 {
+
+  this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
+
   // ideally, extent and time information will come from the view in
   // REQUEST_UPDATE(), include view-time.
   vtkMultiProcessController* controller =
@@ -186,9 +195,7 @@ int vtkGeometryRepresentation::RequestUpdateExtent(vtkInformation* request,
       controller->GetLocalProcessId(),
       controller->GetNumberOfProcesses(), 0);
     }
-
-  return this->Superclass::RequestUpdateExtent(request, inputVector,
-    outputVector);
+  return 1;
 }
 
 //----------------------------------------------------------------------------

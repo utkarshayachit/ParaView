@@ -1,19 +1,21 @@
 
 
-#include "vtkPVSynchronizedRenderWindows.h"
-#include "vtkInitializationHelper.h"
-#include "vtkPVOptions.h"
-#include "vtkProcessModule.h"
-#include "vtkRenderView.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkSMProxyManager.h"
-#include "vtkSMProxy.h"
-#include "vtkPVRenderView.h"
-#include "vtkRenderWindow.h"
-#include "vtkSMPropertyHelper.h"
-#include "vtkCallbackCommand.h"
 #include "pqIntRangeWidget.h"
 #include "pqPropertyLinks.h"
+#include "vtkCallbackCommand.h"
+#include "vtkInitializationHelper.h"
+#include "vtkObjectFactory.h"
+#include "vtkProcessModule.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
+#include "vtkPVOptions.h"
+#include "vtkPVRenderView.h"
+#include "vtkPVRenderViewProxy.h"
+#include "vtkPVSynchronizedRenderWindows.h"
+#include "vtkRenderView.h"
+#include "vtkRenderWindow.h"
+#include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
+#include "vtkSMProxyManager.h"
 
 #include <QApplication>
 #include <QMainWindow>
@@ -21,6 +23,27 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QCheckBox>
+
+
+class RenderHelper : public vtkPVRenderViewProxy
+{
+public:
+  static RenderHelper* New();
+  vtkTypeMacro(RenderHelper, vtkPVRenderViewProxy);
+
+  virtual void EventuallyRender()
+    {
+    this->Proxy->InvokeCommand("StillRender");
+    }
+  virtual vtkRenderWindow* GetRenderWindow() { return NULL; }
+  virtual void Render()
+    {
+    this->Proxy->InvokeCommand("InteractiveRender");
+    }
+
+  vtkSMProxy* Proxy;
+};
+vtkStandardNewMacro(RenderHelper);
 
 static bool InInteraction = false;
 static void callbackRender(
@@ -55,25 +78,12 @@ static void callbackStartEndInteraction(
 
 void setupRender(vtkSMProxy* proxy)
 {
-  // All this can happen in the View itself, but doesn't seem to work with
-  // QVTKWidget right now, so I have to do these absurd hacks.
-  vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(proxy->GetClientSideObject());
-  rv->GetRenderWindow()->GetInteractor()->EnableRenderOff();
-  vtkCallbackCommand* observer = vtkCallbackCommand::New();
-  observer->SetClientData(proxy);
-  observer->SetCallback(::callbackRender);
-  rv->GetRenderWindow()->GetInteractor()->AddObserver(
-    vtkCommand::RenderEvent, observer);
-  observer->Delete();
+  RenderHelper* helper = RenderHelper::New();
+  helper->Proxy = proxy;
 
-  observer = vtkCallbackCommand::New();
-  observer->SetCallback(::callbackStartEndInteraction);
-  observer->SetClientData(proxy);
-  rv->GetRenderWindow()->GetInteractor()->AddObserver(
-    vtkCommand::StartInteractionEvent, observer);
-  rv->GetRenderWindow()->GetInteractor()->AddObserver(
-    vtkCommand::EndInteractionEvent, observer);
-  observer->Delete();
+  vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(proxy->GetClientSideObject());
+  rv->GetInteractor()->SetPVRenderView(helper);
+  helper->Delete();
 }
 
 // returns sphere proxy
@@ -179,9 +189,9 @@ int main(int argc, char** argv)
   slider2->setStrictRange(true);
 
  links.addPropertyLink(slider2, "value", SIGNAL(valueChanged(int)),
-    viewProxy, viewProxy->GetProperty("RemoteRenderingThreshold"));
+    viewProxy, viewProxy->GetProperty("RemoteRenderThreshold"));
  links.addPropertyLink(slider2, "value", SIGNAL(valueChanged(int)),
-    viewProxy, viewProxy->GetProperty("LODRenderingThreshold"));
+    viewProxy, viewProxy->GetProperty("LODThreshold"));
   vbox->addWidget(slider2);
 
 #ifdef SECOND_WINDOW
@@ -206,9 +216,9 @@ int main(int argc, char** argv)
   view2Proxy->InvokeCommand("ResetCamera");
 
  links.addPropertyLink(slider2, "value", SIGNAL(valueChanged(int)),
-    view2Proxy, view2Proxy->GetProperty("RemoteRenderingThreshold"));
+    view2Proxy, view2Proxy->GetProperty("RemoteRenderThreshold"));
  links.addPropertyLink(slider2, "value", SIGNAL(valueChanged(int)),
-    view2Proxy, view2Proxy->GetProperty("LODRenderingThreshold"));
+    view2Proxy, view2Proxy->GetProperty("LODThreshold"));
   vbox->addWidget(slider2);
 #endif
   links.reset();

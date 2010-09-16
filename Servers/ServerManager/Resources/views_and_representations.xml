@@ -1,0 +1,147 @@
+<ServerManagerConfiguration>
+  <!-- ==================================================================== -->
+  <ProxyGroup name="new_views">
+
+    <!-- ================================================================== -->
+    <RenderView2Proxy name="RenderView2" class="vtkPVRenderView"
+           processes="client|renderserver|dataserver">
+
+      <IntVectorProperty
+        name="Position"
+        command="SetPosition"
+        number_of_elements="2"
+        default_values="0 0">
+        <Documentation>
+          Set the position on this view in the multiview configuration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="Size"
+        command="SetSize"
+        number_of_elements="2"
+        default_values="400 400" >
+        <Documentation>
+          Set the size of this view in the multiview configuration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="StillRenderImageReductionFactor"
+        command="SetStillRenderImageReductionFactor"
+        number_of_elements="1"
+        default_values="1">
+        <IntRangeDomain name="range" min="1" max="20" />
+        <Documentation>
+          Get/Set the reduction-factor to use when for StillRender(). This is
+          typically set to 1, but in some cases with terrible connectivity or
+          really large displays, one may want to use a sub-sampled image even
+          for StillRender(). This is set it number of pixels to be sub-sampled
+          by.  Note that image reduction factors have no effect when in built-in
+          mode.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="InteractiveRenderImageReductionFactor"
+        command="SetInteractiveRenderImageReductionFactor"
+        number_of_elements="1"
+        default_values="2">
+        <IntRangeDomain name="range" min="1" max="20" />
+        <Documentation>
+          Get/Set the reduction-factor to use when for InteractiveRender(). This
+          is set it number of pixels to be sub-sampled by. Note that image
+          reduction factors have no effect when in built-in mode.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="RemoteRenderThreshold"
+        command="SetRemoteRenderingThreshold"
+        number_of_elements="1"
+        default_values="20480">
+        <IntRangeDomain name="range" min="0" />
+        <Documentation>
+           The threshold used to determine if the compositing should be used
+           for rendering. The value is in KBs.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="LODThreshold"
+        command="SetLODRenderingThreshold"
+        number_of_elements="1"
+        default_values="0">
+        <IntRangeDomain name="range" min="0" />
+        <Documentation>
+          Set the memory size threshold above which LOD will be used while
+          rendering interactively. The value is in KBs.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="LODResolution"
+        command="SetLODResolution"
+        number_of_elements="1"
+        default_values="0.5">
+        <DoubleRangeDomain name="range" min="0" max="1.0" />
+        <Documentation>
+          Set the LOD resolution. 0 implies lowest level or detail, while 1
+          implies maximum level of detail.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="UseLight"
+        command="SetUseLightKit"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Enable/Disable the LightKit.
+        </Documentation>
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="LightSwitch"
+        command="SetLightSwitch"
+        number_of_elements="1"
+        default_values="1">
+        <Documentation>
+          Turn on/off the default light in the 3D renderer.
+        </Documentation>
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <ProxyProperty name="Representations"
+        command="AddRepresentation"
+        remove_command="RemoveRepresentation"
+        repeatable="1">
+      </ProxyProperty>
+
+      <Property name="ResetCamera" command="ResetCamera" />
+      <Property name="StillRender" command="StillRender" />
+      <Property name="InteractiveRender" command="InteractiveRender" />
+
+    </RenderView2Proxy>
+  </ProxyGroup>
+
+  <!-- ==================================================================== -->
+  <ProxyGroup name="new_representations">
+
+    <!-- ================================================================== -->
+    <RepresentationProxy2 name="GeometryRepresentation2"
+                          class="vtkGeometryRepresentation"
+                          processes="client|renderserver|dataserver">
+      <Documentation>
+        Representation to show any dataset in a 3D render view.
+      </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection">
+       <DataTypeDomain name="input_type">
+         <DataType value="vtkDataSet"/>
+       </DataTypeDomain>
+        <Documentation>
+          Set the input to the representation.
+        </Documentation>
+      </InputProperty>
+    </RepresentationProxy2>
+
+  </ProxyGroup>
+
+</ServerManagerConfiguration>

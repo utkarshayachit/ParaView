@@ -16,17 +16,22 @@
 
 #include "vtkBSPCutsGenerator.h"
 #include "vtkCommand.h"
+#include "vtkInformationDoubleKey.h"
 #include "vtkInformation.h"
 #include "vtkInformationIntegerKey.h"
 #include "vtkInformationObjectBaseKey.h"
 #include "vtkInformationRequestKey.h"
 #include "vtkInformationVector.h"
+#include "vtkLight.h"
+#include "vtkLightKit.h"
 #include "vtkMemberFunctionCommand.h"
 #include "vtkMPIMoveData.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPKdTree.h"
 #include "vtkProcessModule.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
+#include "vtkPVInteractorStyle.h"
 #include "vtkPVOptions.h"
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkPVSynchronizedRenderWindows.h"
@@ -40,6 +45,7 @@
 
 #include "vtkLookupTable.h"
 #include "vtkScalarBarActor.h"
+#include "vtkPVTrackballRotate.h"
 
 #include <assert.h>
 #include <vtkstd/set>
@@ -65,7 +71,7 @@ vtkInformationKeyMacro(vtkPVRenderView, DATA_DISTRIBUTION_MODE, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, USE_LOD, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, DELIVER_OUTLINE_TO_CLIENT, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, DELIVER_LOD_TO_CLIENT, Integer);
-vtkInformationKeyMacro(vtkPVRenderView, LOD_RESOLUTION, Integer);
+vtkInformationKeyMacro(vtkPVRenderView, LOD_RESOLUTION, Double);
 vtkInformationKeyMacro(vtkPVRenderView, NEED_ORDERED_COMPOSITING, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, REDISTRIBUTABLE_DATA_PRODUCER, ObjectBase);
 vtkInformationKeyMacro(vtkPVRenderView, KD_TREE, ObjectBase);
@@ -78,15 +84,27 @@ vtkPVRenderView::vtkPVRenderView()
   this->RemoteRenderingThreshold = 0;
   this->LODRenderingThreshold = 0;
   this->ClientOutlineThreshold = 100;
+  this->LODResolution = 0.5;
+  this->UseLightKit = false;
+  this->Interactor = 0;
+  this->InteractorStyle = 0;
 
   this->SynchronizedRenderers = vtkPVSynchronizedRenderer::New();
+
+  if (this->SynchronizedWindows->GetLocalProcessIsDriver())
+    {
+    this->Interactor = vtkPVGenericRenderWindowInteractor::New();
+    }
 
   vtkRenderWindow* window = this->SynchronizedWindows->NewRenderWindow();
   window->SetMultiSamples(0);
   this->RenderView = vtkRenderViewBase::New();
+  if (this->Interactor)
+    {
+    this->RenderView->SetInteractor(this->Interactor);
+    }
   this->RenderView->SetRenderWindow(window);
   window->Delete();
-
 
   this->NonCompositedRenderer = vtkRenderer::New();
   this->NonCompositedRenderer->EraseOff();
@@ -108,7 +126,28 @@ vtkPVRenderView::vtkPVRenderView()
 
   this->GetRenderer()->SetUseDepthPeeling(1);
 
+  this->Light = vtkLight::New();
+  this->Light->SetAmbientColor(1, 1, 1);
+  this->Light->SetSpecularColor(1, 1, 1);
+  this->Light->SetDiffuseColor(1, 1, 1);
+  this->Light->SetIntensity(1.0);
+  this->Light->SetLightType(2); // CameraLight
+  this->LightKit = vtkLightKit::New();
+  this->GetRenderer()->AddLight(this->Light);
+
   this->OrderedCompositingBSPCutsSource = vtkBSPCutsGenerator::New();
+
+  if (this->Interactor)
+    {
+    this->InteractorStyle = vtkPVInteractorStyle::New();
+    this->Interactor->SetRenderer(this->GetRenderer());
+    this->Interactor->SetRenderWindow(this->GetRenderWindow());
+    this->Interactor->SetInteractorStyle(this->InteractorStyle);
+    vtkPVTrackballRotate* manip = vtkPVTrackballRotate::New();
+    manip->SetButton(1);
+    this->InteractorStyle->AddManipulator(manip);
+    manip->Delete();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -117,6 +156,19 @@ vtkPVRenderView::~vtkPVRenderView()
   this->SynchronizedRenderers->Delete();
   this->NonCompositedRenderer->Delete();
   this->RenderView->Delete();
+  this->LightKit->Delete();
+  this->Light->Delete();
+
+  if (this->Interactor)
+    {
+    this->Interactor->Delete();
+    this->Interactor = 0;
+    }
+  if (this->InteractorStyle)
+    {
+    this->InteractorStyle->Delete();
+    this->InteractorStyle = 0;
+    }
 
   this->OrderedCompositingBSPCutsSource->Delete();
   this->OrderedCompositingBSPCutsSource = NULL;
@@ -323,10 +375,12 @@ void vtkPVRenderView::SetRequestLODRendering(bool enable)
   if (enable)
     {
     this->RequestInformation->Set(USE_LOD(), 1);
+    this->RequestInformation->Set(LOD_RESOLUTION(), this->LODResolution);
     }
   else
     {
     this->RequestInformation->Remove(USE_LOD());
+    this->RequestInformation->Remove(LOD_RESOLUTION());
     }
 }
 
@@ -431,7 +485,38 @@ bool vtkPVRenderView::GetUseOrderedCompositing()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::SetUseLightKit(bool use)
+{
+  if (this->UseLightKit != use)
+    {
+    if (use)
+      {
+      this->LightKit->AddLightsToRenderer(this->GetRenderer());
+      }
+    else
+      {
+      this->LightKit->RemoveLightsFromRenderer(this->GetRenderer());
+      }
+    this->UseLightKit = use;
+    this->Modified();
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetLightSwitch(bool enable)
+{
+  this->Light->SetSwitch(enable? 1 : 0);
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVRenderView::GetLightSwitch()
+{
+  return this->Light->GetSwitch() != 0;
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+  os << indent << "UseLightKit: " << this->UseLightKit << endl;
 }

@@ -39,9 +39,14 @@
 
 class vtkBSPCutsGenerator;
 class vtkCamera;
+class vtkInformationDoubleKey;
 class vtkInformationIntegerKey;
 class vtkInformationObjectBaseKey;
 class vtkInformationRequestKey;
+class vtkLight;
+class vtkLightKit;
+class vtkPVGenericRenderWindowInteractor;
+class vtkPVInteractorStyle;
 class vtkPVSynchronizedRenderer;
 class vtkPVSynchronizedRenderWindows;
 class vtkRenderer;
@@ -50,6 +55,7 @@ class vtkRenderWindow;
 
 class VTK_EXPORT vtkPVRenderView : public vtkPVView
 {
+  //*****************************************************************
 public:
   static vtkPVRenderView* New();
   vtkTypeMacro(vtkPVRenderView, vtkPVView);
@@ -75,6 +81,14 @@ public:
   // Description:
   // Returns the render window.
   vtkRenderWindow* GetRenderWindow();
+
+  // Description:
+  // Returns the interactor. .
+  vtkGetObjectMacro(Interactor, vtkPVGenericRenderWindowInteractor);
+
+  // Description:
+  // Returns the interactor style.
+  vtkGetObjectMacro(InteractorStyle, vtkPVInteractorStyle);
 
   // Description:
   // Resets the active camera using collective prop-bounds.
@@ -125,6 +139,14 @@ public:
   vtkGetMacro(LODRenderingThreshold, unsigned long);
 
   // Description:
+  // Get/Set the LOD resolution. This affects the size of the grid used for
+  // quadric clustering, for example. 1.0 implies maximum resolution while 0
+  // implies minimum resolution.
+  // @CallOnAllProcessess
+  vtkSetClampMacro(LODResolution, double, 0.0, 1.0);
+  vtkGetMacro(LODResolution, double);
+
+  // Description:
   // This threshold is only applicable when in tile-display mode. It is the size
   // of geometry in kilobytes beyond which the view should not deliver geometry
   // to the client, but only outlines.
@@ -138,6 +160,13 @@ public:
   void ResetCameraClippingRange();
 
   // Description:
+  // Enable/Disable light kit.
+  // @CallOnAllProcessess
+  void SetUseLightKit(bool enable);
+  vtkGetMacro(UseLightKit, bool);
+  vtkBooleanMacro(UseLightKit, bool);
+
+  // Description:
   // vtkDataRepresentation can use this key to publish meta-data about geometry
   // size in the VIEW_REQUEST_METADATA pass. If this meta-data is available,
   // then the view can make informed decisions about where to render/whether to
@@ -148,7 +177,7 @@ public:
   static vtkInformationIntegerKey* USE_LOD();
   static vtkInformationIntegerKey* DELIVER_LOD_TO_CLIENT();
   static vtkInformationIntegerKey* DELIVER_OUTLINE_TO_CLIENT();
-  static vtkInformationIntegerKey* LOD_RESOLUTION();
+  static vtkInformationDoubleKey* LOD_RESOLUTION();
 
   // Description:
   // This view supports ordered compositing, if needed. When ordered compositing
@@ -170,6 +199,17 @@ public:
   // none is present, then representations should not redistribute the data.
   static vtkInformationObjectBaseKey* KD_TREE();
 
+public:
+  //*****************************************************************
+  // Methods merely exposing methods for internal objects.
+
+  // Description:
+  // Turn on/off the default light in the 3D renderer.
+  void SetLightSwitch(bool enable);
+  bool GetLightSwitch();
+  vtkBooleanMacro(LightSwitch, bool);
+
+  //*****************************************************************
 //BTX
 protected:
   vtkPVRenderView();
@@ -222,9 +262,13 @@ protected:
   // Update the request to enable/disable low-res rendering.
   void SetRequestLODRendering(bool);
 
+  vtkLight* Light;
+  vtkLightKit* LightKit;
   vtkRenderViewBase* RenderView;
   vtkRenderer* NonCompositedRenderer;
   vtkPVSynchronizedRenderer* SynchronizedRenderers;
+  vtkPVGenericRenderWindowInteractor* Interactor;
+  vtkPVInteractorStyle* InteractorStyle;
 
   int StillRenderImageReductionFactor;
   int InteractiveRenderImageReductionFactor;
@@ -235,6 +279,9 @@ protected:
   unsigned long LODRenderingThreshold;
   unsigned long ClientOutlineThreshold;
   double LastComputedBounds[6];
+
+  double LODResolution;
+  bool UseLightKit;
 
   vtkBSPCutsGenerator* OrderedCompositingBSPCutsSource;
 private:
