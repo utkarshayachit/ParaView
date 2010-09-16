@@ -24,68 +24,6 @@
 #include <QVBoxLayout>
 #include <QCheckBox>
 
-
-class RenderHelper : public vtkPVRenderViewProxy
-{
-public:
-  static RenderHelper* New();
-  vtkTypeMacro(RenderHelper, vtkPVRenderViewProxy);
-
-  virtual void EventuallyRender()
-    {
-    this->Proxy->InvokeCommand("StillRender");
-    }
-  virtual vtkRenderWindow* GetRenderWindow() { return NULL; }
-  virtual void Render()
-    {
-    this->Proxy->InvokeCommand("InteractiveRender");
-    }
-
-  vtkSMProxy* Proxy;
-};
-vtkStandardNewMacro(RenderHelper);
-
-static bool InInteraction = false;
-static void callbackRender(
-  vtkObject *caller, unsigned long eid, void *clientdata, void *calldata)
-{
-  vtkSMProxy* proxy = reinterpret_cast<vtkSMProxy*>(clientdata);
-  if (::InInteraction)
-    {
-    proxy->InvokeCommand("InteractiveRender");
-    }
-  else
-    {
-    proxy->InvokeCommand("StillRender");
-    }
-}
-
-static void callbackStartEndInteraction(
-  vtkObject *, unsigned long eid, void *clientdata, void *)
-{
-  vtkSMProxy* proxy = reinterpret_cast<vtkSMProxy*>(clientdata);
-  if (eid == vtkCommand::StartInteractionEvent)
-    {
-    // ensure that StillRender is called before InteractiveRender
-    proxy->InvokeCommand("StillRender");
-    ::InInteraction = true;
-    }
-  else
-    {
-    ::InInteraction = false;
-    }
-}
-
-void setupRender(vtkSMProxy* proxy)
-{
-  RenderHelper* helper = RenderHelper::New();
-  helper->Proxy = proxy;
-
-  vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(proxy->GetClientSideObject());
-  rv->GetInteractor()->SetPVRenderView(helper);
-  helper->Delete();
-}
-
 // returns sphere proxy
 vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
 {
@@ -156,7 +94,6 @@ int main(int argc, char** argv)
   vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(viewProxy->GetClientSideObject());
   QVTKWidget* qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv->GetRenderWindow());
-  setupRender(viewProxy);
   vtkSMProxy* sphere = addSphere(viewProxy);
 
   QWidget *centralWidget = new QWidget(&mainWindow);
@@ -207,7 +144,6 @@ int main(int argc, char** argv)
   vtkPVRenderView* rv2 = vtkPVRenderView::SafeDownCast(view2Proxy->GetClientSideObject());
   qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv2->GetRenderWindow());
-  setupRender(view2Proxy);
 
   addSphere(view2Proxy, sphere);
 

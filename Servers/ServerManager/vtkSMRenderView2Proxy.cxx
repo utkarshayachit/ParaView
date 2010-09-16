@@ -17,6 +17,33 @@
 #include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
+#include "vtkPVRenderView.h"
+#include "vtkPVRenderViewProxy.h"
+#include "vtkWeakPointer.h"
+
+namespace
+{
+  class vtkRenderHelper : public vtkPVRenderViewProxy
+  {
+public:
+  static vtkRenderHelper* New();
+  vtkTypeMacro(vtkRenderHelper, vtkPVRenderViewProxy);
+
+  virtual void EventuallyRender()
+    {
+    this->Proxy->InvokeCommand("StillRender");
+    }
+  virtual vtkRenderWindow* GetRenderWindow() { return NULL; }
+  virtual void Render()
+    {
+    this->Proxy->InvokeCommand("InteractiveRender");
+    }
+
+  vtkWeakPointer<vtkSMProxy> Proxy;
+  };
+  vtkStandardNewMacro(vtkRenderHelper);
+};
 
 vtkStandardNewMacro(vtkSMRenderView2Proxy);
 vtkCxxRevisionMacro(vtkSMRenderView2Proxy, "$Revision$");
@@ -49,6 +76,16 @@ void vtkSMRenderView2Proxy::CreateVTKObjects()
   vtkProcessModule::GetProcessModule()->SendStream(
     this->ConnectionID,
     this->Servers, stream);
+
+  vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(
+    this->GetClientSideObject());
+  if (rv->GetInteractor())
+    {
+    vtkRenderHelper* helper = vtkRenderHelper::New();
+    helper->Proxy = this;
+    rv->GetInteractor()->SetPVRenderView(helper);
+    helper->Delete();
+    }
 }
 
 //----------------------------------------------------------------------------
