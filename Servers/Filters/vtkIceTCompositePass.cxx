@@ -463,8 +463,8 @@ void vtkIceTCompositePass::UpdateTileInformation(
     }
   else
     {
-    this->LastTileViewport[0] = this->LastTileViewport[1] =
-      this->LastTileViewport[2] = this->LastTileViewport[3] = 0;
+    this->LastTileViewport[0] = this->LastTileViewport[1] = 0;
+    this->LastTileViewport[2] = this->LastTileViewport[3] = -1;
     this->PhysicalViewport[0] = this->PhysicalViewport[1] =
       this->PhysicalViewport[2] = this->PhysicalViewport[3] = 0.0;
     }
@@ -539,13 +539,13 @@ void vtkIceTCompositePass::GetLastRenderedTile(
 
   GLint color_format;
   icetGetIntegerv(ICET_COLOR_FORMAT, &color_format);
-  int width  = this->LastTileViewport[2] - this->LastTileViewport[0];
-  int height = this->LastTileViewport[3] - this->LastTileViewport[1];
+  int width  = this->LastTileViewport[2] - this->LastTileViewport[0] +1;
+  int height = this->LastTileViewport[3] - this->LastTileViewport[1] +1;
 
   // FIXME: when image_reduction_factor > 1, we need to scale width and height
   // accordingly.
 
-  if (width < 1 || height < 1)
+  if (width <= 1 || height <= 1)
     {
     return;
     }
