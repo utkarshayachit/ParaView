@@ -30,6 +30,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPKdTree.h"
 #include "vtkProcessModule.h"
+#include "vtkPVCenterAxesActor.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
 #include "vtkPVInteractorStyle.h"
 #include "vtkPVOptions.h"
@@ -88,6 +89,10 @@ vtkPVRenderView::vtkPVRenderView()
   this->UseLightKit = false;
   this->Interactor = 0;
   this->InteractorStyle = 0;
+  this->CenterAxes = vtkPVCenterAxesActor::New();
+  this->CenterAxes->SetComputeNormals(0);
+  this->CenterAxes->SetPickable(0);
+  this->CenterAxes->SetScale(0.25, 0.25, 0.25);
 
   this->SynchronizedRenderers = vtkPVSynchronizedRenderer::New();
 
@@ -100,14 +105,18 @@ vtkPVRenderView::vtkPVRenderView()
     this->Interactor->Initialize();
     }
 
+  // FIXME: vtkPVRenderView mucks with interactor shifting it around when a
+  // render window is set and so forth which is totally buggy. It results in
+  // seg-faults on my linux box. Need to fix it. This code will then cleanup a
+  // bit.
   vtkRenderWindow* window = this->SynchronizedWindows->NewRenderWindow();
   window->SetMultiSamples(0);
   this->RenderView = vtkRenderViewBase::New();
+  this->RenderView->SetRenderWindow(window);
   if (this->Interactor)
     {
-    this->RenderView->SetInteractor(this->Interactor);
+    //this->RenderView->SetInteractor(this->Interactor);
     }
-  this->RenderView->SetRenderWindow(window);
   window->Delete();
 
   this->NonCompositedRenderer = vtkRenderer::New();
@@ -150,6 +159,8 @@ vtkPVRenderView::vtkPVRenderView()
     this->InteractorStyle->AddManipulator(manip);
     manip->Delete();
     }
+
+  this->GetRenderer()->AddActor(this->CenterAxes);
 }
 
 //----------------------------------------------------------------------------
@@ -160,6 +171,7 @@ vtkPVRenderView::~vtkPVRenderView()
   this->RenderView->Delete();
   this->LightKit->Delete();
   this->Light->Delete();
+  this->CenterAxes->Delete();
 
   if (this->Interactor)
     {

@@ -46,6 +46,7 @@ class vtkInformationRequestKey;
 class vtkLight;
 class vtkLightKit;
 class vtkProp;
+class vtkPVCenterAxesActor;
 class vtkPVGenericRenderWindowInteractor;
 class vtkPVInteractorStyle;
 class vtkPVSynchronizedRenderer;
@@ -292,6 +293,7 @@ protected:
   vtkPVSynchronizedRenderer* SynchronizedRenderers;
   vtkPVGenericRenderWindowInteractor* Interactor;
   vtkPVInteractorStyle* InteractorStyle;
+  vtkPVCenterAxesActor* CenterAxes;
 
   int StillRenderImageReductionFactor;
   int InteractiveRenderImageReductionFactor;

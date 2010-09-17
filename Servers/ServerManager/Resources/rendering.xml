@@ -8926,40 +8926,6 @@
       <!-- End of FrustumWidget -->
     </AxesRepresentationProxy>
 
-    <AxesRepresentationProxy name="AxesRepresentation" class="vtkAxes" >
-
-      <IntVectorProperty name="Symmetric"
-        command="SetSymmetric"
-        number_of_elements="1"
-        default_values="1">
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-
-      <IntVectorProperty name="ComputeNormals"
-        command="SetComputeNormals"
-        number_of_elements="1"
-        default_values="0">
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-
-      <SubProxy>
-        <Proxy name="Mapper" proxygroup="mappers" proxyname="PolyDataMapper">
-        </Proxy>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="Prop" proxygroup="props" proxyname="Actor">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="Visibility" />
-          <Property name="Position" />
-          <Property name="Scale" />
-          <Property name="Origin" />
-          <Property name="Pickable" />
-        </ExposedProperties>
-      </SubProxy>
-    </AxesRepresentationProxy>
-
     <NewWidgetRepresentationProxy name="HandleWidgetRepresentation">
       <SubProxy>
         <Proxy name="Prop"
