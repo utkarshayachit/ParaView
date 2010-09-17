@@ -56,8 +56,9 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
 
 vtkSMProxy* createScalarBar(vtkSMProxy* view)
 {
+  return 0;
   vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-  vtkSMProxy* sb = pxm->NewProxy("representations",
+  vtkSMProxy* sb = pxm->NewProxy("new_representations",
     "ScalarBarWidgetRepresentation");
   sb->SetConnectionID(view->GetConnectionID());
 
@@ -77,7 +78,7 @@ vtkSMProxy* createScalarBar(vtkSMProxy* view)
   return sb;
 }
 
-#define SECOND_WINDOW
+//#define SECOND_WINDOW
 #define REMOTE_CONNECTION_CS
 ////#define REMOTE_CONNECTION_CRS
 
