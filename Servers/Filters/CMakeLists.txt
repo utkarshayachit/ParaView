@@ -45,8 +45,10 @@ SET(Filters_SRCS
   vtkCompleteArrays.cxx
   vtkCompositeAnimationPlayer.cxx
   vtkCompositeDataToUnstructuredGridFilter.cxx
+  vtkCompositeRepresentation.cxx
   vtkCSVExporter.cxx
   vtkCSVWriter.cxx
+  vtkCubeAxesRepresentation.cxx
   vtkDataSetToRectilinearGrid.cxx
   vtkDesktopDeliveryClient.cxx
   vtkDesktopDeliveryServer.cxx

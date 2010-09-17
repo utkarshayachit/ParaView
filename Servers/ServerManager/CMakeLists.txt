@@ -65,7 +65,6 @@ SET(Kit_SRCS
   vtkSMContextNamedOptionsProxy.cxx
   vtkSMContextViewProxy.cxx
   vtkSMCSVExporterProxy.cxx
-  vtkSMCubeAxesRepresentationProxy.cxx
   vtkSMDataLabelRepresentationProxy.cxx
   vtkSMDataRepresentationProxy.cxx
   vtkSMDataTypeDomain.cxx

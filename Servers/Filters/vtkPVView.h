@@ -62,6 +62,18 @@ public:
   // @CallOnAllProcessess
   virtual void InteractiveRender()=0;
 
+  // Description:
+  // This encapsulates a whole lot of logic for
+  // communication between processes. Given the ton of information this class
+  // keeps, it can easily aid vtkViews to synchronize information such as bounds/
+  // data-size among all processes efficiently. This can be achieved by using
+  // these methods.
+  // Note that these methods should be called on all processes at the same time
+  // otherwise we will have deadlocks.
+  // We may make this API generic in future, for now this works.
+  bool SynchronizeBounds(double bounds[6]);
+  bool SynchronizeSize(unsigned long &size);
+
 //BTX
 protected:
   vtkPVView();

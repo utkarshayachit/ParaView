@@ -97,6 +97,18 @@ bool vtkPVView::InTileDisplayMode()
 }
 
 //----------------------------------------------------------------------------
+bool vtkPVView::SynchronizeBounds(double bounds[6])
+{
+  return this->SynchronizedWindows->SynchronizeBounds(bounds);
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVView::SynchronizeSize(unsigned long &size)
+{
+  return this->SynchronizedWindows->SynchronizeSize(size);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
