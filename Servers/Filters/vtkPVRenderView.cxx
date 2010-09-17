@@ -94,6 +94,10 @@ vtkPVRenderView::vtkPVRenderView()
   if (this->SynchronizedWindows->GetLocalProcessIsDriver())
     {
     this->Interactor = vtkPVGenericRenderWindowInteractor::New();
+    // essential to call Initialize() otherwise first time the render is called
+    // on  the render window, it initializes the interactor which in turn
+    // results in a call to Render() which can cause uncanny side effects.
+    this->Interactor->Initialize();
     }
 
   vtkRenderWindow* window = this->SynchronizedWindows->NewRenderWindow();
