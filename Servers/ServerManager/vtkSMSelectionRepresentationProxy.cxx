@@ -43,15 +43,9 @@ void vtkSMSelectionRepresentationProxy::CreateVTKObjects()
     return;
     }
 
-  vtkSMProxy* geom_repr = this->GetSubProxy("GeometryRepresentation");
   vtkSMProxy* label_repr = this->GetSubProxy("LabelRepresentation");
 
   vtkClientServerStream stream;
-  stream << vtkClientServerStream::Invoke
-    << this->GetID()
-    << "SetGeometryRepresentation"
-    << geom_repr->GetID()
-    << vtkClientServerStream::End;
   stream << vtkClientServerStream::Invoke
     << this->GetID()
     << "SetLabelRepresentation"

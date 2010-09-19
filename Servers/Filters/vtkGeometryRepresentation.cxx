@@ -61,6 +61,13 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->Actor->SetMapper(this->Mapper);
   this->Actor->SetLODMapper(this->LODMapper);
   this->Actor->SetProperty(this->Property);
+
+  this->ColorArrayName = 0;
+  this->ColorAttributeType = VTK_SCALAR_MODE_DEFAULT;
+  this->Ambient = 0.0;
+  this->Diffuse = 1.0;
+  this->Specular = 0.0;
+  this->Representation = SURFACE;
 }
 
 //----------------------------------------------------------------------------
@@ -75,42 +82,7 @@ vtkGeometryRepresentation::~vtkGeometryRepresentation()
   this->DeliveryFilter->Delete();
   this->LODDeliveryFilter->Delete();
   this->Distributor->Delete();
-}
-
-//----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetColor(double r, double g, double b)
-{
-  this->Property->SetColor(r, g, b);
-}
-
-//----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetLineWidth(double val)
-{
-  this->Property->SetLineWidth(val);
-}
-
-//----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetOpacity(double val)
-{
-  this->Property->SetOpacity(val);
-}
-
-//----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetPointSize(double val)
-{
-  this->Property->SetPointSize(val);
-}
-
-//----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetRepresentation(int val)
-{
-  this->Property->SetRepresentation(val);
-}
-
-//----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetVisibility(int val)
-{
-  this->Actor->SetVisibility(val);
+  this->SetColorArrayName(0);
 }
 
 //----------------------------------------------------------------------------
@@ -175,6 +147,8 @@ int vtkGeometryRepresentation::ProcessViewRequest(
       this->Distributor->SetPKdTree(NULL);
       this->Distributor->SetPassThrough(1);
       }
+
+    this->UpdateColoringParameters();
     this->Actor->GetMapper()->Update();
     }
 
@@ -289,8 +263,223 @@ bool vtkGeometryRepresentation::RemoveFromView(vtkView* view)
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentation::UpdateColoringParameters()
+{
+  bool using_scalar_coloring = false;
+  if (this->ColorArrayName && this->ColorArrayName[0])
+    {
+    this->Mapper->SetScalarVisibility(1);
+    this->LODMapper->SetScalarVisibility(1);
+    this->Mapper->SelectColorArray(this->ColorArrayName);
+    this->LODMapper->SelectColorArray(this->ColorArrayName);
+    switch (this->ColorAttributeType)
+      {
+    case CELL_DATA:
+      this->Mapper->SetScalarMode(VTK_SCALAR_MODE_USE_CELL_FIELD_DATA);
+      this->LODMapper->SetScalarMode(VTK_SCALAR_MODE_USE_CELL_FIELD_DATA);
+      break;
+
+    case POINT_DATA:
+    default:
+      this->Mapper->SetScalarMode(VTK_SCALAR_MODE_USE_POINT_FIELD_DATA);
+      this->LODMapper->SetScalarMode(VTK_SCALAR_MODE_USE_POINT_FIELD_DATA);
+      break;
+      }
+    using_scalar_coloring = true;
+    }
+  else
+    {
+    this->Mapper->SetScalarVisibility(0);
+    this->LODMapper->SetScalarVisibility(0);
+    const char* null = NULL;
+    this->Mapper->SelectColorArray(null);
+    this->LODMapper->SelectColorArray(null);
+    }
+
+  // Adjust material properties.
+  double diffuse = this->Diffuse;
+  double specular = this->Specular;
+  double ambient = this->Ambient;
+
+  if (this->Representation != SURFACE &&
+    this->Representation != SURFACE_WITH_EDGES)
+    {
+    diffuse = 0.0;
+    ambient = 1.0;
+    specular = 0.0;
+    }
+  else if (using_scalar_coloring)
+    {
+    // Disable specular highlighting is coloring by scalars.
+    specular = 0.0;
+    }
+
+  this->Property->SetAmbient(ambient);
+  this->Property->SetSpecular(specular);
+  this->Property->SetDiffuse(diffuse);
+
+  switch (this->Representation)
+    {
+  case SURFACE_WITH_EDGES:
+    this->Property->SetEdgeVisibility(1);
+    this->Property->SetRepresentation(VTK_SURFACE);
+    break;
+
+  default:
+    this->Property->SetEdgeVisibility(0);
+    this->Property->SetRepresentation(this->Representation);
+    }
+}
+
+//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+}
+
+//****************************************************************************
+// Methods merely forwarding parameters to internal objects.
+//****************************************************************************
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetLookupTable(vtkScalarsToColors* val)
+{
+  this->Mapper->SetLookupTable(val);
+  this->LODMapper->SetLookupTable(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetMapScalars(int val)
+{
+  this->Mapper->SetColorMode(val);
+  this->LODMapper->SetColorMode(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetInterpolateScalarsBeforeMapping(int val)
+{
+  this->Mapper->SetInterpolateScalarsBeforeMapping(val);
+  this->LODMapper->SetInterpolateScalarsBeforeMapping(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetStatic(int val)
+{
+  this->Mapper->SetStatic(val);
+  this->LODMapper->SetStatic(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetColor(double r, double g, double b)
+{
+  this->Property->SetColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetLineWidth(double val)
+{
+  this->Property->SetLineWidth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetOpacity(double val)
+{
+  this->Property->SetOpacity(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetPointSize(double val)
+{
+  this->Property->SetPointSize(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetAmbientColor(double r, double g, double b)
+{
+  this->Property->SetAmbientColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetBackfaceCulling(int val)
+{
+  this->Property->SetBackfaceCulling(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetDiffuseColor(double r, double g, double b)
+{
+  this->Property->SetDiffuseColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetEdgeColor(double r, double g, double b)
+{
+  this->Property->SetEdgeColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetFrontfaceCulling(int val)
+{
+  this->Property->SetFrontfaceCulling(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetInterpolation(int val)
+{
+  this->Property->SetInterpolation(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetSpecularColor(double r, double g, double b)
+{
+  this->Property->SetSpecularColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetSpecularPower(double val)
+{
+  this->Property->SetSpecularPower(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetVisibility(int val)
+{
+  this->Actor->SetVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetOrientation(double x, double y, double z)
+{
+  this->Actor->SetOrientation(x, y, z);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetOrigin(double x, double y, double z)
+{
+  this->Actor->SetOrigin(x, y, z);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetPickable(int val)
+{
+  this->Actor->SetPickable(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetPosition(double x, double y, double z)
+{
+  this->Actor->SetPosition(x, y, z);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetScale(double x, double y, double z)
+{
+  this->Actor->SetScale(x, y, z);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetTexture(vtkTexture* val)
+{
+  this->Actor->SetTexture(val);
 }
 

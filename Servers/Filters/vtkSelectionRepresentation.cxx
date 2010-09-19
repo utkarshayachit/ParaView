@@ -18,12 +18,11 @@
 #include "vtkGeometryRepresentation.h"
 #include "vtkInformation.h"
 #include "vtkLabeledDataMapper.h"
+#include "vtkMemberFunctionCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkView.h"
 
 vtkStandardNewMacro(vtkSelectionRepresentation);
-vtkCxxSetObjectMacro(vtkSelectionRepresentation, GeometryRepresentation,
-  vtkGeometryRepresentation);
 vtkCxxSetObjectMacro(vtkSelectionRepresentation, LabelRepresentation,
   vtkDataLabelRepresentation);
 //----------------------------------------------------------------------------
@@ -33,6 +32,14 @@ vtkSelectionRepresentation::vtkSelectionRepresentation()
   this->LabelRepresentation = vtkDataLabelRepresentation::New();
   this->LabelRepresentation->SetPointLabelMode(VTK_LABEL_FIELD_DATA);
   this->LabelRepresentation->SetCellLabelMode(VTK_LABEL_FIELD_DATA);
+
+  vtkCommand* observer = vtkMakeMemberFunctionCommand(*this,
+    &vtkSelectionRepresentation::TriggerUpdateDataEvent);
+  this->GeometryRepresentation->AddObserver(vtkCommand::UpdateDataEvent,
+    observer);
+  this->LabelRepresentation->AddObserver(vtkCommand::UpdateDataEvent,
+    observer);
+  observer->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -114,7 +121,53 @@ void vtkSelectionRepresentation::MarkModified()
 }
 
 //----------------------------------------------------------------------------
+void vtkSelectionRepresentation::TriggerUpdateDataEvent()
+{
+  // We fire UpdateDataEvent to notify the representation proxy that the
+  // representation was updated. The representation proxty will then call
+  // PostUpdateData(). We do this since now representations are not updated at
+  // the proxy level.
+  this->InvokeEvent(vtkCommand::UpdateDataEvent);
+}
+
+//----------------------------------------------------------------------------
 void vtkSelectionRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetColor(double r, double g, double b)
+{
+  this->GeometryRepresentation->SetColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetLineWidth(double val)
+{
+  this->GeometryRepresentation->SetLineWidth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetOpacity(double val)
+{
+  this->GeometryRepresentation->SetOpacity(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetPointSize(double val)
+{
+  this->GeometryRepresentation->SetPointSize(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetVisibility(int val)
+{
+  this->GeometryRepresentation->SetVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetRepresentation(int val)
+{
+  this->GeometryRepresentation->SetRepresentation(val);
 }

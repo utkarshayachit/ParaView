@@ -140,7 +140,7 @@
   <ProxyGroup name="new_representations">
 
     <!-- ================================================================== -->
-    <RepresentationProxy2 name="GeometryRepresentation2"
+    <RepresentationProxy2 name="SurfaceRepresentation"
                           class="vtkGeometryRepresentation"
                           processes="client|renderserver|dataserver">
       <Documentation>
@@ -166,8 +166,89 @@
         </Documentation>
       </IntVectorProperty>
 
-      <DoubleVectorProperty name="Color"
-        command="SetColor"
+      <IntVectorProperty name="ColorAttributeType"
+        command="SetColorAttributeType"
+        number_of_elements="1"
+        default_values="1">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="POINT_DATA" />
+          <Entry value="1" text="CELL_DATA" />
+          <Entry value="2" text="FIELD_DATA" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <StringVectorProperty name="ColorArrayName"
+        command="SetColorArrayName"
+        number_of_elements="1"
+        default_values="">
+        <Documentation>
+          Set the array name to color by. Set it to empty string to use solid
+          color.
+        </Documentation>
+        <ArrayListDomain name="array_list" attribute_type="Scalars"
+          input_domain_name="input_array_any">
+          <RequiredProperties>
+            <Property name="Input" function="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
+      <IntVectorProperty name="Representation"
+        command="SetRepresentation"
+        number_of_elements="1"
+        default_values="2">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="Points" />
+          <Entry value="1" text="Wireframe" />
+          <Entry value="2" text="Surface" />
+          <Entry value="3" text="Surface With Edges" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="Ambient"
+        command="SetAmbient"
+        number_of_elements="1"
+        default_values="0.0">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Diffuse"
+        command="SetDiffuse"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Specular"
+        command="SetSpecular"
+        number_of_elements="1"
+        default_values="0.1">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="SuppressLOD"
+        command="SetSuppressLOD"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="AmbientColor"
+        command="SetAmbientColor"
+        number_of_elements="3"
+        default_values="1.0 1.0 1.0">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="DiffuseColor"
+        command="SetDiffuseColor"
+        number_of_elements="3"
+        default_values="1.0 1.0 1.0">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="SpecularColor"
+        command="SetSpecularColor"
         number_of_elements="3"
         default_values="1.0 1.0 1.0">
         <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
@@ -180,14 +261,6 @@
         <DoubleRangeDomain name="range" min="0"/>
       </DoubleVectorProperty>
 
-      <DoubleVectorProperty
-        name="Opacity"
-        command="SetOpacity"
-        number_of_elements="1"
-        default_values="1">
-        <DoubleRangeDomain name="range" min="0" max="1" />
-      </DoubleVectorProperty>
-
       <DoubleVectorProperty name="PointSize"
         command="SetPointSize"
         number_of_elements="1"
@@ -195,17 +268,145 @@
         <DoubleRangeDomain name="range" min="0" />
       </DoubleVectorProperty>
 
-      <IntVectorProperty name="Representation"
-        command="SetRepresentation"
+      <IntVectorProperty name="Interpolation"
+        command="SetInterpolation"
         number_of_elements="1"
-        default_values="2">
+        default_values="1">
         <EnumerationDomain name="enum">
-          <Entry value="0" text="Points" />
-          <Entry value="1" text="Wireframe" />
-          <Entry value="2" text="Surface" />
+          <Entry value="0" text="Flat" />
+          <Entry value="1" text="Gouraud" />
+          <!--<Entry value="2" text="Phong" />-->
         </EnumerationDomain>
       </IntVectorProperty>
 
+      <DoubleVectorProperty name="Opacity"
+        command="SetOpacity"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="SpecularPower"
+        command="SetSpecularPower"
+        number_of_elements="1"
+        default_values="100.0">
+        <DoubleRangeDomain name="range" min="0" max="100" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="EdgeColor"
+        command="SetEdgeColor"
+        number_of_elements="3"
+        default_values="0 0 0.5">
+        <Documentation>
+          Set the edge color. This color is used to draw the edge for the
+          polygonal data when EdgeVisibility is on.
+        </Documentation>
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1"/>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="BackfaceCulling"
+        command="SetBackfaceCulling"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Turn on/off backface culling.  When on, polygons facing away from the
+          camera will not be drawn.
+        </Documentation>
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="FrontfaceCulling"
+        command="SetFrontfaceCulling"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Turn on/off frontface culling.  When on, polygons facing towards
+          from the camera will not be drawn.
+        </Documentation>
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="Position"
+        command="SetPosition"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Scale"
+        command="SetScale"
+        number_of_elements="3"
+        default_values="1 1 1">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Orientation"
+        command="SetOrientation"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Origin"
+        command="SetOrigin"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="Pickable"
+        command="SetPickable"
+        number_of_elements="1"
+        default_values="1">
+        <IntRangeDomain name="bool" />
+      </IntVectorProperty>
+
+      <ProxyProperty name="Texture"
+        command="SetTexture"
+        null_on_empty="1">
+        <ProxyGroupDomain name="groups">
+          <Group name="textures"/>
+        </ProxyGroupDomain>
+      </ProxyProperty>
+
+      <ProxyProperty name="LookupTable"
+        command="SetLookupTable">
+        <Documentation>
+          Set the lookup-table to use to map data array to colors. Lookuptable
+          is only used with MapScalars to ON.
+        </Documentation>
+        <ProxyGroupDomain name="groups">
+          <Group name="lookup_tables"/>
+        </ProxyGroupDomain>
+      </ProxyProperty>
+
+      <IntVectorProperty name="MapScalars"
+        command="SetMapScalars"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          When set to true, LookupTable will always be used for scalar mapping
+          even when scalars are unsigned chars. Otherwise, when upto 4 component
+          unsigned chars are present, they will be directly used as colors.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="InterpolateScalarsBeforeMapping"
+        command="SetInterpolateScalarsBeforeMapping"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="StaticMode"
+        command="SetStatic"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <!-- End of SurfaceRepresentation -->
     </RepresentationProxy2>
 
     <!-- ================================================================== -->
@@ -701,18 +902,55 @@
         </InputArrayDomain>
       </InputProperty>
 
-      <SubProxy>
-        <Proxy name="GeometryRepresentation"
-          proxygroup="new_representations" proxyname="GeometryRepresentation2" />
-        <ExposedProperties>
-          <Property name="Visibility" />
-          <Property name="Color" default_values="1.0 0.0 1.0" />
-          <Property name="LineWidth" default_values="2.0" />
-          <Property name="Opacity"/>
-          <Property name="PointSize" default_values="5.0" />
-          <Property name="Representation" default_values="1" />
-        </ExposedProperties>
-      </SubProxy>
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Get/Set the visibility of the representation.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="Color"
+        command="SetColor"
+        number_of_elements="3"
+        default_values="1.0 0.0 1.0">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="LineWidth"
+        command="SetLineWidth"
+        number_of_elements="1"
+        default_values="2.0">
+        <DoubleRangeDomain name="range" min="0"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="Opacity"
+        command="SetOpacity"
+        number_of_elements="1"
+        default_values="1">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="PointSize"
+        command="SetPointSize"
+        number_of_elements="1"
+        default_values="5.0">
+        <DoubleRangeDomain name="range" min="0" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="Representation"
+        command="SetRepresentation"
+        number_of_elements="1"
+        default_values="1">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="Points" />
+          <Entry value="1" text="Wireframe" />
+          <Entry value="2" text="Surface" />
+        </EnumerationDomain>
+      </IntVectorProperty>
 
       <SubProxy>
         <Proxy name="LabelRepresentation"

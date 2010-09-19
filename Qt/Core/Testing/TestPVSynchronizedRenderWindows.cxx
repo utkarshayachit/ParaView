@@ -40,7 +40,7 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
     }
 
   vtkSMProxy* repr = pxm->NewProxy("new_representations",
-    "GeometryRepresentation2");
+    "SurfaceRepresentation");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(sphere);
   repr->UpdateVTKObjects();

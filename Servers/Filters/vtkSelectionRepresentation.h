@@ -36,7 +36,6 @@ public:
   // Description:
   // One must change the internal representations only before the representation
   // is added to a view, after that it should not be touched.
-  void SetGeometryRepresentation(vtkGeometryRepresentation*);
   void SetLabelRepresentation(vtkDataLabelRepresentation*);
 
   // Description:
@@ -56,6 +55,14 @@ public:
   // requests.
   void MarkModified();
 
+  // Description:
+  // Forwarded to GeometryRepresentation.
+  void SetColor(double r, double g, double b);
+  void SetLineWidth(double val);
+  void SetOpacity(double val);
+  void SetPointSize(double val);
+  void SetRepresentation(int val);
+  void SetVisibility(int);
 //BTX
 protected:
   vtkSelectionRepresentation();
@@ -74,6 +81,10 @@ protected:
   // vtkView::RemoveRepresentation().  Subclasses should override this method.
   // Returns true if the removal succeeds.
   virtual bool RemoveFromView(vtkView* view);
+
+  // Description:
+  // Fires UpdateDataEvent
+  void TriggerUpdateDataEvent();
 
   vtkGeometryRepresentation* GeometryRepresentation;
   vtkDataLabelRepresentation* LabelRepresentation;

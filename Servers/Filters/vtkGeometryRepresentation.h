@@ -21,14 +21,16 @@
 #define __vtkGeometryRepresentation_h
 
 #include "vtkDataRepresentation.h"
+#include "vtkProperty.h" // needed for VTK_POINTS etc.
 
+class vtkOrderedCompositeDistributor;
 class vtkPolyDataMapper;
-class vtkProperty;
 class vtkPVGeometryFilter;
 class vtkPVLODActor;
 class vtkQuadricClustering;
+class vtkScalarsToColors;
+class vtkTexture;
 class vtkUnstructuredDataDeliveryFilter;
-class vtkOrderedCompositeDistributor;
 
 class VTK_EXPORT vtkGeometryRepresentation : public vtkDataRepresentation
 {
@@ -52,14 +54,85 @@ public:
   // requests.
   void MarkModified();
 
+  enum AttributeTypes
+    {
+    POINT_DATA=0,
+    CELL_DATA=1
+    };
+
+  // Description:
+  // Enable/Disable LOD;
+  void SetSuppressLOD(int){ } ;
+
+  // Description:
+  // Methods to control scalar coloring. ColorAttributeType defines the
+  // attribute type.
+  vtkSetMacro(ColorAttributeType, int);
+  vtkGetMacro(ColorAttributeType, int);
+
+  // Description:
+  // Pick the array to color with.
+  vtkSetStringMacro(ColorArrayName);
+  vtkGetStringMacro(ColorArrayName);
+
+  // Description:
+  // Set the lighting properties of the object. vtkGeometryRepresentation
+  // overrides these based of the following conditions:
+  // \li When Representation is wireframe or points, it disables diffuse or
+  // specular.
+  // \li When scalar coloring is employed, it disabled specular.
+  vtkSetMacro(Ambient, double);
+  vtkSetMacro(Diffuse, double);
+  vtkSetMacro(Specular, double);
+  vtkGetMacro(Ambient, double);
+  vtkGetMacro(Diffuse, double);
+  vtkGetMacro(Specular, double);
+
+  enum RepresentationTypes
+    {
+    POINTS = VTK_POINTS,
+    WIREFRAME = VTK_WIREFRAME,
+    SURFACE = VTK_SURFACE,
+    SURFACE_WITH_EDGES = 3
+    };
+
+  // Description:
+  // Set the representation type. This adds VTK_SURFACE_WITH_EDGES to those
+  // defined in vtkProperty.
+  vtkSetClampMacro(Representation, int, POINTS, SURFACE_WITH_EDGES);
+  vtkGetMacro(Representation, int);
+
   //***************************************************************************
-  // Calls simply forwarded to internal objects.
-  void SetVisibility(int val);
+  // Forwarded to vtkProperty.
+  void SetAmbientColor(double r, double g, double b);
+  void SetBackfaceCulling(int val);
   void SetColor(double r, double g, double b);
+  void SetDiffuseColor(double r, double g, double b);
+  void SetEdgeColor(double r, double g, double b);
+  void SetFrontfaceCulling(int val);
+  void SetInterpolation(int val);
   void SetLineWidth(double val);
   void SetOpacity(double val);
   void SetPointSize(double val);
-  void SetRepresentation(int val);
+  void SetSpecularColor(double r, double g, double b);
+  void SetSpecularPower(double val);
+
+  //***************************************************************************
+  // Forwarded to Actor.
+  void SetOrientation(double, double, double);
+  void SetOrigin(double, double, double);
+  void SetPickable(int val);
+  void SetPosition(double, double, double);
+  void SetScale(double, double, double);
+  void SetTexture(vtkTexture*);
+  void SetVisibility(int val);
+
+  //***************************************************************************
+  // Forwarded to Mapper and LODMapper.
+  void SetInterpolateScalarsBeforeMapping(int val);
+  void SetLookupTable(vtkScalarsToColors* val);
+  void SetMapScalars(int val);
+  void SetStatic(int val);
 
 //BTX
 protected:
@@ -100,6 +173,10 @@ protected:
   // Returns true if the removal succeeds.
   virtual bool RemoveFromView(vtkView* view);
 
+  // Description:
+  // Passes on parameters to vtkProperty and vtkMapper
+  virtual void UpdateColoringParameters();
+
   vtkPVGeometryFilter* GeometryFilter;
   vtkQuadricClustering* Decimator;
   vtkPolyDataMapper* Mapper;
@@ -109,6 +186,14 @@ protected:
   vtkUnstructuredDataDeliveryFilter* DeliveryFilter;
   vtkUnstructuredDataDeliveryFilter* LODDeliveryFilter;
   vtkOrderedCompositeDistributor* Distributor;
+
+  int ColorAttributeType;
+  char* ColorArrayName;
+  double Ambient;
+  double Specular;
+  double Diffuse;
+  int Representation;
+
 private:
   vtkGeometryRepresentation(const vtkGeometryRepresentation&); // Not implemented
   void operator=(const vtkGeometryRepresentation&); // Not implemented
