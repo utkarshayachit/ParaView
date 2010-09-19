@@ -55,15 +55,18 @@ vtkSMPropRepresentationProxy::~vtkSMPropRepresentationProxy()
 void vtkSMPropRepresentationProxy::SetViewInformation(vtkInformation* info)
 {
   this->Superclass::SetViewInformation(info);
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     this->SelectionRepresentation->SetViewInformation(info);
     }
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMPropRepresentationProxy::SetVisibility(int visible)
 {
+#ifdef FIXME
   if (this->SelectionRepresentation && !visible)
     {
     vtkSMIntVectorProperty* ivp = vtkSMIntVectorProperty::SafeDownCast(
@@ -71,6 +74,7 @@ void vtkSMPropRepresentationProxy::SetVisibility(int visible)
     ivp->SetElement(0, visible);
     this->SelectionRepresentation->UpdateProperty("Visibility");
     }
+#endif
 
   vtkSMProxy* prop3D = this->GetSubProxy("Prop3D");
   vtkSMProxy* prop2D = this->GetSubProxy("Prop2D");
@@ -95,6 +99,7 @@ void vtkSMPropRepresentationProxy::SetVisibility(int visible)
 //----------------------------------------------------------------------------
 void vtkSMPropRepresentationProxy::Update(vtkSMViewProxy* view)
 {
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     // First update the selection representation visibility.
@@ -108,7 +113,7 @@ void vtkSMPropRepresentationProxy::Update(vtkSMViewProxy* view)
     // Now update the selection representation.
     this->SelectionRepresentation->Update(view);  
     }
-
+#endif
   this->Superclass::Update(view);
 }
 
@@ -136,11 +141,12 @@ bool vtkSMPropRepresentationProxy::AddToView(vtkSMViewProxy* view)
     renderView->AddPropToRenderer(this->GetSubProxy("Prop2D"));
     }
 
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     this->SelectionRepresentation->AddToView(view);
     }
-
+#endif
   return true;
 }
 
@@ -163,10 +169,12 @@ bool vtkSMPropRepresentationProxy::RemoveFromView(vtkSMViewProxy* view)
     renderView->RemovePropFromRenderer(this->GetSubProxy("Prop2D"));
     }
 
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     this->SelectionRepresentation->RemoveFromView(view);
     }
+#endif
   return this->Superclass::RemoveFromView(view);
 }
 
@@ -174,10 +182,12 @@ bool vtkSMPropRepresentationProxy::RemoveFromView(vtkSMViewProxy* view)
 //----------------------------------------------------------------------------
 void vtkSMPropRepresentationProxy::LinkSelectionProp(vtkSMProxy* prop)
 {
+#ifdef FIXME
   if (this->SelectionRepresentation && prop)
     {
     this->SelectionPropLink->AddLinkedProxy(prop, vtkSMLink::INPUT);
     }
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -188,15 +198,18 @@ bool vtkSMPropRepresentationProxy::BeginCreateVTKObjects()
     return false;
     }
 
+#ifdef FIXME
   this->SelectionRepresentation = 
     vtkSMDataRepresentationProxy::SafeDownCast(this->GetSubProxy(
         "SelectionRepresentation"));
+#endif
   return true;
 }
 
 //----------------------------------------------------------------------------
 bool vtkSMPropRepresentationProxy::EndCreateVTKObjects()
 {
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     // Setup selection pipeline connections.
@@ -210,6 +223,7 @@ bool vtkSMPropRepresentationProxy::EndCreateVTKObjects()
         this->SelectionRepresentation)->GetProp3D(),
       vtkSMLink::OUTPUT);
     }
+#endif
   return this->Superclass::EndCreateVTKObjects();
 }
 
@@ -218,40 +232,48 @@ void vtkSMPropRepresentationProxy::GetActiveStrategies(
   vtkSMRepresentationStrategyVector& activeStrategies)
 {
   this->Superclass::GetActiveStrategies(activeStrategies);
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     this->SelectionRepresentation->GetActiveStrategies(activeStrategies);
     }
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMPropRepresentationProxy::SetUpdateTime(double time)
 {
   this->Superclass::SetUpdateTime(time);
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     this->SelectionRepresentation->SetUpdateTime(time);
     }
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMPropRepresentationProxy::SetUseViewUpdateTime(bool use)
 {
   this->Superclass::SetUseViewUpdateTime(use);
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     this->SelectionRepresentation->SetUseViewUpdateTime(use);
     }
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMPropRepresentationProxy::SetViewUpdateTime(double time)
 {
   this->Superclass::SetViewUpdateTime(time);
+#ifdef FIXME
   if (this->SelectionRepresentation)
     {
     this->SelectionRepresentation->SetViewUpdateTime(time);
     }
+#endif
 }
 
 //----------------------------------------------------------------------------

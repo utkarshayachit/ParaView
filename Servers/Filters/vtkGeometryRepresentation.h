@@ -52,6 +52,15 @@ public:
   // requests.
   void MarkModified();
 
+  //***************************************************************************
+  // Calls simply forwarded to internal objects.
+  void SetVisibility(int val);
+  void SetColor(double r, double g, double b);
+  void SetLineWidth(double val);
+  void SetOpacity(double val);
+  void SetPointSize(double val);
+  void SetRepresentation(int val);
+
 //BTX
 protected:
   vtkGeometryRepresentation();
@@ -84,7 +93,7 @@ protected:
   // vtkView::AddRepresentation().  Subclasses should override this method.
   // Returns true if the addition succeeds.
   virtual bool AddToView(vtkView* view);
-  
+
   // Description:
   // Removes the representation to the view.  This is called from
   // vtkView::RemoveRepresentation().  Subclasses should override this method.

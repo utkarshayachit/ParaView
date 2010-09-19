@@ -155,6 +155,57 @@
           Set the input to the representation.
         </Documentation>
       </InputProperty>
+
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Get/Set the visibility of the representation.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="Color"
+        command="SetColor"
+        number_of_elements="3"
+        default_values="1.0 1.0 1.0">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="LineWidth"
+        command="SetLineWidth"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="Opacity"
+        command="SetOpacity"
+        number_of_elements="1"
+        default_values="1">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="PointSize"
+        command="SetPointSize"
+        number_of_elements="1"
+        default_values="2.0">
+        <DoubleRangeDomain name="range" min="0" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="Representation"
+        command="SetRepresentation"
+        number_of_elements="1"
+        default_values="2">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="Points" />
+          <Entry value="1" text="Wireframe" />
+          <Entry value="2" text="Surface" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
     </RepresentationProxy2>
 
     <!-- ================================================================== -->
@@ -634,6 +685,64 @@
 
     <!-- End of DataLabelRepresentation -->
     </RepresentationProxy2>
+
+    <!-- ================================================================== -->
+    <SelectionRepresentationProxy name="SelectionRepresentation"
+      class="vtkSelectionRepresentation"
+      processes="client|renderserver|dataserver">
+      <Documentation>
+        Proxy to show a selection as geometry.
+      </Documentation>
+
+      <InputProperty name="Input"
+        command="SetInputConnection">
+        <InputArrayDomain name="input_array_any"
+          attribute_type="any">
+        </InputArrayDomain>
+      </InputProperty>
+
+      <SubProxy>
+        <Proxy name="GeometryRepresentation"
+          proxygroup="new_representations" proxyname="GeometryRepresentation2" />
+        <ExposedProperties>
+          <Property name="Visibility" />
+          <Property name="Color" default_values="1.0 0.0 1.0" />
+          <Property name="LineWidth" default_values="2.0" />
+          <Property name="Opacity"/>
+          <Property name="PointSize" default_values="5.0" />
+          <Property name="Representation" default_values="1" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="LabelRepresentation"
+          proxygroup="new_representations"
+          proxyname="DataLabelRepresentation" />
+        <ExposedProperties>
+          <Property name="PointLabelColor" />
+          <Property name="PointLabelOpacity" />
+          <Property name="PointLabelFontFamily" />
+          <Property name="PointLabelJustification" />
+          <Property name="PointLabelBold" />
+          <Property name="PointLabelItalic" />
+          <Property name="PointLabelShadow" />
+          <Property name="PointLabelFontSize" />
+          <Property name="PointFieldDataArrayName" />
+
+          <Property name="CellLabelColor" />
+          <Property name="CellLabelOpacity" />
+          <Property name="CellLabelFontFamily" />
+          <Property name="CellLabelJustification" />
+          <Property name="CellLabelBold" />
+          <Property name="CellLabelItalic" />
+          <Property name="CellLabelShadow" />
+          <Property name="CellLabelFontSize" />
+          <Property name="CellFieldDataArrayName" />
+        </ExposedProperties>
+      </SubProxy>
+
+    <!-- End of SelectionRepresentation -->
+    </SelectionRepresentationProxy>
 
   </ProxyGroup>
 

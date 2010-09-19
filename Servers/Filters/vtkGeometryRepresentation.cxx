@@ -78,6 +78,42 @@ vtkGeometryRepresentation::~vtkGeometryRepresentation()
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetColor(double r, double g, double b)
+{
+  this->Property->SetColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetLineWidth(double val)
+{
+  this->Property->SetLineWidth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetOpacity(double val)
+{
+  this->Property->SetOpacity(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetPointSize(double val)
+{
+  this->Property->SetPointSize(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetRepresentation(int val)
+{
+  this->Property->SetRepresentation(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetVisibility(int val)
+{
+  this->Actor->SetVisibility(val);
+}
+
+//----------------------------------------------------------------------------
 int vtkGeometryRepresentation::FillInputPortInformation(
   int vtkNotUsed(port), vtkInformation* info)
 {

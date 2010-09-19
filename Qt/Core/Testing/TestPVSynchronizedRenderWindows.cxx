@@ -62,21 +62,34 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
 
   //cubeAxes->Delete();
 
+    //{
+    //vtkSMProxy* labelRepr = pxm->NewProxy("new_representations",
+    //  "DataLabelRepresentation");
+    //labelRepr->SetConnectionID(view->GetConnectionID());
+    //vtkSMPropertyHelper(labelRepr, "Input").Set(sphere);
+    //vtkSMPropertyHelper(labelRepr, "PointLabelVisibility").Set(1);
+    //vtkSMPropertyHelper(labelRepr, "CellLabelVisibility").Set(1);
+    //vtkSMPropertyHelper(labelRepr, "PointLabelMode").Set(6);
+    //vtkSMPropertyHelper(labelRepr, "PointFieldDataArrayName").Set("Normals");
+    //labelRepr->UpdateVTKObjects();
 
-  vtkSMProxy* labelRepr = pxm->NewProxy("new_representations",
-    "DataLabelRepresentation");
-  labelRepr->SetConnectionID(view->GetConnectionID());
-  vtkSMPropertyHelper(labelRepr, "Input").Set(sphere);
-  vtkSMPropertyHelper(labelRepr, "PointLabelVisibility").Set(1);
-  vtkSMPropertyHelper(labelRepr, "CellLabelVisibility").Set(1);
-  vtkSMPropertyHelper(labelRepr, "PointLabelMode").Set(6);
-  vtkSMPropertyHelper(labelRepr, "PointFieldDataArrayName").Set("Normals");
-  labelRepr->UpdateVTKObjects();
+    //vtkSMPropertyHelper(view, "Representations").Add(labelRepr);
+    //view->UpdateVTKObjects();
 
-  vtkSMPropertyHelper(view, "Representations").Add(labelRepr);
-  view->UpdateVTKObjects();
+    //labelRepr->Delete();
+    //}
 
-  labelRepr->Delete();
+    {
+    vtkSMProxy* labelRepr = pxm->NewProxy("new_representations",
+      "SelectionRepresentation");
+    labelRepr->SetConnectionID(view->GetConnectionID());
+    vtkSMPropertyHelper(labelRepr, "Input").Set(sphere);
+    labelRepr->UpdateVTKObjects();
+
+    vtkSMPropertyHelper(view, "Representations").Add(labelRepr);
+    view->UpdateVTKObjects();
+    labelRepr->Delete();
+    }
 
   return sphere;
 }
@@ -106,7 +119,7 @@ vtkSMProxy* createScalarBar(vtkSMProxy* view)
 }
 
 //#define SECOND_WINDOW
-#define REMOTE_CONNECTION_CS
+//#define REMOTE_CONNECTION_CS
 ////#define REMOTE_CONNECTION_CRS
 
 int main(int argc, char** argv)
