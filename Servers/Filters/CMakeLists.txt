@@ -49,6 +49,7 @@ SET(Filters_SRCS
   vtkCSVExporter.cxx
   vtkCSVWriter.cxx
   vtkCubeAxesRepresentation.cxx
+  vtkDataLabelRepresentation.cxx
   vtkDataSetToRectilinearGrid.cxx
   vtkDesktopDeliveryClient.cxx
   vtkDesktopDeliveryServer.cxx

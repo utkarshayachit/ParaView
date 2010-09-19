@@ -410,6 +410,231 @@
       <!-- End of TextWidgetRepresentation -->
     </TextWidgetRepresentationProxy>
 
+    <!-- ================================================================== -->
+    <RepresentationProxy2 name="DataLabelRepresentation"
+                          class="vtkDataLabelRepresentation"
+                          processes="client|renderserver|dataserver">
+      <Documentation>
+        Representation used to add labels to points/cells of any dataset.
+      </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection">
+        <InputArrayDomain name="input_array_any"
+          attribute_type="any">
+        </InputArrayDomain>
+      </InputProperty>
+
+      <DoubleVectorProperty
+        name="PointLabelColor"
+        command="SetPointLabelColor"
+        number_of_elements="3"
+        default_values="1.0 1.0 1.0">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="PointLabelOpacity"
+        command="SetPointLabelOpacity"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0.0" max="1.0" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty
+        name="PointLabelFontFamily"
+        command="SetPointLabelFontFamily"
+        number_of_elements="1"
+        default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="Arial"/>
+          <Entry value="1" text="Courier"/>
+          <Entry value="2" text="Times"/>
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="PointLabelBold"
+        command="SetPointLabelBold"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="PointLabelItalic"
+        command="SetPointLabelItalic"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="PointLabelShadow"
+        command="SetPointLabelShadow"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="PointLabelFontSize"
+        command="SetPointLabelFontSize"
+        number_of_elements="1"
+        default_values="18">
+        <IntRangeDomain name="range" min="0" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="PointLabelJustification"
+        command="SetPointLabelJustification"
+        number_of_elements="1"
+        default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="Left"/>
+          <Entry value="1" text="Center"/>
+          <Entry value="2" text="Right"/>
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="PointLabelVisibility"
+        command="SetPointLabelVisibility"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="PointLabelMode"
+        command="SetPointLabelMode"
+        number_of_elements="1"
+        default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="IDs" />
+          <Entry value="1" text="Scalars" />
+          <Entry value="2" text="Vectors" />
+          <Entry value="3" text="Normals" />
+          <Entry value="4" text="TCoords" />
+          <Entry value="5" text="Tensors" />
+          <Entry value="6" text="FieldData" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <StringVectorProperty name="PointFieldDataArrayName"
+        command="SetPointFieldDataArrayName"
+        number_of_elements="1">
+        <ArrayListDomain name="array_list"
+          input_domain_name="input_array">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty
+        name="CellLabelColor"
+        command="SetCellLabelColor"
+        number_of_elements="3"
+        default_values="1.0 1.0 1.0">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="CellLabelOpacity"
+        command="SetCellLabelOpacity"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0.0" max="1.0" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty
+        name="CellLabelFontFamily"
+        command="SetCellLabelFontFamily"
+        number_of_elements="1"
+        default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="Arial"/>
+          <Entry value="1" text="Courier"/>
+          <Entry value="2" text="Times"/>
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="CellLabelBold"
+        command="SetCellLabelBold"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="CellLabelItalic"
+        command="SetCellLabelItalic"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="CellLabelShadow"
+        command="SetCellLabelShadow"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="CellLabelFontSize"
+        command="SetCellLabelFontSize"
+        number_of_elements="1"
+        default_values="18">
+        <IntRangeDomain name="range" min="0" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="CellLabelJustification"
+        command="SetCellLabelJustification"
+        number_of_elements="1"
+        default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="Left"/>
+          <Entry value="1" text="Center"/>
+          <Entry value="2" text="Right"/>
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="CellLabelVisibility"
+        command="SetCellLabelVisibility"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="CellLabelMode"
+        command="SetCellLabelMode"
+        number_of_elements="1"
+        default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="IDs" />
+          <Entry value="1" text="Scalars" />
+          <Entry value="2" text="Vectors" />
+          <Entry value="3" text="Normals" />
+          <Entry value="4" text="TCoords" />
+          <Entry value="5" text="Tensors" />
+          <Entry value="6" text="FieldData" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <StringVectorProperty name="CellFieldDataArrayName"
+        command="SetCellFieldDataArrayName"
+        number_of_elements="1">
+        <ArrayListDomain name="array_list"
+          input_domain_name="input_array">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
+    <!-- End of DataLabelRepresentation -->
+    </RepresentationProxy2>
+
   </ProxyGroup>
 
 </ServerManagerConfiguration>

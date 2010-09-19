@@ -51,22 +51,39 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
   sphere->Delete();
   repr->Delete();
 
-  vtkSMProxy* cubeAxes = pxm->NewProxy("new_representations",
-    "CubeAxesRepresentation");
-  cubeAxes->SetConnectionID(view->GetConnectionID());
-  vtkSMPropertyHelper(cubeAxes, "Input").Set(sphere);
-  cubeAxes->UpdateVTKObjects();
+  //vtkSMProxy* cubeAxes = pxm->NewProxy("new_representations",
+  //  "CubeAxesRepresentation");
+  //cubeAxes->SetConnectionID(view->GetConnectionID());
+  //vtkSMPropertyHelper(cubeAxes, "Input").Set(sphere);
+  //cubeAxes->UpdateVTKObjects();
 
-  vtkSMPropertyHelper(view, "Representations").Add(cubeAxes);
+  //vtkSMPropertyHelper(view, "Representations").Add(cubeAxes);
+  //view->UpdateVTKObjects();
+
+  //cubeAxes->Delete();
+
+
+  vtkSMProxy* labelRepr = pxm->NewProxy("new_representations",
+    "DataLabelRepresentation");
+  labelRepr->SetConnectionID(view->GetConnectionID());
+  vtkSMPropertyHelper(labelRepr, "Input").Set(sphere);
+  vtkSMPropertyHelper(labelRepr, "PointLabelVisibility").Set(1);
+  vtkSMPropertyHelper(labelRepr, "CellLabelVisibility").Set(1);
+  vtkSMPropertyHelper(labelRepr, "PointLabelMode").Set(6);
+  vtkSMPropertyHelper(labelRepr, "PointFieldDataArrayName").Set("Normals");
+  labelRepr->UpdateVTKObjects();
+
+  vtkSMPropertyHelper(view, "Representations").Add(labelRepr);
   view->UpdateVTKObjects();
 
-  cubeAxes->Delete();
+  labelRepr->Delete();
 
   return sphere;
 }
 
 vtkSMProxy* createScalarBar(vtkSMProxy* view)
 {
+  return NULL;
   vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
   vtkSMProxy* sb = pxm->NewProxy("new_representations",
     "ScalarBarWidgetRepresentation");
@@ -88,7 +105,7 @@ vtkSMProxy* createScalarBar(vtkSMProxy* view)
   return sb;
 }
 
-#define SECOND_WINDOW
+//#define SECOND_WINDOW
 #define REMOTE_CONNECTION_CS
 ////#define REMOTE_CONNECTION_CRS
 
