@@ -66,7 +66,9 @@ SET(Filters_SRCS
   vtkGeometryRepresentation.cxx
   vtkGridConnectivity.cxx
   vtkImageCompressor.cxx
+  vtkImageSliceDataDeliveryFilter.cxx
   vtkImageSliceMapper.cxx
+  vtkImageSliceRepresentation.cxx
   vtkIntegrateAttributes.cxx
   vtkIntegrateFlowThroughSurface.cxx
   vtkInteractorStyleTransferFunctionEditor.cxx
@@ -125,7 +127,6 @@ SET(Filters_SRCS
   vtkPVGeometryFilter.cxx
   vtkPVGeometryInformation.cxx
   vtkPVGlyphFilter.cxx
-  vtkPVImageSlicer.cxx
   vtkPVInteractorStyle.cxx
   vtkPVJoystickFly.cxx
   vtkPVJoystickFlyIn.cxx

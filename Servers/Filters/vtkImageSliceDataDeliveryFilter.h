@@ -12,10 +12,10 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkUnstructuredDataDeliveryFilter
+// .NAME vtkImageSliceDataDeliveryFilter
 // .SECTION Description
-// vtkUnstructuredDataDeliveryFilter is a helper filter that can be used in
-// vtkPolyData or vtkUnstructuredGrid representations to deliver the data to the
+// vtkImageSliceDataDeliveryFilter is a helper filter that can be used in
+// representations rendering 2D image slices to deliver the data to the
 // process(es) doing the rendering. Use this filter in
 // vtkView::REQUEST_PREPARE_FOR_RENDER() pass to deliver the data to the correct
 // node for rendering. Simply put this filter in your rendering-pipeline (for
@@ -25,27 +25,21 @@
 // ensure that the data is available in the form/shape requested on the
 // rendering nodes.
 // .SECTION See Also
-// vtkImageSliceDataDeliveryFilter
+// vtkUnstructuredDataDeliveryFilter
 
-#ifndef __vtkUnstructuredDataDeliveryFilter_h
-#define __vtkUnstructuredDataDeliveryFilter_h
+#ifndef __vtkImageSliceDataDeliveryFilter_h
+#define __vtkImageSliceDataDeliveryFilter_h
 
 #include "vtkPassInputTypeAlgorithm.h"
 
 class vtkMPIMoveData;
 
-class VTK_EXPORT vtkUnstructuredDataDeliveryFilter : public vtkPassInputTypeAlgorithm
+class VTK_EXPORT vtkImageSliceDataDeliveryFilter : public vtkPassInputTypeAlgorithm
 {
 public:
-  static vtkUnstructuredDataDeliveryFilter* New();
-  vtkTypeMacro(vtkUnstructuredDataDeliveryFilter, vtkPassInputTypeAlgorithm);
+  static vtkImageSliceDataDeliveryFilter* New();
+  vtkTypeMacro(vtkImageSliceDataDeliveryFilter, vtkPassInputTypeAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  // Description:
-  // Set whether the data is vtkPolyData or vtkUnstucturedGrid.
-  // Note only VTK_POLY_DATA and VTK_UNSTRUCTURED_GRID are supported.
-  void SetOutputDataType(int);
-  vtkGetMacro(OutputDataType, int);
 
   // Description:
   // Process the view request.
@@ -60,8 +54,8 @@ public:
 
 //BTX
 protected:
-  vtkUnstructuredDataDeliveryFilter();
-  ~vtkUnstructuredDataDeliveryFilter();
+  vtkImageSliceDataDeliveryFilter();
+  ~vtkImageSliceDataDeliveryFilter();
 
   int RequestData(vtkInformation *,
     vtkInformationVector **, vtkInformationVector *);
@@ -76,13 +70,11 @@ protected:
   virtual int FillInputPortInformation(int port, vtkInformation* info);
 
   vtkMPIMoveData* MoveData;
-  int OutputDataType;
 
 private:
-  vtkUnstructuredDataDeliveryFilter(const vtkUnstructuredDataDeliveryFilter&); // Not implemented
-  void operator=(const vtkUnstructuredDataDeliveryFilter&); // Not implemented
+  vtkImageSliceDataDeliveryFilter(const vtkImageSliceDataDeliveryFilter&); // Not implemented
+  void operator=(const vtkImageSliceDataDeliveryFilter&); // Not implemented
 //ETX
 };
 
 #endif
-

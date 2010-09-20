@@ -12,10 +12,12 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkGeometryRepresentation
+// .NAME vtkGeometryRepresentation - representation for showing any datasets as
+// external shell of polygons.
 // .SECTION Description
 // vtkGeometryRepresentation is a representation for showing polygon geometry.
-// It handles non-polygonal datasets by extracting external surfaces.
+// It handles non-polygonal datasets by extracting external surfaces. One can
+// use this representation to show surface/wireframe/points/surface-with-edges.
 
 #ifndef __vtkGeometryRepresentation_h
 #define __vtkGeometryRepresentation_h
@@ -54,6 +56,8 @@ public:
   // requests.
   void MarkModified();
 
+  // This is same a vtkDataObject::FieldAssociation types so you can use those
+  // as well.
   enum AttributeTypes
     {
     POINT_DATA=0,

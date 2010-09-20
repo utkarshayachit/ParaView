@@ -24,6 +24,48 @@
 #include <QVBoxLayout>
 #include <QCheckBox>
 
+vtkSMProxy* addWavelet(vtkSMProxy* view, vtkSMProxy* wavelet=NULL)
+{
+  vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+  if (!wavelet)
+    {
+    wavelet  = pxm->NewProxy("sources", "RTAnalyticSource");
+    wavelet->SetConnectionID(view->GetConnectionID());
+    wavelet->UpdateVTKObjects();
+    }
+  else
+    {
+    wavelet->Register(NULL);
+    }
+
+  vtkSMProxy* lut = pxm->NewProxy("lookup_tables",
+    "LookupTable");
+  lut->SetConnectionID(view->GetConnectionID());
+  vtkSMPropertyHelper(lut, "ScalarRange").Set(0, 0);
+  vtkSMPropertyHelper(lut, "ScalarRange").Set(1, 512);
+  lut->SetServers(vtkProcessModule::CLIENT_AND_SERVERS);
+  lut->UpdateVTKObjects();
+
+
+  vtkSMProxy* repr = pxm->NewProxy("new_representations",
+    "ImageSliceRepresentation");
+  repr->SetConnectionID(view->GetConnectionID());
+  vtkSMPropertyHelper(repr, "Input").Set(wavelet);
+  vtkSMPropertyHelper(repr, "LookupTable").Set(lut);
+  vtkSMPropertyHelper(repr, "ColorAttributeType").Set(0);
+  vtkSMPropertyHelper(repr, "ColorArrayName").Set("RTData");
+  vtkSMPropertyHelper(repr, "Slice").Set(15);
+  repr->UpdateVTKObjects();
+
+  vtkSMPropertyHelper(view, "Representations").Add(repr);
+  view->UpdateVTKObjects();
+
+  wavelet->Delete();
+  repr->Delete();
+  lut->Delete();
+  return wavelet;
+}
+
 // returns sphere proxy
 vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
 {
@@ -119,7 +161,7 @@ vtkSMProxy* createScalarBar(vtkSMProxy* view)
 }
 
 //#define SECOND_WINDOW
-//#define REMOTE_CONNECTION_CS
+#define REMOTE_CONNECTION_CS
 ////#define REMOTE_CONNECTION_CRS
 
 int main(int argc, char** argv)
@@ -158,7 +200,8 @@ int main(int argc, char** argv)
   vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(viewProxy->GetClientSideObject());
   QVTKWidget* qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv->GetRenderWindow());
-  vtkSMProxy* sphere = addSphere(viewProxy);
+  //vtkSMProxy* sphere = addSphere(viewProxy);
+  addWavelet(viewProxy);
   createScalarBar(viewProxy);
 
   QWidget *centralWidget = new QWidget(&mainWindow);
@@ -177,10 +220,10 @@ int main(int argc, char** argv)
   slider->setStrictRange(true);
 
   pqPropertyLinks links;
-  links.addPropertyLink(slider, "value", SIGNAL(valueChanged(int)),
-    sphere, sphere->GetProperty("PhiResolution"));
-  links.addPropertyLink(slider, "value", SIGNAL(valueChanged(int)),
-    sphere, sphere->GetProperty("ThetaResolution"));
+  //links.addPropertyLink(slider, "value", SIGNAL(valueChanged(int)),
+  //  sphere, sphere->GetProperty("PhiResolution"));
+  //links.addPropertyLink(slider, "value", SIGNAL(valueChanged(int)),
+  //  sphere, sphere->GetProperty("ThetaResolution"));
   links.setAutoUpdateVTKObjects(true);
   links.setUseUncheckedProperties(false);
   vbox->addWidget(slider);
@@ -210,7 +253,7 @@ int main(int argc, char** argv)
   qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv2->GetRenderWindow());
 
-  addSphere(view2Proxy, sphere);
+  //addSphere(view2Proxy, sphere);
   createScalarBar(view2Proxy);
 
   hbox->addWidget(qwidget);

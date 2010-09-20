@@ -138,6 +138,168 @@
 
   <!-- ==================================================================== -->
   <ProxyGroup name="new_representations">
+    <!-- ================================================================== -->
+    <RepresentationProxy2 name="ImageSliceRepresentation"
+                          class="vtkImageSliceRepresentation"
+                          processes="client|renderserver|dataserver">
+      <Documentation>
+        Representation to show 2D images. If the input image has 3D extents,
+        then this representation shows a single Z slice.
+      </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection">
+        <Documentation>
+          Set the input to the representation. Must be a vtkImageData producer.
+        </Documentation>
+        <DataTypeDomain name="input_type" composite_data_supported="0">
+          <DataType value="vtkImageData" />
+        </DataTypeDomain>
+      </InputProperty>
+
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set the visibility for this representation.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="ColorAttributeType"
+        command="SetColorAttributeType"
+        number_of_elements="1"
+        default_values="1">
+        <Documentation>
+          Select the attribute type from where the scalars array is used. The
+          scalar array name is specified using ColorArrayName. Note that if the
+          indicated scalar array is not available, then the image data scalars
+          are used.
+        </Documentation>
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="POINT_DATA" />
+          <Entry value="1" text="CELL_DATA" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <StringVectorProperty name="ColorArrayName"
+        command="SetColorArrayName"
+        number_of_elements="1"
+        default_values="">
+        <Documentation>
+          Set the array name to color by.
+          If no array name is set, or choosen array is not available, then the
+          image scalars are used by default.
+        </Documentation>
+        <ArrayListDomain name="array_list" attribute_type="Scalars"
+          input_domain_name="input_array_any">
+          <RequiredProperties>
+            <Property name="Input" function="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
+      <IntVectorProperty name="Slice"
+        command="SetSlice"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Set the current slice number. Slice number is used to load a 2D slice
+          from a 3D input image. If the input image is 2D, then the slice number
+          if ignored. The direction of the slice is determined by SliceMode.
+        </Documentation>
+        <DimensionsDomain name="dims">
+          <RequiredProperties>
+            <Property name="Input" function="Input"/>
+            <Property name="SliceMode" function="Direction"/>
+          </RequiredProperties>
+        </DimensionsDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="SliceMode"
+        command="SetSliceMode"
+        number_of_elements="1"
+        default_values="5">
+        <Documentation>
+          Determines the direction of slicing to obtain a 2D slice from a 3D
+          image.
+        </Documentation>
+        <EnumerationDomain name="enum" >
+          <Entry text="XY Plane" value="5" />
+          <Entry text="YZ Plane" value="6" />
+          <Entry text="XZ Plane" value="7" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="MapScalars"
+        command="SetMapScalars"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          When set to true, LookupTable will always be used for scalar mapping
+          even when scalars are unsigned chars. Otherwise, when upto 4 component
+          unsigned chars are present, they will be directly used as colors.
+        </Documentation>
+      </IntVectorProperty>
+
+      <ProxyProperty name="LookupTable" command="SetLookupTable">
+        <Documentation>
+          Set the lookup table to use for scalar mapping.
+        </Documentation>
+        <ProxyGroupDomain name="groups">
+          <Group name="lookup_tables"/>
+        </ProxyGroupDomain>
+      </ProxyProperty>
+
+      <IntVectorProperty name="UseXYPlane"
+        command="SetUseXYPlane"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          When set, the image slice is always rendered in the XY plane (Z==0)
+          irrespective of the image bounds. Default if Off.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="Position"
+        command="SetPosition"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Scale"
+        command="SetScale"
+        number_of_elements="3"
+        default_values="1 1 1">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Orientation"
+        command="SetOrientation"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Origin"
+        command="SetOrigin"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="Pickable"
+        command="SetPickable"
+        number_of_elements="1"
+        default_values="1">
+        <IntRangeDomain name="bool" />
+      </IntVectorProperty>
+
+      <!-- End of ImageSliceRepresentation -->
+    </RepresentationProxy2>
 
     <!-- ================================================================== -->
     <RepresentationProxy2 name="SurfaceRepresentation"

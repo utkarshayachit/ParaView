@@ -226,6 +226,8 @@ void vtkPVRenderView::ResetCameraClippingRange()
 //----------------------------------------------------------------------------
 void vtkPVRenderView::GatherBoundsInformation()
 {
+  // FIXME: when doing client-only render, we are wasting our energy computing
+  // universal bounds. How can we fix that?
   this->GetRenderer()->ComputeVisiblePropBounds(this->LastComputedBounds);
   this->SynchronizedWindows->SynchronizeBounds(this->LastComputedBounds);
 }
@@ -280,6 +282,7 @@ void vtkPVRenderView::Render(bool interactive)
 
   // Decide if we are doing remote rendering or local rendering.
   bool use_distributed_rendering = this->GetUseDistributedRendering();
+  cout << "Using remote rendering: " << use_distributed_rendering << endl;
   bool in_tile_display_mode = this->InTileDisplayMode();
 
   // When in tile-display mode, we are always doing shared rendering. However
