@@ -82,7 +82,7 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
     }
 
   vtkSMProxy* repr = pxm->NewProxy("new_representations",
-    "SurfaceRepresentation");
+    "OutlineRepresentation");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(sphere);
   repr->UpdateVTKObjects();
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
   vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(viewProxy->GetClientSideObject());
   QVTKWidget* qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv->GetRenderWindow());
-  //vtkSMProxy* sphere = addSphere(viewProxy);
+  vtkSMProxy* sphere = addSphere(viewProxy);
   addWavelet(viewProxy);
   createScalarBar(viewProxy);
 

@@ -143,6 +143,8 @@ protected:
   vtkGeometryRepresentation();
   ~vtkGeometryRepresentation();
 
+  // Description:
+  // Fill input port information.
   virtual int FillInputPortInformation(int port, vtkInformation* info);
 
   // Description:

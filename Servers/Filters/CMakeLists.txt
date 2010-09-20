@@ -83,6 +83,7 @@ SET(Filters_SRCS
   vtkMultiViewManager.cxx
   vtkNetworkImageSource.cxx
   vtkOrderedCompositeDistributor.cxx
+  vtkOutlineRepresentation.cxx
   vtkPConvertSelection.cxx
   vtkPExtractHistogram.cxx
   vtkParallelSerialWriter.cxx

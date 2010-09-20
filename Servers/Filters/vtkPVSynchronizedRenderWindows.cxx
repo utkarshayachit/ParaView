@@ -363,6 +363,7 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
       int not_used[2];
       swap_buffers |= this->GetTileDisplayParameters(not_used);
       window->SetSwapBuffers(swap_buffers? 1 : 0);
+      window->SetSwapBuffers(1); // for debugging.
       this->Internals->SharedRenderWindow.TakeReference(window);
       }
     this->Internals->SharedRenderWindow->Register(this);
