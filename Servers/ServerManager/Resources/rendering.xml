@@ -659,7 +659,8 @@
     </SourceProxy>
 
     <SourceProxy name="ProjectedTetrahedraMapper"
-      class="vtkProjectedTetrahedraMapper">
+      class="vtkProjectedTetrahedraMapper"
+      processes="client|renderserver|dataserver">
       <InputProperty
         name="Input"
         command="SetInputConnection">
@@ -701,7 +702,8 @@
     </SourceProxy>
 
     <SourceProxy name="HAVSVolumeMapper"
-      class="vtkHAVSVolumeMapper">
+      class="vtkHAVSVolumeMapper"
+      processes="client|renderserver|dataserver">
       <InputProperty
         name="Input"
         command="SetInputConnection">
@@ -776,7 +778,8 @@
     </Proxy>
 
     <SourceProxy name="UnstructuredGridVolumeRayCastMapper"
-      class="vtkUnstructuredGridVolumeRayCastMapper">
+      class="vtkUnstructuredGridVolumeRayCastMapper"
+      processes="client|renderserver|dataserver">
       <InputProperty
         name="Input"
         command="SetInputConnection">
@@ -826,7 +829,8 @@
     </SourceProxy>
 
     <SourceProxy name="UnstructuredGridVolumeZSweepMapper"
-      class="vtkUnstructuredGridVolumeZSweepMapper">
+      class="vtkUnstructuredGridVolumeZSweepMapper"
+      processes="client|renderserver|dataserver">
       <InputProperty
         name="Input"
         command="SetInputConnection">
@@ -6573,222 +6577,6 @@
   </ProxyGroup>
 
   <ProxyGroup name="representations">
-
-    <UnstructuredGridVolumeRepresentationProxy name="UnstructuredGridVolumeRepresentation">
-
-      <InputProperty name="Input"
-        command="NotUsed"
-        />
-
-      <DoubleVectorProperty name="UpdateTime"
-        command="SetUpdateTime"
-        update_self="1"
-        is_internal="1"
-        immediate_update="1"
-        number_of_elements="1"
-        default_values="none">
-        <DoubleRangeDomain name="range" />
-        <Documentation>
-          This time is not used unless UseViewUpdateTime is off.
-        </Documentation>
-      </DoubleVectorProperty>
-
-      <IntVectorProperty
-        name="Visibility"
-        command="SetVisibility"
-        number_of_elements="1"
-        default_values="1"
-        update_self="1">
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Set the visibility for this representation.
-        </Documentation>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="SelectedMapperIndex"
-        command="SetSelectedMapperIndex"
-        number_of_elements="1"
-        default_values="0"
-        update_self="1">
-        <EnumerationDomain name="enum">
-          <Entry value="0" text="Projected tetra" />
-          <Entry value="1" text="HAVS" />
-          <Entry value="2" text="Z sweep" />
-          <Entry value="3" text="Bunyk ray cast" />
-        </EnumerationDomain>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="ColorAttributeType"
-        command="SetColorAttributeType"
-        number_of_elements="1"
-        default_values="1"
-        update_self="1">
-        <EnumerationDomain name="enum">
-          <Entry value="0" text="POINT_DATA" />
-          <Entry value="1" text="CELL_DATA" />
-          <Entry value="2" text="FIELD_DATA" />
-        </EnumerationDomain>
-      </IntVectorProperty>
-
-      <StringVectorProperty name="ColorArrayName"
-        command="SetColorArrayName"
-        number_of_elements="1"
-        default_values=""
-        update_self="1">
-        <Documentation>
-          Set the array name to color by. Set it to empty string to use solid
-          color.
-        </Documentation>
-        <ArrayListDomain name="array_list" attribute_type="Scalars"
-          input_domain_name="input_array_any">
-          <RequiredProperties>
-            <Property name="Input" function="Input" />
-          </RequiredProperties>
-        </ArrayListDomain>
-      </StringVectorProperty>
-
-      <ProxyProperty
-        name="LookupTable"
-        command="SetLookupTable"
-        update_self="1" >
-        <Documentation>
-          Set the lookup table to use for mapping scalars to color.
-        </Documentation>
-        <ProxyGroupDomain name="groups">
-          <Group name="transfer_functions" />
-          <Group name="lookup_tables" />
-        </ProxyGroupDomain>
-      </ProxyProperty>
-
-      <!-- Subproxies for Volume Pipeline -->
-      <SubProxy>
-        <SourceProxy name="VolumeFilter" class="vtkVolumeRepresentationPreprocessor" >
-          <InputProperty
-            name="Input"
-            command="SetInputConnection">
-            <ProxyGroupDomain name="groups">
-              <Group name="sources"/>
-              <Group name="filters"/>
-            </ProxyGroupDomain>
-            <DataTypeDomain name="input_type"
-              composite_data_supported="1">
-              <DataType value="vtkDataObject" />
-            </DataTypeDomain>
-          </InputProperty>
-          <IntVectorProperty
-            name="ExtractedBlockIndex"
-            command="SetExtractedBlockIndex"
-            number_of_elements="1"
-            default_values="0">
-            <Documentation>
-              In case of multiblock datasets, choose the flat index of the dataset to
-              volume render. The flat index must point to an unstructured grid dataset.
-              If the input is not a multiblock dataset then this index is ignored.
-            </Documentation>
-            <CompositeTreeDomain name="tree" mode="leaves">
-              <RequiredProperties>
-                <Property name="Input" function="Input"/>
-              </RequiredProperties>
-           </CompositeTreeDomain>
-          </IntVectorProperty>
-          <IntVectorProperty
-            name="TetrahedraOnly"
-            command="SetTetrahedraOnly"
-            number_of_elements="1"
-            default_values="1" >
-            <BooleanDomain name="bool"/>
-          </IntVectorProperty>
-        </SourceProxy>
-        <ExposedProperties>
-          <Property name="ExtractedBlockIndex" />
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="VolumeDummyMapper"
-               proxygroup="mappers"
-               proxyname="DummyVolumeMapper">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="RayCastFunction" />
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="VolumeBunykMapper"
-          proxygroup="mappers"
-          proxyname="UnstructuredGridVolumeRayCastMapper">
-        </Proxy>
-        <ShareProperties subproxy="VolumeDummyMapper">
-          <Exception name="Input" />
-        </ShareProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="VolumeZSweepMapper"
-          proxygroup="mappers"
-          proxyname="UnstructuredGridVolumeZSweepMapper">
-        </Proxy>
-        <ShareProperties subproxy="VolumeDummyMapper">
-          <Exception name="Input"/>
-        </ShareProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="VolumePTMapper"
-          proxygroup="mappers"
-          proxyname="ProjectedTetrahedraMapper">
-        </Proxy>
-        <ShareProperties subproxy="VolumeDummyMapper">
-          <Exception name="Input"/>
-        </ShareProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="VolumeHAVSMapper"
-          proxygroup="mappers"
-          proxyname="HAVSVolumeMapper">
-        </Proxy>
-        <ShareProperties subproxy="VolumeDummyMapper">
-          <Exception name="Input"/>
-        </ShareProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="Prop3D" proxygroup="props" proxyname="LODVolume" />
-        <ExposedProperties>
-          <Property name="Position" />
-          <Property name="Scale" />
-          <Property name="Orientation" />
-          <Property name="Origin" />
-          <Property name="Pickable" />
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="VolumeProperty"
-          proxygroup="properties" proxyname="VolumeProperty" >
-        </Proxy>
-        <ExposedProperties>
-          <Property name="ScalarOpacityUnitDistance" />
-          <Property name="ScalarOpacityFunction" />
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <!--
-          Mapper for low-res geometry. It shares all its properties with the
-          high-res mapper (except input ofcourse).
-        -->
-        <Proxy name="VolumeLODMapper"
-          proxygroup="mappers" proxyname="PolyDataMapper" />
-        <ShareProperties subproxy="VolumeDummyMapper" >
-          <Exception name="Input" />
-        </ShareProperties>
-      </SubProxy>
-
-      <!-- End of UnstructuredGridVolumeRepresentation -->
-    </UnstructuredGridVolumeRepresentationProxy>
 
     <PVRepresentationProxy name="PVRepresentationBase">
       <Documentation>

@@ -140,6 +140,193 @@
   <ProxyGroup name="new_representations">
 
     <!-- ================================================================== -->
+    <UnstructuredGridVolumeRepresentationProxy
+                          name="UnstructuredGridVolumeRepresentation"
+                          class="vtkUnstructuredGridVolumeRepresentation"
+                          processes="client|renderserver|dataserver">
+      <Documentation>
+        Representation for rendering a vtkImageData as volume.
+      </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection">
+        <DataTypeDomain name="input_type" composite_data_supported="1">
+          <DataType value="vtkUnstructuredGrid"/>
+        </DataTypeDomain>
+        <Documentation>
+          Set the input to the representation.
+        </Documentation>
+      </InputProperty>
+
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set the visibility for this representation.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="ColorAttributeType"
+        command="SetColorAttributeType"
+        number_of_elements="1"
+        default_values="1">
+        <EnumerationDomain name="enum">
+          <Entry value="0" text="POINT_DATA" />
+          <Entry value="1" text="CELL_DATA" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <StringVectorProperty name="ColorArrayName"
+        command="SetColorArrayName"
+        number_of_elements="1"
+        default_values="">
+        <Documentation>
+          Set the array name to color by. Set it to empty string to use solid
+          color.
+        </Documentation>
+        <ArrayListDomain name="array_list" attribute_type="Scalars"
+          input_domain_name="input_array_any">
+          <RequiredProperties>
+            <Property name="Input" function="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty name="Position"
+        command="SetPosition"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Scale"
+        command="SetScale"
+        number_of_elements="3"
+        default_values="1 1 1">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Orientation"
+        command="SetOrientation"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Origin"
+        command="SetOrigin"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="Pickable"
+        command="SetPickable"
+        number_of_elements="1"
+        default_values="1">
+        <IntRangeDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="InterpolationType"
+        command="SetInterpolationType"
+        number_of_elements="1"
+        default_values="1">
+        <EnumerationDomain name="enum" >
+          <Entry value="0" text="Nearest" />
+          <Entry value="1" text="Linear" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <ProxyProperty name="LookupTable"
+        command="SetColor">
+        <ProxyGroupDomain name="groups">
+          <Group name="transfer_functions" />
+        </ProxyGroupDomain>
+      </ProxyProperty>
+
+      <ProxyProperty name="ScalarOpacityFunction"
+        command="SetScalarOpacity">
+        <ProxyGroupDomain name="groups">
+          <Group name="piecewise_functions" />
+        </ProxyGroupDomain>
+      </ProxyProperty>
+
+      <StringVectorProperty name="SelectMapper"
+        command="SetActiveVolumeMapper"
+        number_of_elements="1"
+        default_values="Projected tetra">
+        <Documentation>
+          Select the volume mapper to use for Volume rendering.
+        </Documentation>
+        <StringListDomain name="list">
+          <String value="Projected tetra" />
+          <String value="HAVS" />
+          <String value="Z sweep" />
+          <String value="Bunyk ray cast" />
+        </StringListDomain>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty name="ScalarOpacityUnitDistance"
+        command="SetScalarOpacityUnitDistance"
+        number_of_elements="1"
+        default_values="1">
+      </DoubleVectorProperty>
+
+      <SubProxy>
+        <Proxy name="VolumeDummyMapper"
+               proxygroup="mappers"
+               proxyname="DummyVolumeMapper">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="RayCastFunction" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="VolumeBunykMapper"
+          proxygroup="mappers"
+          proxyname="UnstructuredGridVolumeRayCastMapper">
+        </Proxy>
+        <ShareProperties subproxy="VolumeDummyMapper">
+          <Exception name="Input" />
+        </ShareProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="VolumeZSweepMapper"
+          proxygroup="mappers"
+          proxyname="UnstructuredGridVolumeZSweepMapper">
+        </Proxy>
+        <ShareProperties subproxy="VolumeDummyMapper">
+          <Exception name="Input"/>
+        </ShareProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="VolumePTMapper"
+          proxygroup="mappers"
+          proxyname="ProjectedTetrahedraMapper">
+        </Proxy>
+        <ShareProperties subproxy="VolumeDummyMapper">
+          <Exception name="Input"/>
+        </ShareProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="VolumeHAVSMapper"
+          proxygroup="mappers"
+          proxyname="HAVSVolumeMapper">
+        </Proxy>
+        <ShareProperties subproxy="VolumeDummyMapper">
+          <Exception name="Input"/>
+        </ShareProperties>
+      </SubProxy>
+
+      <!-- end of UnstructuredGridVolumeRepresentation -->
+    </UnstructuredGridVolumeRepresentationProxy>
+
+    <!-- ================================================================== -->
     <UniformGridVolumeRepresentationProxy name="UniformGridVolumeRepresentation"
                           class="vtkImageVolumeRepresentation"
                           processes="client|renderserver|dataserver">

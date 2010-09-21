@@ -64,6 +64,7 @@ vtkImageVolumeRepresentation::vtkImageVolumeRepresentation()
   this->Actor->SetLODMapper(this->OutlineMapper);
 
   this->ColorArrayName = 0;
+  this->ColorAttributeType = POINT_DATA;
   this->ActiveVolumeMapper = 0;
   this->Cache = vtkImageData::New();
 }

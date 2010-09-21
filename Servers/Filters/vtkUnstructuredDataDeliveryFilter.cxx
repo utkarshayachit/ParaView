@@ -63,6 +63,7 @@ void vtkUnstructuredDataDeliveryFilter::SetOutputDataType(int type)
 {
   if (this->OutputDataType != type)
     {
+    this->OutputDataType = type;
     this->MoveData->SetOutputDataType(type);
     this->Modified();
     }

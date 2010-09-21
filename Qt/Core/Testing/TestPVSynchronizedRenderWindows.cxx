@@ -32,6 +32,14 @@ vtkSMProxy* addWavelet(vtkSMProxy* view, vtkSMProxy* wavelet=NULL)
     wavelet  = pxm->NewProxy("sources", "RTAnalyticSource");
     wavelet->SetConnectionID(view->GetConnectionID());
     wavelet->UpdateVTKObjects();
+
+    vtkSMProxy* tetra = pxm->NewProxy("filters", "DataSetTriangleFilter");
+    tetra->SetConnectionID(view->GetConnectionID());
+    vtkSMPropertyHelper(tetra, "Input").Set(wavelet);
+    tetra->UpdateVTKObjects();
+    wavelet->Delete();
+
+    wavelet = tetra;
     }
   else
     {
@@ -54,14 +62,14 @@ vtkSMProxy* addWavelet(vtkSMProxy* view, vtkSMProxy* wavelet=NULL)
   opacity->UpdateVTKObjects();
 
   vtkSMProxy* repr = pxm->NewProxy("new_representations",
-    "UniformGridVolumeRepresentation");
+    "UnstructuredGridVolumeRepresentation");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(wavelet);
   vtkSMPropertyHelper(repr, "LookupTable").Set(lut);
   vtkSMPropertyHelper(repr, "ScalarOpacityFunction").Set(opacity);
   vtkSMPropertyHelper(repr, "ColorAttributeType").Set(0);
   vtkSMPropertyHelper(repr, "ColorArrayName").Set("RTData");
-  vtkSMPropertyHelper(repr, "SelectMapper").Set("GPU");
+//  vtkSMPropertyHelper(repr, "SelectMapper").Set("GPU");
   repr->UpdateVTKObjects();
 
   vtkSMPropertyHelper(view, "Representations").Add(repr);
@@ -82,6 +90,9 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
     {
     sphere  = pxm->NewProxy("sources", "SphereSource");
     sphere->SetConnectionID(view->GetConnectionID());
+    vtkSMPropertyHelper(sphere, "Radius").Set(10);
+    vtkSMPropertyHelper(sphere, "PhiResolution").Set(20);
+    vtkSMPropertyHelper(sphere, "ThetaResolution").Set(20);
     sphere->UpdateVTKObjects();
     }
   else

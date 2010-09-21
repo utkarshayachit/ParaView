@@ -204,6 +204,7 @@ SET(Filters_SRCS
   vtkTransferFunctionEditorWidgetSimple1D.cxx
   vtkTransferFunctionViewer.cxx
   vtkUnstructuredDataDeliveryFilter.cxx
+  vtkUnstructuredGridVolumeRepresentation.cxx
   vtkUpdateSuppressorPipeline.cxx
   vtkVolumeRepresentationPreprocessor.cxx
   vtkVRMLSource.cxx
