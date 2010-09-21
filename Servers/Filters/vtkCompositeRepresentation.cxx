@@ -14,22 +14,29 @@
 =========================================================================*/
 #include "vtkCompositeRepresentation.h"
 
-#include "vtkObjectFactory.h"
-#include "vtkWeakPointer.h"
 #include "vtkDataRepresentation.h"
-#include "vtkView.h"
-#include "vtkInformationVector.h"
 #include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkMemberFunctionCommand.h"
+#include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
+#include "vtkView.h"
+#include "vtkWeakPointer.h"
 
 #include <vtkstd/map>
+#include <vtkstd/string>
+
 #include <assert.h>
+
 class vtkCompositeRepresentation::vtkInternals
 {
 public:
-  typedef vtkstd::map<int, vtkSmartPointer<vtkDataRepresentation> >
+  typedef vtkstd::map<vtkstd::string, vtkSmartPointer<vtkDataRepresentation> >
     RepresentationMap;
   RepresentationMap Representations;
+
+  vtkstd::string ActiveRepresentationKey;
+
   vtkWeakPointer<vtkView> View;
 };
 
@@ -37,8 +44,9 @@ vtkStandardNewMacro(vtkCompositeRepresentation);
 //----------------------------------------------------------------------------
 vtkCompositeRepresentation::vtkCompositeRepresentation()
 {
-  this->Active = -1;
   this->Internals = new vtkInternals();
+  this->Observer = vtkMakeMemberFunctionCommand(*this,
+    &vtkCompositeRepresentation::TriggerUpdateDataEvent);
 }
 
 //----------------------------------------------------------------------------
@@ -46,29 +54,37 @@ vtkCompositeRepresentation::~vtkCompositeRepresentation()
 {
   delete this->Internals;
   this->Internals = 0;
+  this->Observer->Delete();
+  this->Observer = 0;
 }
 
 //----------------------------------------------------------------------------
 void vtkCompositeRepresentation::AddRepresentation(
-  int key, vtkDataRepresentation* repr)
+  const char* key, vtkDataRepresentation* repr)
 {
-  assert(repr != NULL);
+  assert(repr != NULL && key != NULL);
 
   if (this->Internals->Representations.find(key) !=
     this->Internals->Representations.end())
     {
     vtkWarningMacro("Replacing existing representation for key: "<< key);
+    this->Internals->Representations[key]->RemoveObserver(this->Observer);
     }
+
   this->Internals->Representations[key] = repr;
+  repr->AddObserver(vtkCommand::UpdateDataEvent, this->Observer);
 }
 
 //----------------------------------------------------------------------------
-void vtkCompositeRepresentation::RemoveRepresentation(int key)
+void vtkCompositeRepresentation::RemoveRepresentation(const char* key)
 {
+  assert(key != NULL);
+
   vtkInternals::RepresentationMap::iterator iter =
     this->Internals->Representations.find(key);
   if (iter != this->Internals->Representations.end())
     {
+    iter->second.GetPointer()->RemoveObserver(this->Observer);
     this->Internals->Representations.erase(iter);
     }
 }
@@ -83,6 +99,7 @@ void vtkCompositeRepresentation::RemoveRepresentation(
     {
     if (iter->second.GetPointer() == repr)
       {
+      iter->second.GetPointer()->RemoveObserver(this->Observer);
       this->Internals->Representations.erase(iter);
       break;
       }
@@ -93,7 +110,7 @@ void vtkCompositeRepresentation::RemoveRepresentation(
 vtkDataRepresentation* vtkCompositeRepresentation::GetActiveRepresentation()
 {
   vtkInternals::RepresentationMap::iterator iter =
-    this->Internals->Representations.find(this->Active);
+    this->Internals->Representations.find(this->Internals->ActiveRepresentationKey);
   if (iter != this->Internals->Representations.end())
     {
     return iter->second;
@@ -111,46 +128,73 @@ int vtkCompositeRepresentation::FillInputPortInformation(
 }
 
 //----------------------------------------------------------------------------
-int vtkCompositeRepresentation::ProcessViewRequest(
-  vtkInformationRequestKey* request_type,
-  vtkInformation* inInfo, vtkInformation* outInfo)
+void vtkCompositeRepresentation::SetInputConnection(
+  int port, vtkAlgorithmOutput* input)
 {
-  vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
-  if (activeRepr)
+  vtkInternals::RepresentationMap::iterator iter;
+  for (iter = this->Internals->Representations.begin();
+    iter != this->Internals->Representations.end(); iter++)
     {
-    if (request_type != vtkView::REQUEST_UPDATE())
-      {
-      return activeRepr->ProcessViewRequest(request_type, inInfo, outInfo);
-      }
+    iter->second.GetPointer()->SetInputConnection(port, input);
     }
-  return this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
 }
 
 //----------------------------------------------------------------------------
-int vtkCompositeRepresentation::RequestData(vtkInformation* request,
-  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+void vtkCompositeRepresentation::SetInputConnection(vtkAlgorithmOutput* input)
 {
-  vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
-  if (activeRepr)
+  vtkInternals::RepresentationMap::iterator iter;
+  for (iter = this->Internals->Representations.begin();
+    iter != this->Internals->Representations.end(); iter++)
     {
-    activeRepr->SetInputConnection(this->GetInternalOutputPort());
+    iter->second.GetPointer()->SetInputConnection(input);
     }
-
-  return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
-int vtkCompositeRepresentation::RequestUpdateExtent(vtkInformation* request,
-  vtkInformationVector** inputVector,
-  vtkInformationVector* outputVector)
+void vtkCompositeRepresentation::AddInputConnection(
+  int port, vtkAlgorithmOutput* input)
 {
-  vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
-  if (activeRepr)
+  vtkInternals::RepresentationMap::iterator iter;
+  for (iter = this->Internals->Representations.begin();
+    iter != this->Internals->Representations.end(); iter++)
     {
-    activeRepr->ProcessRequest(request, inputVector, outputVector);
+    iter->second.GetPointer()->AddInputConnection(port, input);
     }
+}
 
-  return this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
+//----------------------------------------------------------------------------
+void vtkCompositeRepresentation::AddInputConnection(vtkAlgorithmOutput* input)
+{
+  vtkInternals::RepresentationMap::iterator iter;
+  for (iter = this->Internals->Representations.begin();
+    iter != this->Internals->Representations.end(); iter++)
+    {
+    iter->second.GetPointer()->AddInputConnection(input);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkCompositeRepresentation::RemoveInputConnection(
+  int port, vtkAlgorithmOutput* input)
+{
+  vtkInternals::RepresentationMap::iterator iter;
+  for (iter = this->Internals->Representations.begin();
+    iter != this->Internals->Representations.end(); iter++)
+    {
+    iter->second.GetPointer()->RemoveInputConnection(port, input);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkCompositeRepresentation::MarkModified()
+{
+  vtkInternals::RepresentationMap::iterator iter;
+  for (iter = this->Internals->Representations.begin();
+    iter != this->Internals->Representations.end(); iter++)
+    {
+    // FIXME
+    //iter->second.GetPointer()->MarkModified();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -178,25 +222,36 @@ bool vtkCompositeRepresentation::RemoveFromView(vtkView* view)
 }
 
 //----------------------------------------------------------------------------
-void vtkCompositeRepresentation::SetActive(int key)
+void vtkCompositeRepresentation::TriggerUpdateDataEvent()
 {
-  if (this->Active != key)
+  // We fire UpdateDataEvent to notify the representation proxy that the
+  // representation was updated. The representation proxty will then call
+  // PostUpdateData(). We do this since now representations are not updated at
+  // the proxy level.
+  this->InvokeEvent(vtkCommand::UpdateDataEvent);
+}
+
+//----------------------------------------------------------------------------
+void vtkCompositeRepresentation::SetActiveRepresentation(const char* key)
+{
+  assert(key != NULL);
+
+  vtkDataRepresentation* curActive = this->GetActiveRepresentation();
+  this->Internals->ActiveRepresentationKey = key;
+  vtkDataRepresentation* newActive = this->GetActiveRepresentation();
+  if (curActive != newActive)
     {
-    vtkDataRepresentation* curActive = this->GetActiveRepresentation();
     if (curActive && this->Internals->View)
       {
       curActive->RemoveFromView(this->Internals->View);
       }
 
-    this->Active = key;
-    this->Modified();
-
-    curActive = this->GetActiveRepresentation();
-    if (curActive && this->Internals->View)
+    if (newActive && this->Internals->View)
       {
-      curActive->AddToView(this->Internals->View);
+      newActive->AddToView(this->Internals->View);
       }
     }
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
