@@ -127,8 +127,11 @@ int vtkImageVolumeRepresentation::ProcessViewRequest(
     outInfo->Set(vtkPVRenderView::GEOMETRY_SIZE(),
       this->Cache->GetActualMemorySize());
     outInfo->Set(vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1);
-    outInfo->Set(vtkPVRenderView::REDISTRIBUTABLE_DATA_PRODUCER(),
-      this->Cache->GetProducerPort()->GetProducer());
+    if (this->GetNumberOfInputConnections(0) == 1)
+      {
+      outInfo->Set(vtkPVRenderView::REDISTRIBUTABLE_DATA_PRODUCER(),
+        this->GetInputConnection(0, 0)->GetProducer());
+      }
     }
   else if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
     {

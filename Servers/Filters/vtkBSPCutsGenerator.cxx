@@ -83,17 +83,17 @@ int vtkBSPCutsGenerator::RequestData(vtkInformation *,
     for (int cc=0; cc < inputVector[0]->GetNumberOfInformationObjects(); cc++)
       {
       vtkDataObject* input = vtkDataObject::GetData(inputVector[0], cc);
-      vtkDataObject* clone = input->NewInstance();
-      clone->ShallowCopy(input);
+      //vtkDataObject* clone = input->NewInstance();
+      //clone->ShallowCopy(input);
       if (input->GetExtentType() == VTK_3D_EXTENT)
         {
-        mgr->SetStructuredProducer(clone->GetProducerPort()->GetProducer());
+        mgr->SetStructuredProducer(input->GetProducerPort()->GetProducer());
         }
       else
         {
-        mgr->AddProducer(clone->GetProducerPort()->GetProducer());
+        mgr->AddProducer(input->GetProducerPort()->GetProducer());
         }
-      clone->FastDelete();
+      //clone->FastDelete();
       }
 
     mgr->Update();
