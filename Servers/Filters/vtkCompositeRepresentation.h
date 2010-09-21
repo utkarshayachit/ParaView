@@ -66,7 +66,7 @@ public:
 
   // Description:
   // Propagate the modification to all internal representations.
-  void MarkModified();
+  virtual void MarkModified();
 
 //BTX
 protected:

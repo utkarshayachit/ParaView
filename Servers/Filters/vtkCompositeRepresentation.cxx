@@ -204,7 +204,7 @@ bool vtkCompositeRepresentation::AddToView(vtkView* view)
   vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
   if (activeRepr)
     {
-    activeRepr->AddToView(view);
+    view->AddRepresentation(activeRepr);
     }
   return this->Superclass::AddToView(view);
 }
@@ -215,7 +215,7 @@ bool vtkCompositeRepresentation::RemoveFromView(vtkView* view)
   vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
   if (activeRepr)
     {
-    activeRepr->RemoveFromView(view);
+    view->RemoveRepresentation(activeRepr);
     }
   this->Internals->View = 0;
   return this->Superclass::RemoveFromView(view);
@@ -243,12 +243,12 @@ void vtkCompositeRepresentation::SetActiveRepresentation(const char* key)
     {
     if (curActive && this->Internals->View)
       {
-      curActive->RemoveFromView(this->Internals->View);
+      this->Internals->View->RemoveRepresentation(curActive);
       }
 
     if (newActive && this->Internals->View)
       {
-      newActive->AddToView(this->Internals->View);
+      this->Internals->View->AddRepresentation(newActive);
       }
     }
   this->Modified();
