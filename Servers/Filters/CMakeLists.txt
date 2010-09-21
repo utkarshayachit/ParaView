@@ -69,6 +69,7 @@ SET(Filters_SRCS
   vtkImageSliceDataDeliveryFilter.cxx
   vtkImageSliceMapper.cxx
   vtkImageSliceRepresentation.cxx
+  vtkImageVolumeRepresentation.cxx
   vtkIntegrateAttributes.cxx
   vtkIntegrateFlowThroughSurface.cxx
   vtkInteractorStyleTransferFunctionEditor.cxx

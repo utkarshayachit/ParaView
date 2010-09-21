@@ -868,7 +868,8 @@
     </SourceProxy>
 
     <SourceProxy name="GPUVolumeRayCastMapper"
-      class="vtkGPUVolumeRayCastMapper">
+      class="vtkGPUVolumeRayCastMapper"
+      processes="client|renderserver|dataserver">
       <Documentation>
         This is the proxy for GPU based volume rendering.
       </Documentation>
@@ -951,7 +952,8 @@
     </SourceProxy>
 
     <SourceProxy name="FixedPointVolumeRayCastMapper"
-      class="vtkFixedPointVolumeRayCastMapper">
+      class="vtkFixedPointVolumeRayCastMapper"
+      processes="client|renderserver|dataserver">
       <InputProperty
         name="Input"
         command="SetInputConnection">
@@ -6571,133 +6573,6 @@
   </ProxyGroup>
 
   <ProxyGroup name="representations">
-
-    <UniformGridVolumeRepresentationProxy name="UniformGridVolumeRepresentation">
-      <InputProperty name="Input"
-        command="NotUsed"
-        />
-
-      <DoubleVectorProperty name="UpdateTime"
-        command="SetUpdateTime"
-        update_self="1"
-        is_internal="1"
-        immediate_update="1"
-        number_of_elements="1"
-        default_values="none">
-        <DoubleRangeDomain name="range" />
-        <Documentation>
-          This time is not used unless UseViewUpdateTime is off.
-        </Documentation>
-      </DoubleVectorProperty>
-
-      <IntVectorProperty
-        name="Visibility"
-        command="SetVisibility"
-        number_of_elements="1"
-        default_values="1"
-        update_self="1">
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Set the visibility for this representation.
-        </Documentation>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="ColorAttributeType"
-        command="SetColorAttributeType"
-        number_of_elements="1"
-        default_values="1"
-        update_self="1">
-        <EnumerationDomain name="enum">
-          <Entry value="0" text="POINT_DATA" />
-          <Entry value="1" text="CELL_DATA" />
-          <Entry value="2" text="FIELD_DATA" />
-        </EnumerationDomain>
-      </IntVectorProperty>
-
-      <StringVectorProperty name="ColorArrayName"
-        command="SetColorArrayName"
-        number_of_elements="1"
-        default_values=""
-        update_self="1">
-        <Documentation>
-          Set the array name to color by. Set it to empty string to use solid
-          color.
-        </Documentation>
-        <ArrayListDomain name="array_list" attribute_type="Scalars"
-          input_domain_name="input_array_any">
-          <RequiredProperties>
-            <Property name="Input" function="Input" />
-          </RequiredProperties>
-        </ArrayListDomain>
-      </StringVectorProperty>
-
-      <IntVectorProperty name="SelectedMapperIndex"
-        command="SetSelectedMapperIndex"
-        number_of_elements="1"
-        default_values="0"
-        update_self="1">
-        <EnumerationDomain name="enum">
-          <Entry value="0" text="Fixed point" />
-          <Entry value="1" text="GPU" />
-        </EnumerationDomain>
-      </IntVectorProperty>
-
-      <SubProxy>
-        <Proxy name="VolumeFixedPointRayCastMapper"
-          proxygroup="mappers"
-          proxyname="FixedPointVolumeRayCastMapper">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="LockSampleDistanceToInputSpacing" />
-          <Property name="BlendMode"/>
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="VolumeGPURayCastMapper"
-          proxygroup="mappers"
-          proxyname="GPUVolumeRayCastMapper">
-        </Proxy>
-        <ShareProperties subproxy="VolumeFixedPointRayCastMapper">
-        <Exception name="LockSampleDistanceToInputSpacing" />
-        </ShareProperties>
-        <ExposedProperties>
-          <Property name="AutoAdjustSampleDistances" exposed_name="AutoAdjustSampleDistances" />
-          <Property name="SampleDistance" exposed_name="SampleDistance" />
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="Prop3D" proxygroup="props" proxyname="LODVolume" />
-        <ExposedProperties>
-          <Property name="Position" />
-          <Property name="Scale" />
-          <Property name="Orientation" />
-          <Property name="Origin" />
-          <Property name="Pickable" />
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="VolumeProperty"
-          proxygroup="properties" proxyname="VolumeProperty" >
-        </Proxy>
-        <ExposedProperties>
-          <Property name="ScalarOpacityUnitDistance" />
-          <Property name="ScalarOpacityFunction" />
-          <Property name="ColorTransferFunction" exposed_name="LookupTable"/>
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <!--
-          Mapper for client-side rendering.
-        -->
-        <Proxy name="LODMapper" proxygroup="mappers" proxyname="PolyDataMapper" />
-      </SubProxy>
-
-    <!-- End of UniformGridVolumeRepresentation -->
-    </UniformGridVolumeRepresentationProxy>
 
     <UnstructuredGridVolumeRepresentationProxy name="UnstructuredGridVolumeRepresentation">
 

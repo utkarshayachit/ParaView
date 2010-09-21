@@ -39,22 +39,29 @@ vtkSMProxy* addWavelet(vtkSMProxy* view, vtkSMProxy* wavelet=NULL)
     }
 
   vtkSMProxy* lut = pxm->NewProxy("lookup_tables",
-    "LookupTable");
+    "PVLookupTable");
   lut->SetConnectionID(view->GetConnectionID());
-  vtkSMPropertyHelper(lut, "ScalarRange").Set(0, 0);
-  vtkSMPropertyHelper(lut, "ScalarRange").Set(1, 512);
+  double rgb_points[] = {0, 1, 0, 0, 512, 0, 0, 1 };
+  vtkSMPropertyHelper(lut, "RGBPoints").Set(rgb_points, 8);
   lut->SetServers(vtkProcessModule::CLIENT_AND_SERVERS);
   lut->UpdateVTKObjects();
 
+  vtkSMProxy* opacity = pxm->NewProxy("piecewise_functions",
+    "PiecewiseFunction");
+  opacity->SetConnectionID(view->GetConnectionID());
+  double opacity_points[] = {0.0, 0.0, 512, 1.0};
+  vtkSMPropertyHelper(opacity, "Points").Set(opacity_points, 8);
+  opacity->UpdateVTKObjects();
 
   vtkSMProxy* repr = pxm->NewProxy("new_representations",
-    "ImageSliceRepresentation");
+    "UniformGridVolumeRepresentation");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(wavelet);
   vtkSMPropertyHelper(repr, "LookupTable").Set(lut);
+  vtkSMPropertyHelper(repr, "ScalarOpacityFunction").Set(opacity);
   vtkSMPropertyHelper(repr, "ColorAttributeType").Set(0);
   vtkSMPropertyHelper(repr, "ColorArrayName").Set("RTData");
-  vtkSMPropertyHelper(repr, "Slice").Set(15);
+  vtkSMPropertyHelper(repr, "SelectMapper").Set("GPU");
   repr->UpdateVTKObjects();
 
   vtkSMPropertyHelper(view, "Representations").Add(repr);
@@ -63,6 +70,7 @@ vtkSMProxy* addWavelet(vtkSMProxy* view, vtkSMProxy* wavelet=NULL)
   wavelet->Delete();
   repr->Delete();
   lut->Delete();
+  opacity->Delete();
   return wavelet;
 }
 
