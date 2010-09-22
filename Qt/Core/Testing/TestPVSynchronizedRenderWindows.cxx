@@ -101,9 +101,10 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
     }
 
   vtkSMProxy* repr = pxm->NewProxy("new_representations",
-    "OutlineRepresentation");
+    "GeometryRepresentation");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(sphere);
+  vtkSMPropertyHelper(repr, "Representation").Set(3);
   repr->UpdateVTKObjects();
 
   vtkSMPropertyHelper(view, "Representations").Add(repr);
@@ -111,47 +112,6 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
 
   sphere->Delete();
   repr->Delete();
-
-  //vtkSMProxy* cubeAxes = pxm->NewProxy("new_representations",
-  //  "CubeAxesRepresentation");
-  //cubeAxes->SetConnectionID(view->GetConnectionID());
-  //vtkSMPropertyHelper(cubeAxes, "Input").Set(sphere);
-  //cubeAxes->UpdateVTKObjects();
-
-  //vtkSMPropertyHelper(view, "Representations").Add(cubeAxes);
-  //view->UpdateVTKObjects();
-
-  //cubeAxes->Delete();
-
-    //{
-    //vtkSMProxy* labelRepr = pxm->NewProxy("new_representations",
-    //  "DataLabelRepresentation");
-    //labelRepr->SetConnectionID(view->GetConnectionID());
-    //vtkSMPropertyHelper(labelRepr, "Input").Set(sphere);
-    //vtkSMPropertyHelper(labelRepr, "PointLabelVisibility").Set(1);
-    //vtkSMPropertyHelper(labelRepr, "CellLabelVisibility").Set(1);
-    //vtkSMPropertyHelper(labelRepr, "PointLabelMode").Set(6);
-    //vtkSMPropertyHelper(labelRepr, "PointFieldDataArrayName").Set("Normals");
-    //labelRepr->UpdateVTKObjects();
-
-    //vtkSMPropertyHelper(view, "Representations").Add(labelRepr);
-    //view->UpdateVTKObjects();
-
-    //labelRepr->Delete();
-    //}
-
-    {
-    vtkSMProxy* labelRepr = pxm->NewProxy("new_representations",
-      "SelectionRepresentation");
-    labelRepr->SetConnectionID(view->GetConnectionID());
-    vtkSMPropertyHelper(labelRepr, "Input").Set(sphere);
-    labelRepr->UpdateVTKObjects();
-
-    vtkSMPropertyHelper(view, "Representations").Add(labelRepr);
-    view->UpdateVTKObjects();
-    labelRepr->Delete();
-    }
-
   return sphere;
 }
 
@@ -180,7 +140,7 @@ vtkSMProxy* createScalarBar(vtkSMProxy* view)
 }
 
 //#define SECOND_WINDOW
-#define REMOTE_CONNECTION_CS
+//#define REMOTE_CONNECTION_CS
 ////#define REMOTE_CONNECTION_CRS
 
 int main(int argc, char** argv)
@@ -220,7 +180,7 @@ int main(int argc, char** argv)
   QVTKWidget* qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv->GetRenderWindow());
   vtkSMProxy* sphere = addSphere(viewProxy);
-  addWavelet(viewProxy);
+  //addWavelet(viewProxy);
   createScalarBar(viewProxy);
 
   QWidget *centralWidget = new QWidget(&mainWindow);

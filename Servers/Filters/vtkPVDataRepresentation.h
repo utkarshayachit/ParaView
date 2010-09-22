@@ -37,6 +37,12 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
+  // These must only be set during initialization before adding the
+  // representation to any views or calling Update().
+  void SetCubeAxesRepresentation(vtkCubeAxesRepresentation*);
+  void SetSelectionRepresentation(vtkSelectionRepresentation*);
+
+  // Description:
   // Overridden to simply pass the input to the internal representations. We
   // won't need this if vtkDataRepresentation correctly respected in the
   // arguments passed to it during ProcessRequest() etc.

@@ -128,11 +128,11 @@ pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
           xml_type, "representations", name, proxy, server, 0);
         }
       }
-    if (proxy->IsA("vtkSMPropRepresentationProxy"))
-      {
-      return new pqPipelineRepresentation(group, name, 
-        vtkSMPropRepresentationProxy::SafeDownCast(proxy), server, 0);
-      }
+    //if (proxy->IsA("vtkSMPropRepresentationProxy"))
+    //  {
+    //  return new pqPipelineRepresentation(group, name,
+    //    vtkSMPropRepresentationProxy::SafeDownCast(proxy), server, 0);
+    //  }
     if (proxy->IsA("vtkSMScatterPlotRepresentationProxy"))
       {
       return new pqScatterPlotRepresentation(group, name,

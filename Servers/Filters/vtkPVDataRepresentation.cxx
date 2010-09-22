@@ -21,6 +21,10 @@
 #include "vtkView.h"
 
 vtkStandardNewMacro(vtkPVDataRepresentation);
+vtkCxxSetObjectMacro(vtkPVDataRepresentation, SelectionRepresentation,
+  vtkSelectionRepresentation);
+vtkCxxSetObjectMacro(vtkPVDataRepresentation, CubeAxesRepresentation,
+  vtkCubeAxesRepresentation);
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::vtkPVDataRepresentation()
 {
@@ -32,8 +36,8 @@ vtkPVDataRepresentation::vtkPVDataRepresentation()
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::~vtkPVDataRepresentation()
 {
-  this->SelectionRepresentation->Delete();
-  this->CubeAxesRepresentation->Delete();
+  this->SetSelectionRepresentation(NULL);
+  this->SetCubeAxesRepresentation(NULL);
 }
 
 //----------------------------------------------------------------------------
