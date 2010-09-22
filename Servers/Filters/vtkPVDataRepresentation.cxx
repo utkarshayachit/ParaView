@@ -103,7 +103,7 @@ void vtkPVDataRepresentation::RemoveInputConnection(int port, vtkAlgorithmOutput
 bool vtkPVDataRepresentation::AddToView(vtkView* view)
 {
   view->AddRepresentation(this->CubeAxesRepresentation);
-  view->AddRepresentation(this->SelectionRepresentation);
+  //view->AddRepresentation(this->SelectionRepresentation);
   return this->Superclass::AddToView(view);
 }
 
@@ -111,7 +111,7 @@ bool vtkPVDataRepresentation::AddToView(vtkView* view)
 bool vtkPVDataRepresentation::RemoveFromView(vtkView* view)
 {
   view->RemoveRepresentation(this->CubeAxesRepresentation);
-  view->RemoveRepresentation(this->SelectionRepresentation);
+  //view->RemoveRepresentation(this->SelectionRepresentation);
   return this->Superclass::RemoveFromView(view);
 }
 
