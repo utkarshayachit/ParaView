@@ -62,13 +62,6 @@ public:
   void SetDataReplicatedOnAllProcesses(bool);
   vtkBooleanMacro(DataReplicatedOnAllProcesses, bool);
 
-  // Description:
-  // Compute visible props bounds. This method must be called on all processes.
-  // It will result is providing the full data bounds on all processes involved.
-  // NOTE: If this method is not called on all processes at the same time, it
-  // WILL result in deadlocks.
-  void ComputeVisiblePropBounds(double bounds[6]);
-
 //BTX
 protected:
   vtkPVSynchronizedRenderer();

@@ -281,33 +281,6 @@ void vtkPVSynchronizedRenderer::SetKdTree(vtkPKdTree* tree)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSynchronizedRenderer::ComputeVisiblePropBounds(double bounds[6])
-{
-  this->Renderer->ComputeVisiblePropBounds(bounds);
-
-  // Now reduce these bounds across all processes involved.
-  // Reduction is not simple since we possibly have 2 groups of processes
-  // involved: one managed by MPI and other managed by Socket. So reduction
-  // happens by gathering to 0, then broadcasting back to everyone.
-  if (this->ParallelSynchronizer)
-    {
-    this->ParallelSynchronizer->CollectiveExpandForVisiblePropBounds(bounds);
-    }
-
-  if (this->CSSynchronizer)
-    {
-    this->CSSynchronizer->CollectiveExpandForVisiblePropBounds(bounds);
-    }
-
-  if (this->ParallelSynchronizer)
-    {
-    // broadcast bounds to all from the root node.
-    this->ParallelSynchronizer->GetParallelController()->Broadcast(
-      bounds, 6, 0);
-    }
-}
-
-//----------------------------------------------------------------------------
 void vtkPVSynchronizedRenderer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
