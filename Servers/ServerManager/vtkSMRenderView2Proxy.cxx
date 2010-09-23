@@ -22,6 +22,9 @@
 #include "vtkPVRenderViewProxy.h"
 #include "vtkWeakPointer.h"
 
+#include "vtkMemberFunctionCommand.h"
+#include "vtkSMPropertyHelper.h"
+
 namespace
 {
   class vtkRenderHelper : public vtkPVRenderViewProxy
@@ -85,7 +88,21 @@ void vtkSMRenderView2Proxy::CreateVTKObjects()
     helper->Proxy = this;
     rv->GetInteractor()->SetPVRenderView(helper);
     helper->Delete();
+
+    vtkCommand *obs = vtkMakeMemberFunctionCommand(*this,
+      &vtkSMRenderView2Proxy::OnSelect);
+    rv->AddObserver(vtkCommand::SelectionChangedEvent,
+      obs);
+    obs->Delete();
     }
+}
+
+//----------------------------------------------------------------------------
+void vtkSMRenderView2Proxy::OnSelect(vtkObject*, unsigned long, void* vregion)
+{
+  int *region = reinterpret_cast<int*>(vregion);
+  vtkSMPropertyHelper(this, "SelectCells").Set(region, 4);
+  this->UpdateVTKObjects();
 }
 
 //----------------------------------------------------------------------------

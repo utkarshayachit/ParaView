@@ -27,6 +27,19 @@
       </IntVectorProperty>
 
       <IntVectorProperty
+        name="InteractionMode"
+        command="SetInteractionMode"
+        number_of_elements="1"
+        default_values="3">
+        <EnumerationDomain name="enum">
+          <Entry text="3D" value="0" />
+          <Entry text="2D" value="1" />
+          <Entry text="FrustumSelection" value="2" />
+          <Entry text="SurfaceSelection" value="3" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty
         name="StillRenderImageReductionFactor"
         command="SetStillRenderImageReductionFactor"
         number_of_elements="1"
@@ -75,6 +88,15 @@
           Set the memory size threshold above which LOD will be used while
           rendering interactively. The value is in KBs.
         </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="SelectCells"
+        command="SelectCells"
+        number_of_elements="4"
+        is_internal="1"
+        argument_is_array="1"
+        default_values="0 0 200 200">
+        <IntRangeDomain name="range" min="0" />
       </IntVectorProperty>
 
       <DoubleVectorProperty name="LODResolution"

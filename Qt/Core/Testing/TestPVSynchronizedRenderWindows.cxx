@@ -104,7 +104,7 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
     "GeometryRepresentation");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(sphere);
-  vtkSMPropertyHelper(repr, "Representation").Set(3);
+  //vtkSMPropertyHelper(repr, "Representation").Set(3);
   repr->UpdateVTKObjects();
 
   vtkSMPropertyHelper(view, "Representations").Add(repr);
@@ -139,8 +139,8 @@ vtkSMProxy* createScalarBar(vtkSMProxy* view)
   return sb;
 }
 
-//#define SECOND_WINDOW
-//#define REMOTE_CONNECTION_CS
+#define SECOND_WINDOW
+#define REMOTE_CONNECTION_CS
 ////#define REMOTE_CONNECTION_CRS
 
 int main(int argc, char** argv)
@@ -199,10 +199,10 @@ int main(int argc, char** argv)
   slider->setStrictRange(true);
 
   pqPropertyLinks links;
-  //links.addPropertyLink(slider, "value", SIGNAL(valueChanged(int)),
-  //  sphere, sphere->GetProperty("PhiResolution"));
-  //links.addPropertyLink(slider, "value", SIGNAL(valueChanged(int)),
-  //  sphere, sphere->GetProperty("ThetaResolution"));
+  links.addPropertyLink(slider, "value", SIGNAL(valueChanged(int)),
+    sphere, sphere->GetProperty("PhiResolution"));
+  links.addPropertyLink(slider, "value", SIGNAL(valueChanged(int)),
+    sphere, sphere->GetProperty("ThetaResolution"));
   links.setAutoUpdateVTKObjects(true);
   links.setUseUncheckedProperties(false);
   vbox->addWidget(slider);
@@ -232,7 +232,7 @@ int main(int argc, char** argv)
   qwidget = new QVTKWidget(&mainWindow);
   qwidget->SetRenderWindow(rv2->GetRenderWindow());
 
-  //addSphere(view2Proxy, sphere);
+  addSphere(view2Proxy, sphere);
   createScalarBar(view2Proxy);
 
   hbox->addWidget(qwidget);

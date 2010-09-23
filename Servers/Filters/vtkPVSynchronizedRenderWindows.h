@@ -35,6 +35,7 @@ class vtkRenderWindow;
 class vtkRenderer;
 class vtkMultiProcessController;
 class vtkMultiProcessStream;
+class vtkSelection;
 
 class VTK_EXPORT vtkPVSynchronizedRenderWindows : public vtkObject
 {
@@ -105,6 +106,7 @@ public:
   // We may make this API generic in future, for now this works.
   bool SynchronizeBounds(double bounds[6]);
   bool SynchronizeSize(unsigned long &size);
+  bool BroadcastToDataServer(vtkSelection* selection);
 
 //BTX
   enum

@@ -15,13 +15,16 @@
 #include "vtkPVRenderView.h"
 
 #include "vtkBSPCutsGenerator.h"
+#include "vtkCamera.h"
 #include "vtkCommand.h"
+#include "vtkPHardwareSelector.h"
 #include "vtkInformationDoubleKey.h"
 #include "vtkInformation.h"
 #include "vtkInformationIntegerKey.h"
 #include "vtkInformationObjectBaseKey.h"
 #include "vtkInformationRequestKey.h"
 #include "vtkInformationVector.h"
+#include "vtkInteractorStyleRubberBand3D.h"
 #include "vtkLight.h"
 #include "vtkLightKit.h"
 #include "vtkMemberFunctionCommand.h"
@@ -40,31 +43,16 @@
 #include "vtkRenderViewBase.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
+#include "vtkSelection.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkWeakPointer.h"
 
-#include "vtkLookupTable.h"
-#include "vtkScalarBarActor.h"
+
 #include "vtkPVTrackballRotate.h"
 
 #include <assert.h>
 #include <vtkstd/set>
-
-namespace
-{
-  //-----------------------------------------------------------------------------
-  void Create2DPipeline(vtkRenderer* ren)
-    {
-    vtkScalarBarActor* repr = vtkScalarBarActor::New();
-    vtkLookupTable* lut = vtkLookupTable::New();
-    lut->Build();
-    repr->SetLookupTable(lut);
-    lut->Delete();
-    ren->AddActor(repr);
-    repr->Delete();
-    }
-};
 
 vtkStandardNewMacro(vtkPVRenderView);
 vtkInformationKeyMacro(vtkPVRenderView, GEOMETRY_SIZE, Integer);
@@ -89,10 +77,13 @@ vtkPVRenderView::vtkPVRenderView()
   this->UseLightKit = false;
   this->Interactor = 0;
   this->InteractorStyle = 0;
+  this->RubberBandStyle = 0;
   this->CenterAxes = vtkPVCenterAxesActor::New();
   this->CenterAxes->SetComputeNormals(0);
   this->CenterAxes->SetPickable(0);
   this->CenterAxes->SetScale(0.25, 0.25, 0.25);
+  this->InteractionMode = INTERACTION_MODE_3D;
+  this->Selector = vtkPHardwareSelector::New();
 
   this->SynchronizedRenderers = vtkPVSynchronizedRenderer::New();
 
@@ -127,6 +118,7 @@ vtkPVRenderView::vtkPVRenderView()
     this->RenderView->GetRenderer()->GetActiveCamera());
   window->AddRenderer(this->NonCompositedRenderer);
   window->SetNumberOfLayers(3);
+  this->RenderView->GetRenderer()->GetActiveCamera()->ParallelProjectionOff();
 
   vtkMemberFunctionCommand<vtkPVRenderView>* observer =
     vtkMemberFunctionCommand<vtkPVRenderView>::New();
@@ -158,6 +150,14 @@ vtkPVRenderView::vtkPVRenderView()
     manip->SetButton(1);
     this->InteractorStyle->AddManipulator(manip);
     manip->Delete();
+
+    this->RubberBandStyle = vtkInteractorStyleRubberBand3D::New();
+    this->RubberBandStyle->RenderOnMouseMoveOff();
+    vtkCommand* observer = vtkMakeMemberFunctionCommand(*this,
+      &vtkPVRenderView::OnSelectionChangedEvent);
+    this->RubberBandStyle->AddObserver(vtkCommand::SelectionChangedEvent,
+      observer);
+    observer->Delete();
     }
 
   this->GetRenderer()->AddActor(this->CenterAxes);
@@ -166,6 +166,7 @@ vtkPVRenderView::vtkPVRenderView()
 //----------------------------------------------------------------------------
 vtkPVRenderView::~vtkPVRenderView()
 {
+  this->Selector->Delete();
   this->SynchronizedRenderers->Delete();
   this->NonCompositedRenderer->Delete();
   this->RenderView->Delete();
@@ -182,6 +183,11 @@ vtkPVRenderView::~vtkPVRenderView()
     {
     this->InteractorStyle->Delete();
     this->InteractorStyle = 0;
+    }
+  if (this->RubberBandStyle)
+    {
+    this->RubberBandStyle->Delete();
+    this->RubberBandStyle = 0;
     }
 
   this->OrderedCompositingBSPCutsSource->Delete();
@@ -215,6 +221,109 @@ vtkCamera* vtkPVRenderView::GetActiveCamera()
 vtkRenderWindow* vtkPVRenderView::GetRenderWindow()
 {
   return this->RenderView->GetRenderWindow();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetInteractionMode(int mode)
+{
+  if (this->InteractionMode != mode)
+    {
+    this->InteractionMode = mode;
+    this->Modified();
+
+    if (this->Interactor == NULL)
+      {
+      return;
+      }
+
+    switch (this->InteractionMode)
+      {
+    case INTERACTION_MODE_3D:
+      this->Interactor->SetInteractorStyle(this->InteractorStyle);
+      break;
+
+    case INTERACTION_MODE_FRUSTUM_SELECTION:
+    case INTERACTION_MODE_SURFACE_SELECTION:
+      this->Interactor->SetInteractorStyle(this->RubberBandStyle);
+      break;
+
+    case INTERACTION_MODE_2D:
+      abort();
+      break;
+      }
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::OnSelectionChangedEvent()
+{
+  int region[4];
+  this->RubberBandStyle->GetStartPosition(&region[0]);
+  this->RubberBandStyle->GetEndPosition(&region[2]);
+
+  // NOTE: This gets called on the driver i.e. client or root-node in batch mode.
+  // That's not necessarily the node on which the selection can be made, since
+  // data may not be on this process.
+
+  //vtkSelection* selection = this->SynchronizedRenderers->HardwareSelect(region, false);
+
+  // selection is a data-selection (not geometry selection).
+  int ordered_region[4];
+  ordered_region[0] = region[0] < region[2]? region[0] : region[2];
+  ordered_region[2] = region[0] > region[2]? region[0] : region[2];
+  ordered_region[1] = region[1] < region[3]? region[1] : region[3];
+  ordered_region[3] = region[1] > region[3]? region[1] : region[3];
+
+  this->InvokeEvent(vtkCommand::SelectionChangedEvent, ordered_region);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SelectCells(int region[4])
+{
+  this->Selector->SetRenderer(this->GetRenderer());
+  if (this->SynchronizedWindows->GetLocalProcessIsDriver())
+    {
+    this->Selector->SetProcessIsRoot(true);
+    }
+  else
+    {
+    this->Selector->SetProcessIsRoot(false);
+    }
+  this->Selector->SetArea(region[0], region[1], region[2], region[3]);
+  this->Selector->SetFieldAssociation(vtkDataObject::FIELD_ASSOCIATION_CELLS);
+  this->Selector->SetProcessID(
+    vtkMultiProcessController::GetGlobalController()->GetLocalProcessId());
+  vtkSelection* sel = this->Selector->Select();
+  if (sel)
+    {
+    // sel is only generated on the "driver" node. The driver node may not have
+    // the actual data (except in built-in mode). So representations on this
+    // process may not be able to handle ConvertSelection() if call it right here.
+    // Hence we broadcast the selection to all data-server nodes.
+    this->SynchronizedWindows->BroadcastToDataServer(sel);
+    sel->Print(cout);
+    sel->Delete();
+    }
+  else
+    {
+    vtkMemberFunctionCommand<vtkPVRenderView>* observer =
+      vtkMemberFunctionCommand<vtkPVRenderView>::New();
+    observer->SetCallback(*this, &vtkPVRenderView::FinishSelection);
+    this->Selector->AddObserver(vtkCommand::EndEvent, observer);
+    observer->FastDelete();
+    }
+
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::FinishSelection()
+{
+  this->Selector->RemoveObservers(vtkCommand::EndEvent);
+
+  vtkSelection* sel = vtkSelection::New();
+  this->SynchronizedWindows->BroadcastToDataServer(sel);
+  sel->Print(cout);
+  sel->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -467,6 +576,12 @@ void vtkPVRenderView::GatherGeometrySizeInformation()
 //----------------------------------------------------------------------------
 bool vtkPVRenderView::GetUseDistributedRendering()
 {
+  if (this->InteractionMode == INTERACTION_MODE_SURFACE_SELECTION)
+    {
+    // force remote rendering when doing a surface selection.
+    return true;
+    }
+
   return this->RemoteRenderingThreshold <= this->GeometrySize;
 }
 

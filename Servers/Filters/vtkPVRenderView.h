@@ -39,10 +39,12 @@
 
 class vtkBSPCutsGenerator;
 class vtkCamera;
+class vtkPHardwareSelector;
 class vtkInformationDoubleKey;
 class vtkInformationIntegerKey;
 class vtkInformationObjectBaseKey;
 class vtkInformationRequestKey;
+class vtkInteractorStyleRubberBand3D;
 class vtkLight;
 class vtkLightKit;
 class vtkProp;
@@ -62,6 +64,26 @@ public:
   static vtkPVRenderView* New();
   vtkTypeMacro(vtkPVRenderView, vtkPVView);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  enum InteractionModes
+    {
+    INTERACTION_MODE_3D=0,
+    INTERACTION_MODE_2D, // not implemented yet.
+    INTERACTION_MODE_FRUSTUM_SELECTION,
+    INTERACTION_MODE_SURFACE_SELECTION
+    };
+
+  // Description:
+  // Get/Set the interaction mode. Default is INTERACTION_MODE_3D. If
+  // INTERACTION_MODE_FRUSTUM_SELECTION or INTERACTION_MODE_SURFACE_SELECTION is
+  // selected, then whenever the user drags and creates a selection-region, an
+  // appropriate selection will be created and vtkCommand::SelectionChangedEvent
+  // will be fired.
+  // @CallOnAllProcessess - this must be called on all processes, however it will
+  // have any effect only the driver processes i.e. the process with the
+  // interactor.
+  void SetInteractionMode(int mode);
+  vtkGetMacro(InteractionMode, int);
 
   // Description:
   // Initialize the view with an identifier. Unless noted otherwise, this method
@@ -223,6 +245,7 @@ public:
   // none is present, then representations should not redistribute the data.
   static vtkInformationObjectBaseKey* KD_TREE();
 
+  void SelectCells(int region[4]);
 public:
   //*****************************************************************
   // Methods merely exposing methods for internal objects.
@@ -293,10 +316,13 @@ protected:
   vtkPVSynchronizedRenderer* SynchronizedRenderers;
   vtkPVGenericRenderWindowInteractor* Interactor;
   vtkPVInteractorStyle* InteractorStyle;
+  vtkInteractorStyleRubberBand3D* RubberBandStyle;
   vtkPVCenterAxesActor* CenterAxes;
+  vtkPHardwareSelector* Selector;
 
   int StillRenderImageReductionFactor;
   int InteractiveRenderImageReductionFactor;
+  int InteractionMode;
 
   unsigned long LocalGeometrySize;
   unsigned long GeometrySize;
@@ -312,6 +338,9 @@ protected:
 private:
   vtkPVRenderView(const vtkPVRenderView&); // Not implemented
   void operator=(const vtkPVRenderView&); // Not implemented
+
+  void OnSelectionChangedEvent();
+  void FinishSelection();
 //ETX
 };
 

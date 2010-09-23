@@ -25,10 +25,12 @@
 #include "vtkRendererCollection.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
+#include "vtkSelectionSerializer.h"
 #include "vtkSmartPointer.h"
 #include "vtkSocketController.h"
 #include "vtkTilesHelper.h"
 
+#include <vtksys/ios/sstream>
 #include <vtkstd/map>
 #include <vtkstd/vector>
 #include <assert.h>
@@ -1099,6 +1101,66 @@ bool vtkPVSynchronizedRenderWindows::SynchronizeBounds(double bounds[6])
     {
     parallelController->Broadcast(bounds, 6, 0);
     }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVSynchronizedRenderWindows::BroadcastToDataServer(vtkSelection* selection)
+{
+  // handle trivial case.
+  if (this->Mode == BUILTIN || this->Mode == INVALID)
+    {
+    return true;
+    }
+
+ vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+
+  vtkMultiProcessController* parallelController =
+    this->GetParallelController();
+  vtkMultiProcessController* c_ds_controller =
+    this->GetClientServerController();
+  if (this->Mode == CLIENT)
+    {
+    c_ds_controller = pm->GetActiveSocketController();
+    }
+  else if (this->Mode == RENDER_SERVER)
+    {
+    // FIXME: we need to ascertain that this a RENDER_SERVER processes and not
+    // a pvserver process. if it's a render-server processes, simply return.
+    }
+  else if (this->Mode == DATA_SERVER)
+    {
+    c_ds_controller = pm->GetActiveSocketController();
+    }
+  else if (this->Mode == BATCH &&
+    parallelController->GetNumberOfProcesses() <= 1)
+    {
+    return true;
+    }
+
+  vtksys_ios::ostringstream xml_stream;
+  vtkSelectionSerializer::PrintXML(xml_stream, vtkIndent(), 1, selection);
+  vtkMultiProcessStream stream;
+  stream << xml_stream.str();
+
+  if (this->Mode == CLIENT && c_ds_controller)
+    {
+    c_ds_controller->Send(stream, 1, 41233);
+    return true;
+    }
+  else if (c_ds_controller)
+    {
+    c_ds_controller->Receive(stream, 1, 41233);
+    }
+
+  if (parallelController && parallelController->GetNumberOfProcesses() > 1)
+    {
+    parallelController->Broadcast(stream, 0);
+    }
+
+  vtkstd::string xml;
+  stream >> xml;
+  vtkSelectionSerializer::Parse(xml.c_str(), selection);
   return true;
 }
 
