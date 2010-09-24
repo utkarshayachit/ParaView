@@ -130,6 +130,35 @@
         <BooleanDomain name="bool"/>
       </IntVectorProperty>
 
+      <IntVectorProperty name="OrientationAxesVisibility"
+          command="SetOrientationAxesVisibility"
+          number_of_elements="1"
+          default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set whether to allow this 3D widget to be interactively moved/scaled.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="OrientationAxesInteractivity"
+          command="SetOrientationAxesInteractivity"
+          number_of_elements="1"
+          default_values="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="OrientationAxesLabelColor"
+          command="SetOrientationAxesLabelColor"
+          number_of_elements="3"
+          default_values="1 1 1">
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="OrientationAxesOutlineColor"
+          command="SetOrientationAxesOutlineColor"
+          number_of_elements="3"
+          default_values="1 1 1">
+      </DoubleVectorProperty>
+
       <ProxyProperty name="Representations"
         command="AddRepresentation"
         remove_command="RemoveRepresentation"
@@ -161,7 +190,7 @@
   <!-- ==================================================================== -->
   <ProxyGroup name="new_representations">
 
-    <PVRepresentationProxy name="GeometryRepresentation"
+    <PVRepresentationProxy name="PVRepresentationBase"
                                class="vtkPVDataRepresentation"
                                processes="client|renderserver|dataserver">
       <Documentation>
@@ -324,8 +353,130 @@
           <Property name="UseOutline" exposed_name="SelectionUseOutline"/>
         </ExposedProperties>
       </SubProxy>
+    </PVRepresentationProxy>
 
+    <!-- ================================================================== -->
+    <PVRepresentationProxy name="GeometryRepresentation"
+                           class="vtkPVDataRepresentation"
+                           processes="client|renderserver|dataserver"
+                           base_proxygroup="new_representations"
+                           base_proxyname="PVRepresentationBase">
+      <Documentation>
+        ParaView's default representation for showing any type of dataset in the
+        render view.
+      </Documentation>
 
+      <InputProperty name="Input" command="SetInputConnection">
+        <DataTypeDomain name="input_type" composite_data_supported="1">
+          <DataType value="vtkDataSet"/>
+        </DataTypeDomain>
+        <Documentation>
+          Set the input to the representation.
+        </Documentation>
+      </InputProperty>
+
+      <!-- End of GeometryRepresentation -->
+    </PVRepresentationProxy>
+
+    <!-- ================================================================== -->
+    <PVRepresentationProxy name="UnstructuredGridRepresentation"
+                           class="vtkPVDataRepresentation"
+                           processes="client|renderserver|dataserver"
+                           base_proxygroup="new_representations"
+                           base_proxyname="PVRepresentationBase">
+      <Documentation>
+        This representation is used to show unstructured grid as
+        Surface/Outline/Points/Wireframe/Volume
+      </Documentation>
+
+      <!-- this adds to what is already defined in PVRepresentationBase -->
+      <RepresentationType subproxy="VolumeRepresentation" text="Volume"/>
+
+      <InputProperty name="Input" command="SetInputConnection">
+       <DataTypeDomain name="input_type" composite_data_supported="1">
+         <DataType value="vtkUnstructuredGrid"/>
+       </DataTypeDomain>
+        <Documentation>
+          Set the input to the representation.
+        </Documentation>
+      </InputProperty>
+
+      <SubProxy>
+        <Proxy name="VolumeRepresentation"
+          proxygroup="new_representations"
+          proxyname="UnstructuredGridVolumeRepresentation" />
+        <ShareProperties subproxy="SurfaceRepresentation">
+          <Exception name="Input" />
+          <Exception name="Visibility" />
+        </ShareProperties>
+        <ExposedProperties>
+          <Property name="ScalarOpacityFunction" />
+          <Property name="ScalarOpacityUnitDistance" />
+          <Property name="ExtractedBlockIndex" />
+          <Property name="SelectMapper" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <!-- End of UnstructuredGridRepresentation -->
+    </PVRepresentationProxy>
+
+    <PVRepresentationProxy name="UniformGridRepresentation"
+                           class="vtkPVDataRepresentation"
+                           processes="client|renderserver|dataserver"
+                           base_proxygroup="new_representations"
+                           base_proxyname="PVRepresentationBase">
+      <Documentation>
+        This representation is used to show image data as
+        Surface/Outline/Points/Wireframe/Volume/Slice.
+      </Documentation>
+
+      <!-- this adds to the types already defined in PVRepresentationBase -->
+      <RepresentationType subproxy="VolumeRepresentation" text="Volume"/>
+      <RepresentationType subproxy="SliceRepresentation" text="Slice"/>
+
+      <InputProperty name="Input" command="SetInputConnection">
+       <DataTypeDomain name="input_type" composite_data_supported="1">
+         <DataType value="vtkUnstructuredGrid"/>
+       </DataTypeDomain>
+        <Documentation>
+          Set the input to the representation.
+        </Documentation>
+      </InputProperty>
+
+      <SubProxy>
+        <Proxy name="VolumeRepresentation"
+          proxygroup="new_representations"
+          proxyname="UniformGridVolumeRepresentation" />
+        <ShareProperties subproxy="SurfaceRepresentation">
+          <Exception name="Input" />
+          <Exception name="Visibility" />
+        </ShareProperties>
+        <ExposedProperties>
+          <Property name="LockSampleDistanceToInputSpacing" />
+          <Property name="ScalarOpacityUnitDistance" />
+          <Property name="ScalarOpacityFunction" />
+          <Property name="SelectMapper" />
+          <Property name="BlendMode"/>
+          <Property name="AutoAdjustSampleDistances"/>
+          <Property name="SampleDistance"/>
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="SliceRepresentation"
+          proxygroup="new_representations"
+          proxyname="ImageSliceRepresentation" />
+        <ShareProperties subproxy="SurfaceRepresentation" >
+          <Exception name="Input" />
+          <Exception name="Visibility" />
+        </ShareProperties>
+        <ExposedProperties>
+          <Property name="Slice" />
+          <Property name="SliceMode" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <!-- End of UniformGridRepresentation -->
     </PVRepresentationProxy>
 
     <!-- ================================================================== -->

@@ -39,7 +39,6 @@
 
 class vtkBSPCutsGenerator;
 class vtkCamera;
-class vtkPHardwareSelector;
 class vtkInformationDoubleKey;
 class vtkInformationIntegerKey;
 class vtkInformationObjectBaseKey;
@@ -47,7 +46,9 @@ class vtkInformationRequestKey;
 class vtkInteractorStyleRubberBand3D;
 class vtkLight;
 class vtkLightKit;
+class vtkPHardwareSelector;
 class vtkProp;
+class vtkPVAxesWidget;
 class vtkPVCenterAxesActor;
 class vtkPVGenericRenderWindowInteractor;
 class vtkPVInteractorStyle;
@@ -268,6 +269,12 @@ public:
   vtkBooleanMacro(LightSwitch, bool);
 
   //*****************************************************************
+  // Forwarded to orientation axes widget.
+  void SetOrientationAxesInteractivity(bool);
+  void SetOrientationAxesVisibility(bool);
+  void SetOrientationAxesLabelColor(double r, double g, double b);
+  void SetOrientationAxesOutlineColor(double r, double g, double b);
+
 //BTX
 protected:
   vtkPVRenderView();
@@ -332,6 +339,7 @@ protected:
   vtkPVInteractorStyle* InteractorStyle;
   vtkInteractorStyleRubberBand3D* RubberBandStyle;
   vtkPVCenterAxesActor* CenterAxes;
+  vtkPVAxesWidget* OrientationWidget;
   vtkPHardwareSelector* Selector;
   vtkSelection* LastSelection;
 

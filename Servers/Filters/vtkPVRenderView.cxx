@@ -33,6 +33,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPKdTree.h"
 #include "vtkProcessModule.h"
+#include "vtkPVAxesWidget.h"
 #include "vtkPVCenterAxesActor.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
 #include "vtkPVInteractorStyle.h"
@@ -85,6 +86,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->CenterAxes->SetComputeNormals(0);
   this->CenterAxes->SetPickable(0);
   this->CenterAxes->SetScale(0.25, 0.25, 0.25);
+  this->OrientationWidget = vtkPVAxesWidget::New();
   this->InteractionMode = INTERACTION_MODE_3D;
   this->LastSelection = NULL;
   this->Selector = vtkPHardwareSelector::New();
@@ -164,6 +166,10 @@ vtkPVRenderView::vtkPVRenderView()
     observer->Delete();
     }
 
+  this->OrientationWidget->SetParentRenderer(this->GetRenderer());
+  this->OrientationWidget->SetViewport(0, 0, 0.25, 0.25);
+  this->OrientationWidget->SetInteractor(this->Interactor);
+
   this->GetRenderer()->AddActor(this->CenterAxes);
 }
 
@@ -178,6 +184,7 @@ vtkPVRenderView::~vtkPVRenderView()
   this->LightKit->Delete();
   this->Light->Delete();
   this->CenterAxes->Delete();
+  this->OrientationWidget->Delete();
 
   if (this->Interactor)
     {
@@ -751,4 +758,32 @@ void vtkPVRenderView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "UseLightKit: " << this->UseLightKit << endl;
+}
+
+
+//*****************************************************************
+// Forwarded to orientation axes widget.
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetOrientationAxesInteractivity(bool v)
+{
+  this->OrientationWidget->SetInteractive(v);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetOrientationAxesVisibility(bool v)
+{
+  this->OrientationWidget->SetEnabled(v);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetOrientationAxesLabelColor(double r, double g, double b)
+{
+  this->OrientationWidget->SetAxisLabelColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetOrientationAxesOutlineColor(double r, double g, double b)
+{
+  this->OrientationWidget->SetOutlineColor(r, g, b);
 }
