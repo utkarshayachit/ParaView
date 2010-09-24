@@ -68,6 +68,10 @@ public:
   // Propagate the modification to all internal representations.
   virtual void MarkModified();
 
+  // Description:
+  // Overridden to forward to active representation.
+  virtual vtkSelection* ConvertSelection(vtkView* view, vtkSelection* selection);
+
 //BTX
 protected:
   vtkCompositeRepresentation();

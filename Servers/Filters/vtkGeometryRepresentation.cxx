@@ -28,6 +28,9 @@
 #include "vtkPVRenderView.h"
 #include "vtkQuadricClustering.h"
 #include "vtkRenderer.h"
+#include "vtkSelectionConverter.h"
+#include "vtkSelection.h"
+#include "vtkSelectionNode.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
 
@@ -329,6 +332,44 @@ void vtkGeometryRepresentation::UpdateColoringParameters()
     this->Property->SetEdgeVisibility(0);
     this->Property->SetRepresentation(this->Representation);
     }
+}
+
+//----------------------------------------------------------------------------
+vtkSelection* vtkGeometryRepresentation::ConvertSelection(
+  vtkView* _view, vtkSelection* selection)
+{
+  vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(_view);
+  if (!view)
+    {
+    return this->Superclass::ConvertSelection(_view, selection);
+    }
+
+  vtkSelection* newInput = vtkSelection::New();
+
+  // locate any selection nodes which belong to this representation.
+  for (unsigned int cc=0; cc < selection->GetNumberOfNodes(); cc++)
+    {
+    vtkSelectionNode* node = selection->GetNode(cc);
+    if (node->GetSelectedProp() == this->Actor)
+      {
+      newInput->AddNode(node);
+      node->GetProperties()->Set(vtkSelectionNode::SOURCE(),
+        this->GeometryFilter);
+      }
+    }
+
+  if (newInput->GetNumberOfNodes() == 0)
+    {
+    newInput->Delete();
+    return selection;
+    }
+
+  vtkSelection* output = vtkSelection::New();
+  vtkSelectionConverter* convertor = vtkSelectionConverter::New();
+  convertor->Convert(newInput, output, 0);
+  convertor->Delete();
+  newInput->Delete();
+  return output;
 }
 
 //----------------------------------------------------------------------------

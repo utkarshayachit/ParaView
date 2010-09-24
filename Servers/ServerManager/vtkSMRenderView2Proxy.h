@@ -21,6 +21,8 @@
 
 #include "vtkSMProxy.h"
 
+class vtkCollection;
+
 class VTK_EXPORT vtkSMRenderView2Proxy : public vtkSMProxy
 {
 public:
@@ -28,10 +30,30 @@ public:
   vtkTypeRevisionMacro(vtkSMRenderView2Proxy, vtkSMProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  // Description:
+  // Makes a new selection source proxy.
+  bool SelectSurfaceCells(int region[4],
+    vtkCollection* selectedRepresentations,
+    vtkCollection* selectionSources,
+    bool multiple_selections=false);
+  bool SelectSurfacePoints(int region[4],
+    vtkCollection* selectedRepresentations,
+    vtkCollection* selectionSources,
+    bool multiple_selections=false);
+
+//  vtkSMProxy* SelectFrustumCells(int region[4]);
+//  vtkSMProxy* SelectFrustumPoints(int region[4]);
+
 //BTX
 protected:
   vtkSMRenderView2Proxy();
   ~vtkSMRenderView2Proxy();
+
+  // Description:
+  // Fetches the LastSelection from the data-server and then converts it to a
+  // selection source proxy and returns that.
+  bool FetchLastSelection(vtkCollection* selectedRepresentations,
+    vtkCollection* selectionSources);
 
   void OnSelect(vtkObject*, unsigned long, void* vregion);
   // Description:

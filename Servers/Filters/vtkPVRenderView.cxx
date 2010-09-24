@@ -44,14 +44,16 @@
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSelection.h"
+#include "vtkSelectionNode.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkWeakPointer.h"
-
+#include "vtkDataRepresentation.h"
 
 #include "vtkPVTrackballRotate.h"
 
 #include <assert.h>
+#include <vtkstd/vector>
 #include <vtkstd/set>
 
 vtkStandardNewMacro(vtkPVRenderView);
@@ -64,6 +66,7 @@ vtkInformationKeyMacro(vtkPVRenderView, LOD_RESOLUTION, Double);
 vtkInformationKeyMacro(vtkPVRenderView, NEED_ORDERED_COMPOSITING, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, REDISTRIBUTABLE_DATA_PRODUCER, ObjectBase);
 vtkInformationKeyMacro(vtkPVRenderView, KD_TREE, ObjectBase);
+vtkCxxSetObjectMacro(vtkPVRenderView, LastSelection, vtkSelection);
 //----------------------------------------------------------------------------
 vtkPVRenderView::vtkPVRenderView()
 {
@@ -83,6 +86,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->CenterAxes->SetPickable(0);
   this->CenterAxes->SetScale(0.25, 0.25, 0.25);
   this->InteractionMode = INTERACTION_MODE_3D;
+  this->LastSelection = NULL;
   this->Selector = vtkPHardwareSelector::New();
 
   this->SynchronizedRenderers = vtkPVSynchronizedRenderer::New();
@@ -166,6 +170,7 @@ vtkPVRenderView::vtkPVRenderView()
 //----------------------------------------------------------------------------
 vtkPVRenderView::~vtkPVRenderView()
 {
+  this->SetLastSelection(NULL);
   this->Selector->Delete();
   this->SynchronizedRenderers->Delete();
   this->NonCompositedRenderer->Delete();
@@ -278,8 +283,22 @@ void vtkPVRenderView::OnSelectionChangedEvent()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::SelectPoints(int region[4])
+{
+  this->Select(vtkDataObject::FIELD_ASSOCIATION_POINTS, region);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::SelectCells(int region[4])
 {
+  this->Select(vtkDataObject::FIELD_ASSOCIATION_CELLS, region);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::Select(int fieldAssociation, int region[4])
+{
+  this->SetLastSelection(NULL);
+
   this->Selector->SetRenderer(this->GetRenderer());
   if (this->SynchronizedWindows->GetLocalProcessIsDriver())
     {
@@ -290,7 +309,7 @@ void vtkPVRenderView::SelectCells(int region[4])
     this->Selector->SetProcessIsRoot(false);
     }
   this->Selector->SetArea(region[0], region[1], region[2], region[3]);
-  this->Selector->SetFieldAssociation(vtkDataObject::FIELD_ASSOCIATION_CELLS);
+  this->Selector->SetFieldAssociation(fieldAssociation);
   this->Selector->SetProcessID(
     vtkMultiProcessController::GetGlobalController()->GetLocalProcessId());
   vtkSelection* sel = this->Selector->Select();
@@ -300,8 +319,7 @@ void vtkPVRenderView::SelectCells(int region[4])
     // the actual data (except in built-in mode). So representations on this
     // process may not be able to handle ConvertSelection() if call it right here.
     // Hence we broadcast the selection to all data-server nodes.
-    this->SynchronizedWindows->BroadcastToDataServer(sel);
-    sel->Print(cout);
+    this->FinishSelection(sel);
     sel->Delete();
     }
   else
@@ -318,12 +336,70 @@ void vtkPVRenderView::SelectCells(int region[4])
 //----------------------------------------------------------------------------
 void vtkPVRenderView::FinishSelection()
 {
+  this->FinishSelection(NULL);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::FinishSelection(vtkSelection* sel)
+{
   this->Selector->RemoveObservers(vtkCommand::EndEvent);
 
-  vtkSelection* sel = vtkSelection::New();
+  if (sel==NULL)
+    {
+    sel = vtkSelection::New();
+    }
+  else
+    {
+    sel->Register(this);
+    }
   this->SynchronizedWindows->BroadcastToDataServer(sel);
-  sel->Print(cout);
+
+  // not sel has PROP_ID() set and not PROP() pointers. We setup the PROP()
+  // pointers, since representations have know knowledge for that the PROP_ID()s
+  // are.
+  for (unsigned int cc=0; cc < sel->GetNumberOfNodes(); cc++)
+    {
+    vtkSelectionNode* node = sel->GetNode(cc);
+    if (node->GetProperties()->Has(vtkSelectionNode::PROP_ID()))
+      {
+      int propid = node->GetProperties()->Get(vtkSelectionNode::PROP_ID());
+      vtkProp* prop = this->Selector->GetProp(propid);
+      node->SetSelectedProp(prop);
+      }
+    }
+
+  // Now all processes have the full selection. We can tell the representations
+  // to convert the selections.
+
+  vtkSelection* converted = vtkSelection::New();
+
+  // Now, vtkPVRenderView is in no position to tell how many representations got
+  // selected, and what nodes in the vtkSelection correspond to which
+  // representations. So it simply passes the full vtkSelection to all
+  // representations and asks them to "convert" it. A representation will return
+  // the original selection if it was not selected at all or returns the
+  // converted selection for the part that it can handle, ignoring the rest.
+  for (int i = 0; i < this->GetNumberOfRepresentations(); ++i)
+    {
+    vtkDataRepresentation* repr = this->GetRepresentation(i);
+    vtkSelection* convertedSelection = repr->ConvertSelection(this, sel);
+    if (convertedSelection == NULL|| convertedSelection == sel)
+      {
+      continue;
+      }
+    for (unsigned int cc=0; cc < convertedSelection->GetNumberOfNodes(); cc++)
+      {
+      vtkSelectionNode* node = convertedSelection->GetNode(cc);
+      // update the SOURCE() for the node to be the selected representation.
+      node->GetProperties()->Set(vtkSelectionNode::SOURCE_ID(), i);
+      converted->AddNode(convertedSelection->GetNode(cc));
+      }
+    convertedSelection->Delete();
+    }
   sel->Delete();
+
+  this->SetLastSelection(converted);
+  converted->FastDelete();
 }
 
 //----------------------------------------------------------------------------

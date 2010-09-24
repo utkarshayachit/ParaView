@@ -15,15 +15,18 @@
 #include "vtkSMRenderView2Proxy.h"
 
 #include "vtkClientServerStream.h"
+#include "vtkCollection.h"
+#include "vtkMemberFunctionCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
+#include "vtkPVLastSelectionInformation.h"
 #include "vtkPVRenderView.h"
 #include "vtkPVRenderViewProxy.h"
-#include "vtkWeakPointer.h"
-
-#include "vtkMemberFunctionCommand.h"
+#include "vtkSmartPointer.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMSelectionHelper.h"
+#include "vtkWeakPointer.h"
 
 namespace
 {
@@ -98,11 +101,66 @@ void vtkSMRenderView2Proxy::CreateVTKObjects()
 }
 
 //----------------------------------------------------------------------------
+bool vtkSMRenderView2Proxy::SelectSurfaceCells(int region[4],
+  vtkCollection* selectedRepresentations,
+  vtkCollection* selectionSources,
+  bool vtkNotUsed(multiple_selections))
+{
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkClientServerStream stream;
+  stream << vtkClientServerStream::Invoke
+    << this->GetID()
+    << "SelectCells"
+    << vtkClientServerStream::InsertArray(region, 4)
+    << vtkClientServerStream::End;
+  pm->SendStream(this->ConnectionID, this->Servers, stream);
+
+  return this->FetchLastSelection(selectedRepresentations, selectionSources);
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMRenderView2Proxy::SelectSurfacePoints(int region[4],
+  vtkCollection* selectedRepresentations,
+  vtkCollection* selectionSources,
+  bool vtkNotUsed(multiple_selections))
+{
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkClientServerStream stream;
+  stream << vtkClientServerStream::Invoke
+    << this->GetID()
+    << "SelectPoints"
+    << vtkClientServerStream::InsertArray(region, 4)
+    << vtkClientServerStream::End;
+  pm->SendStream(this->ConnectionID, this->Servers, stream);
+
+  return this->FetchLastSelection(selectedRepresentations, selectionSources);
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMRenderView2Proxy::FetchLastSelection(
+  vtkCollection* selectedRepresentations, vtkCollection* selectionSources)
+{
+  if (selectionSources && selectedRepresentations)
+    {
+    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+    vtkSmartPointer<vtkPVLastSelectionInformation> info =
+      vtkSmartPointer<vtkPVLastSelectionInformation>::New();
+    pm->GatherInformation(this->ConnectionID,
+      vtkProcessModule::DATA_SERVER, info, this->GetID());
+
+    vtkSelection* selection = info->GetSelection();
+    vtkSMSelectionHelper::NewSelectionSourcesFromSelection(
+      selection, this, selectionSources, selectedRepresentations);
+    return (selectionSources->GetNumberOfItems() > 0);
+    }
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void vtkSMRenderView2Proxy::OnSelect(vtkObject*, unsigned long, void* vregion)
 {
   int *region = reinterpret_cast<int*>(vregion);
-  vtkSMPropertyHelper(this, "SelectCells").Set(region, 4);
-  this->UpdateVTKObjects();
+  this->SelectSurfaceCells(region, NULL, NULL);
 }
 
 //----------------------------------------------------------------------------

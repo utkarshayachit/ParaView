@@ -26,6 +26,7 @@ class vtkSelection;
 class vtkSelectionNode;
 class vtkSMProxy;
 class vtkSMSourceProxy;
+class vtkCollection;
 
 class VTK_EXPORT vtkSMSelectionHelper : public vtkSMObject
 {
@@ -69,6 +70,10 @@ public:
   // hence we not adding that code.
   static vtkSMProxy* NewSelectionSourceFromSelection(vtkIdType connectionID,
                                                      vtkSelection* selection);
+
+  static void NewSelectionSourcesFromSelection(
+    vtkSelection* selection, vtkSMProxy* view,
+    vtkCollection* selSources, vtkCollection* selRepresentations);
 
   // Description:
   // Given the ContentType for an output vtkSelection, this create a new source

@@ -198,6 +198,19 @@ void vtkCompositeRepresentation::MarkModified()
 }
 
 //----------------------------------------------------------------------------
+vtkSelection* vtkCompositeRepresentation::ConvertSelection(
+  vtkView* view, vtkSelection* selection)
+{
+  vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
+  if (activeRepr)
+    {
+    return activeRepr->ConvertSelection(view, selection);
+    }
+
+  return this->Superclass::ConvertSelection(view, selection);
+}
+
+//----------------------------------------------------------------------------
 bool vtkCompositeRepresentation::AddToView(vtkView* view)
 {
   this->Internals->View = view;

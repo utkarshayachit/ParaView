@@ -134,6 +134,7 @@ SET(Filters_SRCS
   vtkPVJoystickFly.cxx
   vtkPVJoystickFlyIn.cxx
   vtkPVJoystickFlyOut.cxx
+  vtkPVLastSelectionInformation.cxx
   vtkPVLinearExtrusionFilter.cxx
   vtkPVLODActor.cxx
   vtkPVLODVolume.cxx

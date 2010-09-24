@@ -245,7 +245,18 @@ public:
   // none is present, then representations should not redistribute the data.
   static vtkInformationObjectBaseKey* KD_TREE();
 
+  // Description:
+  // Make a selection. This will result in setting up of this->LastSelection
+  // which can be accessed using GetLastSelection().
+  // @CallOnAllProcessess
   void SelectCells(int region[4]);
+  void SelectPoints(int region[4]);
+  void Select(int field_association, int region[4]);
+
+  // Description:
+  // Provides access to the last selection.
+  vtkGetObjectMacro(LastSelection, vtkSelection);
+
 public:
   //*****************************************************************
   // Methods merely exposing methods for internal objects.
@@ -261,6 +272,7 @@ public:
 protected:
   vtkPVRenderView();
   ~vtkPVRenderView();
+
 
   // Description:
   // Actual render method.
@@ -309,6 +321,8 @@ protected:
   // Update the request to enable/disable low-res rendering.
   void SetRequestLODRendering(bool);
 
+  void SetLastSelection(vtkSelection*);
+
   vtkLight* Light;
   vtkLightKit* LightKit;
   vtkRenderViewBase* RenderView;
@@ -319,6 +333,7 @@ protected:
   vtkInteractorStyleRubberBand3D* RubberBandStyle;
   vtkPVCenterAxesActor* CenterAxes;
   vtkPHardwareSelector* Selector;
+  vtkSelection* LastSelection;
 
   int StillRenderImageReductionFactor;
   int InteractiveRenderImageReductionFactor;
@@ -341,6 +356,7 @@ private:
 
   void OnSelectionChangedEvent();
   void FinishSelection();
+  void FinishSelection(vtkSelection*);
 //ETX
 };
 
