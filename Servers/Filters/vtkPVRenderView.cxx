@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkPVRenderView.h"
 
+#include "vtkBoundingBox.h"
 #include "vtkBSPCutsGenerator.h"
 #include "vtkCamera.h"
 #include "vtkCommand.h"
@@ -164,6 +165,7 @@ vtkPVRenderView::vtkPVRenderView()
     this->RubberBandStyle->AddObserver(vtkCommand::SelectionChangedEvent,
       observer);
     observer->Delete();
+
     }
 
   this->OrientationWidget->SetParentRenderer(this->GetRenderer());
@@ -545,6 +547,7 @@ void vtkPVRenderView::Render(bool interactive)
     // FIXME: How can be make this so that we don't have to do parallel
     // communication each time.
     this->GatherBoundsInformation();
+    this->UpdateCenterAxes(this->LastComputedBounds);
     }
 
   // Call Render() on local render window only if
@@ -754,6 +757,26 @@ void vtkPVRenderView::RemovePropFromRenderer(vtkProp* prop)
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::UpdateCenterAxes(double bounds[6])
+{
+  vtkBoundingBox bbox(bounds);
+
+  double widths[3];
+  bbox.GetLengths(widths);
+
+  // lets make some thickness in all directions
+  double diameterOverTen = bbox.GetMaxLength() / 10.0;
+  widths[0] = widths[0] < diameterOverTen ? diameterOverTen : widths[0];
+  widths[1] = widths[1] < diameterOverTen ? diameterOverTen : widths[1];
+  widths[2] = widths[2] < diameterOverTen ? diameterOverTen : widths[2];
+
+  widths[0] *= 0.25;
+  widths[1] *= 0.25;
+  widths[2] *= 0.25;
+  this->CenterAxes->SetScale(widths);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -786,4 +809,22 @@ void vtkPVRenderView::SetOrientationAxesLabelColor(double r, double g, double b)
 void vtkPVRenderView::SetOrientationAxesOutlineColor(double r, double g, double b)
 {
   this->OrientationWidget->SetOutlineColor(r, g, b);
+}
+
+//*****************************************************************
+// Forwarded to center axes.
+void vtkPVRenderView::SetCenterAxesVisibility(bool v)
+{
+  this->CenterAxes->SetVisibility(v);
+}
+
+//*****************************************************************
+// Forward to vtkPVGenericRenderWindowInteractor.
+void vtkPVRenderView::SetCenterOfRotation(double x, double y, double z)
+{
+  this->CenterAxes->SetPosition(x, y, z);
+  if (this->Interactor)
+    {
+    this->Interactor->SetCenterOfRotation(x, y, z);
+    }
 }

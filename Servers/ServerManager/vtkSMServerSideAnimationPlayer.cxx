@@ -128,14 +128,14 @@ void vtkSMServerSideAnimationPlayer::PerformActions()
     vtkSMRenderViewProxy* ren = 
       vtkSMRenderViewProxy::SafeDownCast(iter->GetProxy());
     // We need to ensure that we skip prototypes.
-    if (ren && ren->GetConnectionID() 
-      != vtkProcessModuleConnectionManager::GetNullConnectionID())
-      {
-      if (ren->GetUseOffscreenRenderingForScreenshots())
-        {
-        ren->SetUseOffscreen(1);
-        }
-      }
+    //if (ren && ren->GetConnectionID()
+    //  != vtkProcessModuleConnectionManager::GetNullConnectionID())
+    //  {
+    //  if (ren->GetUseOffscreenRenderingForScreenshots())
+    //    {
+    //    ren->SetUseOffscreen(1);
+    //    }
+    //  }
     }
 
   // Write any animations.

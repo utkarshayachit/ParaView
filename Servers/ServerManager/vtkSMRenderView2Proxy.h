@@ -19,15 +19,15 @@
 #ifndef __vtkSMRenderView2Proxy_h
 #define __vtkSMRenderView2Proxy_h
 
-#include "vtkSMProxy.h"
+#include "vtkSMViewProxy.h"
 
 class vtkCollection;
 
-class VTK_EXPORT vtkSMRenderView2Proxy : public vtkSMProxy
+class VTK_EXPORT vtkSMRenderView2Proxy : public vtkSMViewProxy
 {
 public:
   static vtkSMRenderView2Proxy* New();
-  vtkTypeRevisionMacro(vtkSMRenderView2Proxy, vtkSMProxy);
+  vtkTypeRevisionMacro(vtkSMRenderView2Proxy, vtkSMViewProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:

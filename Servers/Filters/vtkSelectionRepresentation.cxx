@@ -29,6 +29,8 @@ vtkCxxSetObjectMacro(vtkSelectionRepresentation, LabelRepresentation,
 vtkSelectionRepresentation::vtkSelectionRepresentation()
 {
   this->GeometryRepresentation = vtkGeometryRepresentation::New();
+  this->GeometryRepresentation->SetPickable(0);
+
   this->LabelRepresentation = vtkDataLabelRepresentation::New();
   this->LabelRepresentation->SetPointLabelMode(VTK_LABEL_FIELD_DATA);
   this->LabelRepresentation->SetCellLabelMode(VTK_LABEL_FIELD_DATA);

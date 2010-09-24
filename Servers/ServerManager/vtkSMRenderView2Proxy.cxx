@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkSMRenderView2Proxy.h"
+#include "vtkSMRenderViewProxy.h"
 
 #include "vtkClientServerStream.h"
 #include "vtkCollection.h"
@@ -51,20 +51,20 @@ public:
   vtkStandardNewMacro(vtkRenderHelper);
 };
 
-vtkStandardNewMacro(vtkSMRenderView2Proxy);
-vtkCxxRevisionMacro(vtkSMRenderView2Proxy, "$Revision$");
+vtkStandardNewMacro(vtkSMRenderViewProxy);
+vtkCxxRevisionMacro(vtkSMRenderViewProxy, "$Revision$");
 //----------------------------------------------------------------------------
-vtkSMRenderView2Proxy::vtkSMRenderView2Proxy()
+vtkSMRenderViewProxy::vtkSMRenderViewProxy()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSMRenderView2Proxy::~vtkSMRenderView2Proxy()
+vtkSMRenderViewProxy::~vtkSMRenderViewProxy()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkSMRenderView2Proxy::CreateVTKObjects()
+void vtkSMRenderViewProxy::CreateVTKObjects()
 {
   if (this->ObjectsCreated)
     {
@@ -93,7 +93,7 @@ void vtkSMRenderView2Proxy::CreateVTKObjects()
     helper->Delete();
 
     vtkCommand *obs = vtkMakeMemberFunctionCommand(*this,
-      &vtkSMRenderView2Proxy::OnSelect);
+      &vtkSMRenderViewProxy::OnSelect);
     rv->AddObserver(vtkCommand::SelectionChangedEvent,
       obs);
     obs->Delete();
@@ -101,7 +101,7 @@ void vtkSMRenderView2Proxy::CreateVTKObjects()
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMRenderView2Proxy::SelectSurfaceCells(int region[4],
+bool vtkSMRenderViewProxy::SelectSurfaceCells(int region[4],
   vtkCollection* selectedRepresentations,
   vtkCollection* selectionSources,
   bool vtkNotUsed(multiple_selections))
@@ -119,7 +119,7 @@ bool vtkSMRenderView2Proxy::SelectSurfaceCells(int region[4],
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMRenderView2Proxy::SelectSurfacePoints(int region[4],
+bool vtkSMRenderViewProxy::SelectSurfacePoints(int region[4],
   vtkCollection* selectedRepresentations,
   vtkCollection* selectionSources,
   bool vtkNotUsed(multiple_selections))
@@ -137,7 +137,7 @@ bool vtkSMRenderView2Proxy::SelectSurfacePoints(int region[4],
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMRenderView2Proxy::FetchLastSelection(
+bool vtkSMRenderViewProxy::FetchLastSelection(
   vtkCollection* selectedRepresentations, vtkCollection* selectionSources)
 {
   if (selectionSources && selectedRepresentations)
@@ -157,14 +157,14 @@ bool vtkSMRenderView2Proxy::FetchLastSelection(
 }
 
 //----------------------------------------------------------------------------
-void vtkSMRenderView2Proxy::OnSelect(vtkObject*, unsigned long, void* vregion)
+void vtkSMRenderViewProxy::OnSelect(vtkObject*, unsigned long, void* vregion)
 {
   int *region = reinterpret_cast<int*>(vregion);
   this->SelectSurfaceCells(region, NULL, NULL);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMRenderView2Proxy::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSMRenderViewProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }

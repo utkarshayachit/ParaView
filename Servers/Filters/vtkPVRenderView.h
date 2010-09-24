@@ -275,11 +275,18 @@ public:
   void SetOrientationAxesLabelColor(double r, double g, double b);
   void SetOrientationAxesOutlineColor(double r, double g, double b);
 
+  //*****************************************************************
+  // Forwarded to center axes.
+  void SetCenterAxesVisibility(bool);
+
+  //*****************************************************************
+  // Forward to vtkPVGenericRenderWindowInteractor.
+  void SetCenterOfRotation(double x, double y, double z);
+
 //BTX
 protected:
   vtkPVRenderView();
   ~vtkPVRenderView();
-
 
   // Description:
   // Actual render method.
@@ -328,7 +335,14 @@ protected:
   // Update the request to enable/disable low-res rendering.
   void SetRequestLODRendering(bool);
 
+  // Description:
+  // Set the last selection object.
   void SetLastSelection(vtkSelection*);
+
+  // Description:
+  // UpdateCenterAxes().
+  // Updates CenterAxes's scale and position.
+  void UpdateCenterAxes(double bounds[6]);
 
   vtkLight* Light;
   vtkLightKit* LightKit;

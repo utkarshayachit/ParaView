@@ -26,7 +26,7 @@
 #include "vtkSMAnimationSceneProxy.h"
 #include "vtkSmartPointer.h"
 #include "vtkSMIntVectorProperty.h"
-#include "vtkSMRenderViewProxy.h"
+#include "vtkSMViewProxy.h"
 #include "vtkTIFFWriter.h"
 #include "vtkToolkits.h"
 
@@ -122,15 +122,15 @@ bool vtkSMAnimationSceneImageWriter::SaveInitialize()
   unsigned int num_modules = this->AnimationScene->GetNumberOfViewModules();
   for (unsigned int cc=0; cc < num_modules; cc++)
     {
-    vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(
-      this->AnimationScene->GetViewModule(cc));
-    if (rmview)
-      {
-      if (rmview->GetUseOffscreenRenderingForScreenshots())
-        {
-        rmview->SetUseOffscreen(1);
-        }
-      }
+    //vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(
+    //  this->AnimationScene->GetViewModule(cc));
+    //if (rmview)
+    //  {
+    //  if (rmview->GetUseOffscreenRenderingForScreenshots())
+    //    {
+    //    rmview->SetUseOffscreen(1);
+    //    }
+    //  }
     }
 #endif      
 
@@ -170,11 +170,11 @@ vtkImageData* vtkSMAnimationSceneImageWriter::NewFrame()
 vtkImageData* vtkSMAnimationSceneImageWriter::CaptureViewImage(
   vtkSMViewProxy* view, int magnification)
 {
-  vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(view);
-  if (rmview)
-    {
-    return rmview->CaptureWindow(magnification);
-    }
+  //vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(view);
+  //if (rmview)
+  //  {
+  //  return rmview->CaptureWindow(magnification);
+  //  }
   return NULL;
 }
 
@@ -322,16 +322,16 @@ bool vtkSMAnimationSceneImageWriter::SaveFinalize()
   this->SetImageWriter(0);
 
   // restore offscreen rendering state.
-  unsigned int num_modules = this->AnimationScene->GetNumberOfViewModules();
-  for (unsigned int cc=0; cc < num_modules; cc++)
-    {
-    vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(
-      this->AnimationScene->GetViewModule(cc));
-    if (rmview)
-      {
-      rmview->SetUseOffscreen(0);
-      }
-    }
+  //unsigned int num_modules = this->AnimationScene->GetNumberOfViewModules();
+  //for (unsigned int cc=0; cc < num_modules; cc++)
+  //  {
+  //  vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(
+  //    this->AnimationScene->GetViewModule(cc));
+  //  if (rmview)
+  //    {
+  //    rmview->SetUseOffscreen(0);
+  //    }
+  //  }
 
   return true;
 }
@@ -433,19 +433,19 @@ bool vtkSMAnimationSceneImageWriter::CreateWriter()
 //-----------------------------------------------------------------------------
 void vtkSMAnimationSceneImageWriter::UpdateImageSize()
 {
-  int gui_size[2] = {1, 1};
-  vtkSMViewProxy* view = this->AnimationScene->GetViewModule(0);
-  if (view)
-    {
-    view->GetGUISize(gui_size);
-    }
-  else
-    {
-    vtkErrorMacro("AnimationScene has no view modules added to it.");
-    }
-  gui_size[0] *= this->Magnification;
-  gui_size[1] *= this->Magnification;
-  this->SetActualSize(gui_size);
+  //int gui_size[2] = {1, 1};
+  //vtkSMViewProxy* view = this->AnimationScene->GetViewModule(0);
+  //if (view)
+  //  {
+  //  view->GetGUISize(gui_size);
+  //  }
+  //else
+  //  {
+  //  vtkErrorMacro("AnimationScene has no view modules added to it.");
+  //  }
+  //gui_size[0] *= this->Magnification;
+  //gui_size[1] *= this->Magnification;
+  //this->SetActualSize(gui_size);
 }
 
 //-----------------------------------------------------------------------------
