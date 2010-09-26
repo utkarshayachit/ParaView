@@ -49,7 +49,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkContextView.h"
 #include "vtkSMContextViewProxy.h"
-#include "vtkSMXYChartViewProxy.h"
 #include "vtkChartXY.h"
 #include "vtkAnnotationLink.h"
 #include "vtkSelection.h"
@@ -322,8 +321,7 @@ bool pqContextView::canRedo() const
 /// Resets the zoom level to 100%.
 void pqContextView::resetDisplay()
 {
-  vtkSMXYChartViewProxy *proxy =
-      vtkSMXYChartViewProxy::SafeDownCast(this->getContextViewProxy());
+  vtkSMContextViewProxy *proxy = this->getContextViewProxy();
   if (proxy)
     {
     proxy->GetChart()->RecalculateBounds();

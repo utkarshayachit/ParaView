@@ -47,7 +47,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqComparativeXYBarChartView.h"
 #include "pqParallelCoordinatesChartView.h"
 #include "vtkSMContextViewProxy.h"
-#include "vtkSMXYChartViewProxy.h"
 #include "vtkSMComparativeViewProxy.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMRenderViewProxy.h"
@@ -251,25 +250,22 @@ pqView* pqStandardViewModules::createView(const QString& viewtype,
 //    return new pqScatterPlotView(
 //      group, viewname, viewmodule, server, p);
 //    }
-  else if (viewmodule->IsA("vtkSMXYChartViewProxy") &&
-           viewtype == "XYChartView")
+  else if (viewtype == "XYChartView")
     {
     return new pqXYChartView(group, viewname,
-                            vtkSMXYChartViewProxy::SafeDownCast(viewmodule),
+                            vtkSMContextViewProxy::SafeDownCast(viewmodule),
                             server, p);
     }
-  else if (viewmodule->IsA("vtkSMXYChartViewProxy") &&
-           viewtype == "XYBarChartView")
+  else if (viewtype == "XYBarChartView")
     {
     return new pqXYBarChartView(group, viewname,
-                                vtkSMXYChartViewProxy::SafeDownCast(viewmodule),
+                                vtkSMContextViewProxy::SafeDownCast(viewmodule),
                                 server, p);
     }
-  else if (viewmodule->IsA("vtkSMXYChartViewProxy") &&
-           viewtype == "ParallelCoordinatesChartView")
+  else if (viewtype == "ParallelCoordinatesChartView")
     {
     return new pqParallelCoordinatesChartView(group, viewname,
-                                        vtkSMXYChartViewProxy::SafeDownCast(viewmodule),
+                                        vtkSMContextViewProxy::SafeDownCast(viewmodule),
                                         server, p);
     }
 

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ParaView
-  Module:    vtkSMXYChartViewProxy.h
+  Module:    vtkPVXYChartView.h
 
   Copyright (c) Kitware, Inc.
   All rights reserved.
@@ -12,24 +12,24 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkSMXYChartViewProxy - view proxy for vtkQtBarChartView
+// .NAME vtkPVXYChartView - view proxy for vtkQtBarChartView
 // .SECTION Description
-// vtkSMXYChartViewProxy is a concrete subclass of vtkSMChartViewProxy that
+// vtkPVXYChartView is a concrete subclass of vtkSMChartViewProxy that
 // creates a vtkQtBarChartView as the chart view.
 
-#ifndef __vtkSMXYChartViewProxy_h
-#define __vtkSMXYChartViewProxy_h
+#ifndef __vtkPVXYChartView_h
+#define __vtkPVXYChartView_h
 
-#include "vtkSMContextViewProxy.h"
+#include "vtkPVContextView.h"
 
 class vtkChartView;
 class vtkChart;
 
-class VTK_EXPORT vtkSMXYChartViewProxy : public vtkSMContextViewProxy
+class VTK_EXPORT vtkPVXYChartView : public vtkPVContextView
 {
 public:
-  static vtkSMXYChartViewProxy* New();
-  vtkTypeMacro(vtkSMXYChartViewProxy, vtkSMContextViewProxy);
+  static vtkPVXYChartView* New();
+  vtkTypeMacro(vtkPVXYChartView, vtkPVContextView);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -180,24 +180,16 @@ public:
 
   // Description:
   // Provides access to the chart view.
-//BTX
   virtual vtkChart* GetChart();
-//ETX
 
 //BTX
 protected:
-  vtkSMXYChartViewProxy();
-  ~vtkSMXYChartViewProxy();
+  vtkPVXYChartView();
+  ~vtkPVXYChartView();
 
   // Description:
-  // Called once in CreateVTKObjects() to create a new chart view.
-  virtual vtkContextView* NewChartView();
-
-  // Description:
-  // Performs the actual rendering. This method is called by
-  // both InteractiveRender() and StillRender().
-  // Default implementation is empty.
-  virtual void PerformRender();
+  // Actual rendering implementation.
+  virtual void Render(bool interactive);
 
   // Description:
   // Set the internal title, for managing time replacement in the chart title.
@@ -218,8 +210,8 @@ protected:
   CommandImpl* Command;
 
 private:
-  vtkSMXYChartViewProxy(const vtkSMXYChartViewProxy&); // Not implemented
-  void operator=(const vtkSMXYChartViewProxy&); // Not implemented
+  vtkPVXYChartView(const vtkPVXYChartView&); // Not implemented
+  void operator=(const vtkPVXYChartView&); // Not implemented
 //ETX
 };
 

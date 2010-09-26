@@ -70,23 +70,18 @@ protected:
   virtual void CreateVTKObjects();
 
   // Description:
-  // Performs the actual rendering. This method is called by
-  // both InteractiveRender() and StillRender().
-  // Default implementation is empty.
-  virtual void PerformRender();
-
-  // Description:
   // The context view that is used for all context derived charts.
   vtkContextView* ChartView;
+
+private:
+  vtkSMContextViewProxy(const vtkSMContextViewProxy&); // Not implemented
+  void operator=(const vtkSMContextViewProxy&); // Not implemented
 
   // Description:
   // Private storage object.
   class Private;
   Private *Storage;
 
-private:
-  vtkSMContextViewProxy(const vtkSMContextViewProxy&); // Not implemented
-  void operator=(const vtkSMContextViewProxy&); // Not implemented
 //ETX
 };
 

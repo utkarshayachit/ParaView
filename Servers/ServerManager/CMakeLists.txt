@@ -48,6 +48,7 @@ SET(Kit_SRCS
 #  vtkSMCameraProxy.cxx
   #vtkSMCaveRenderModuleProxy.cxx
 #  vtkSMCaveRenderViewProxy.cxx
+  vtkSMChartRepresentationProxy.cxx
 #  vtkSMClientDeliveryRepresentationProxy.cxx
 #  vtkSMClientServerRenderSyncManagerHelper.cxx
 #  vtkSMClientServerRenderViewProxy.cxx
@@ -60,7 +61,7 @@ SET(Kit_SRCS
   vtkSMConnectionCleanerProxy.cxx
   vtkSMContextArraysInformationHelper.cxx
   vtkSMContextNamedOptionsProxy.cxx
-#  vtkSMContextViewProxy.cxx
+  vtkSMContextViewProxy.cxx
   vtkSMCSVExporterProxy.cxx
 #  vtkSMDataLabelRepresentationProxy.cxx
 #  vtkSMDataRepresentationProxy.cxx
@@ -118,7 +119,7 @@ SET(Kit_SRCS
   vtkSMOrderedPropertyIterator.cxx
   vtkSMOutputPort.cxx
   vtkSMNetworkImageSourceProxy.cxx
-#  vtkSMParallelCoordinatesRepresentationProxy.cxx
+  vtkSMParallelCoordinatesRepresentationProxy.cxx
   vtkSMPQStateLoader.cxx
   vtkSMPSWriterProxy.cxx
   vtkSMPluginManager.cxx
@@ -210,8 +211,6 @@ SET(Kit_SRCS
   vtkSMWriterFactory.cxx
   vtkSMWriterProxy.cxx
   vtkSMXMLPVAnimationWriterProxy.cxx
-#  vtkSMXYChartRepresentationProxy.cxx
-#  vtkSMXYChartViewProxy.cxx
   vtkSMDataSourceProxy.cxx
   )
 
@@ -233,7 +232,7 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkSMAnimationCueManipulatorProxy.cxx
   vtkSMAnimationSceneWriter.cxx
   vtkSMClientServerRenderSyncManagerHelper.cxx
-#  vtkSMContextViewProxy.cxx
+  vtkSMContextViewProxy.cxx
   vtkSMDataRepresentationProxy.cxx
   vtkSMDomain.cxx
   vtkSMInformationHelper.cxx

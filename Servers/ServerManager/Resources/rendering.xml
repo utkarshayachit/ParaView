@@ -4386,24 +4386,52 @@
       <!-- End of SpreadSheetView -->
     </ViewProxy>
 
-    <XYChartViewProxy name="XYChartViewBase"
-      base_proxygroup="views"
-      base_proxyname="ViewBase">
+    <ContextViewProxy name="XYChartViewBase"
+                      class="vtkPVXYChartView"
+                      processes="client|renderserver|dataserver">
       <Documentation>
         This is the base proxy for XY chart views.
       </Documentation>
 
+      <Property name="StillRender" command="StillRender" />
+      <Property name="InteractiveRender" command="InteractiveRender" />
+
+      <IntVectorProperty name="Position"
+        command="SetPosition"
+        number_of_elements="2"
+        default_values="0 0">
+        <Documentation>
+          Set the position on this view in the multiview configuration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="Size"
+        command="SetSize"
+        number_of_elements="2"
+        default_values="400 400" >
+        <Documentation>
+          Set the size of this view in the multiview configuration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <ProxyProperty name="Representations"
+        command="AddRepresentation"
+        remove_command="RemoveRepresentation"
+        repeatable="1">
+        <Documentation>
+          Representations in this view.
+        </Documentation>
+      </ProxyProperty>
+
       <StringVectorProperty
         name="ChartTitle"
         command="SetTitle"
-        update_self="1"
         number_of_elements="1">
       </StringVectorProperty>
 
       <StringVectorProperty
         name="ChartTitleFont"
         command="SetTitleFont"
-        update_self="1"
         number_of_elements="4"
         element_types="2 0 0 0"
         default_values_delimiter=";"
@@ -4416,7 +4444,6 @@
       <DoubleVectorProperty
         name="ChartTitleColor"
         command="SetTitleColor"
-        update_self="1"
         number_of_elements="3"
         default_values="0 0 0">
         <DoubleRangeDomain name="range" min="0" max="1" />
@@ -4425,7 +4452,6 @@
       <IntVectorProperty
         name="ChartTitleAlignment"
         command="SetTitleAlignment"
-        update_self="1"
         number_of_elements="1"
         default_values="1">
         <IntRangeDomain name="range" min="0" max="2" />
@@ -4434,7 +4460,6 @@
       <IntVectorProperty
         name="ShowLegend"
         command="SetLegendVisibility"
-        update_self="1"
         number_of_elements="1"
         default_values="1">
         <BooleanDomain name="bool" />
@@ -4443,7 +4468,6 @@
       <IntVectorProperty
         name="ShowAxis"
         command="SetAxisVisibility"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="1"
@@ -4455,7 +4479,6 @@
       <IntVectorProperty
         name="AxisLogScale"
         command="SetAxisLogScale"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="1"
@@ -4467,7 +4490,6 @@
       <IntVectorProperty
         name="ShowAxisGrid"
         command="SetGridVisibility"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="1"
@@ -4479,7 +4501,6 @@
       <DoubleVectorProperty
         name="AxisColor"
         command="SetAxisColor"
-        update_self="1"
         repeat_command="1"
         number_of_elements_per_command="3"
         use_index="1"
@@ -4492,7 +4513,6 @@
       <DoubleVectorProperty
         name="AxisGridColor"
         command="SetGridColor"
-        update_self="1"
         use_index="1"
         repeat_command="1"
         number_of_elements_per_command="3"
@@ -4505,7 +4525,6 @@
       <IntVectorProperty
         name="ShowAxisLabels"
         command="SetAxisLabelVisibility"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="1"
@@ -4517,7 +4536,6 @@
       <StringVectorProperty
         name="AxisLabelFont"
         command="SetAxisLabelFont"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="4"
@@ -4533,7 +4551,6 @@
       <DoubleVectorProperty
         name="AxisLabelColor"
         command="SetAxisLabelColor"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="3"
@@ -4545,7 +4562,6 @@
       <IntVectorProperty
         name="AxisLabelNotation"
         command="SetAxisLabelNotation"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="1"
@@ -4557,7 +4573,6 @@
       <IntVectorProperty
         name="AxisLabelPrecision"
         command="SetAxisLabelPrecision"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="1"
@@ -4569,7 +4584,6 @@
       <IntVectorProperty
         name="AxisBehavior"
         command="SetAxisBehavior"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="1"
@@ -4581,7 +4595,6 @@
       <DoubleVectorProperty
         name="AxisRange"
         command="SetAxisRange"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="2"
@@ -4592,7 +4605,6 @@
       <StringVectorProperty
         name="AxisTitle"
         command="SetAxisTitle"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="1"
@@ -4602,7 +4614,6 @@
       <StringVectorProperty
         name="AxisTitleFont"
         command="SetAxisTitleFont"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="4"
@@ -4618,7 +4629,6 @@
       <DoubleVectorProperty
         name="AxisTitleColor"
         command="SetAxisTitleColor"
-        update_self="1"
         repeat_command="1"
         use_index="1"
         number_of_elements_per_command="3"
@@ -4627,11 +4637,13 @@
         <DoubleRangeDomain name="range" min="0" max="1" />
       </DoubleVectorProperty>
 
-    </XYChartViewProxy>
+    </ContextViewProxy>
 
-    <XYChartViewProxy name="XYChartView"
+    <ContextViewProxy name="XYChartView"
       base_proxygroup="views"
       base_proxyname="XYChartViewBase"
+      class="vtkPVXYChartView"
+      processes="client|renderserver|dataserver"
       representation_name="XYChartRepresentation">
       <Documentation>
         This is the proxy for the XY line chart view.
@@ -4640,16 +4652,17 @@
       <StringVectorProperty
         name="ChartType"
         command="SetChartType"
-        update_self="1"
         number_of_elements="1"
         default_values="Line" >
       </StringVectorProperty>
 
-    </XYChartViewProxy>
+    </ContextViewProxy>
 
-    <XYChartViewProxy name="XYBarChartView"
+    <ContextViewProxy name="XYBarChartView"
       base_proxygroup="views"
       base_proxyname="XYChartViewBase"
+      class="vtkPVXYChartView"
+      processes="client|renderserver|dataserver"
       representation_name="XYBarChartRepresentation">
       <Documentation>
         This is the proxy for bar chart view.
@@ -4658,16 +4671,17 @@
       <StringVectorProperty
         name="ChartType"
         command="SetChartType"
-        update_self="1"
         number_of_elements="1"
         default_values="Bar" >
       </StringVectorProperty>
 
-    </XYChartViewProxy>
+    </ContextViewProxy>
 
-    <XYChartViewProxy name="ParallelCoordinatesChartView"
+    <ContextViewProxy name="ParallelCoordinatesChartView"
       base_proxygroup="views"
       base_proxyname="ViewBase"
+      class="vtkPVXYChartView"
+      processes="client|renderserver|dataserver"
       representation_name="ParallelCoordinatesRepresentation">
       <Documentation>
         This is the proxy for parallel coordinates chart view.
@@ -4681,7 +4695,7 @@
         default_values="ParallelCoordinates" >
       </StringVectorProperty>
 
-    </XYChartViewProxy>
+    </ContextViewProxy>
 
     <Proxy name="RenderViewBase"
       base_proxygroup="views"
@@ -6700,14 +6714,15 @@
 
     <!-- =================================================================== -->
     <!-- New representation for ContextView based charts. -->
-    <XYChartRepresentationProxy name="XYChartRepresentationBase"
-      base_proxygroup="representations" >
+    <ChartRepresentationProxy name="XYChartRepresentationBase"
+      base_proxygroup="representations"
+      class="vtkXYChartRepresentation"
+      processes="client|dataserver" >
       <Documentation>
         Representation used by XYChartView.
       </Documentation>
 
-      <InputProperty name="Input"
-        command="SetInput-not-used" >
+      <InputProperty name="Input" command="SetInputConnection" >
         <Documentation>
           Data input for the representation.
         </Documentation>
@@ -6718,7 +6733,6 @@
 
       <IntVectorProperty name="Visibility"
         command="SetVisibility"
-        update_self="1"
         number_of_elements="1"
         default_values="1" >
         <BooleanDomain name="bool" />
@@ -6727,23 +6741,42 @@
         </Documentation>
       </IntVectorProperty>
 
-      <SubProxy>
-        <Proxy name="PreProcessor"
-          proxygroup="extended_filters"
-          proxyname="XYChartRepresentationPreprocessor">
-        </Proxy>
-        <!-- TODO: Change Domain of CompositeDataSetIndex so that one can select
-        a single leaf in the composite dataset alone -->
-        <ExposedProperties>
-          <Property name="FieldAssociation" exposed_name="AttributeType" />
-          <Property name="CompositeDataSetIndex" />
-        </ExposedProperties>
-      </SubProxy>
+      <IntVectorProperty name="FieldAssociation"
+        command="SetFieldAssociation"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Select the attribute data to pass.
+        </Documentation>
+        <FieldDataDomain name="enum"
+           enable_field_data="1"
+           disable_update_domain_entries="1" >
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </FieldDataDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="CompositeDataSetIndex"
+        command="SetCompositeDataSetIndex"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          In case of Composite datasets, set the flat index of the dataset to
+          pass. The flat index must point to a non-empty, non-composite dataset
+          for anything to be passed through. If the input is not a composite
+          dataset, then this index is ignored.
+        </Documentation>
+        <CompositeTreeDomain name="tree" mode="leaves">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+       </CompositeTreeDomain>
+      </IntVectorProperty>
 
       <StringVectorProperty name="SeriesNamesInfo"
         number_of_elements_per_command="1"
         element_types="2"
-        update_self="1"
         information_only="1">
         <Documentation>
           Property providing list of available series that can be plotted.
@@ -6753,7 +6786,6 @@
 
       <StringVectorProperty name="XArrayName"
         command="SetXAxisSeriesName"
-        update_self="1"
         number_of_elements="1"
         default_values="">
         <Documentation>
@@ -6769,7 +6801,6 @@
 
       <IntVectorProperty name="UseIndexForXAxis"
         command="SetUseIndexForXAxis"
-        update_self="1"
         number_of_elements="1"
         default_values="1">
         <BooleanDomain name="bool" />
@@ -6803,24 +6834,26 @@
         </ExposedProperties>
       </SubProxy>
 
+      <!--
       <SubProxy>
         <Proxy name="SelectionRepresentation"
           proxygroup="representations"
           proxyname="ClientDeliveryRepresentation">
         </Proxy>
       </SubProxy>
+      -->
 
       <!-- End of XYChartRepresentationBase -->
-    </XYChartRepresentationProxy>
+    </ChartRepresentationProxy>
 
     <ParallelCoordinatesRepresentationProxy name="ParallelCoordinatesRepresentation"
-      base_proxygroup="representations" >
+      class="vtkParallelCoordinatesRepresentation"
+      processes="client|dataserver" >
       <Documentation>
         Representation used by ParallelCoordinatesChartView.
       </Documentation>
 
-      <InputProperty name="Input"
-        command="SetInput-not-used" >
+      <InputProperty name="Input" command="SetInputConnection" >
         <Documentation>
           Data input for the representation.
         </Documentation>
@@ -6831,7 +6864,6 @@
 
       <IntVectorProperty name="Visibility"
         command="SetVisibility"
-        update_self="1"
         number_of_elements="1"
         default_values="1" >
         <BooleanDomain name="bool" />
@@ -6840,25 +6872,38 @@
         </Documentation>
       </IntVectorProperty>
 
-      <SubProxy>
-        <Proxy name="PreProcessor"
-          proxygroup="extended_filters"
-          proxyname="XYChartRepresentationPreprocessor">
-        </Proxy>
-        <!-- TODO: Change Domain of CompositeDataSetIndex so that one can select
-        a single leaf in the composite dataset alone -->
-        <ExposedProperties>
-          <Property name="FieldAssociation" exposed_name="AttributeType" />
-          <Property name="CompositeDataSetIndex" />
-        </ExposedProperties>
-      </SubProxy>
+      <IntVectorProperty name="FieldAssociation"
+        command="SetFieldAssociation"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Select the attribute data to pass.
+        </Documentation>
+        <FieldDataDomain name="enum"
+           enable_field_data="1"
+           disable_update_domain_entries="1" >
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </FieldDataDomain>
+      </IntVectorProperty>
 
-      <SubProxy>
-        <Proxy name="SelectionRepresentation"
-          proxygroup="representations"
-          proxyname="ClientDeliveryRepresentation">
-        </Proxy>
-      </SubProxy>
+      <IntVectorProperty name="CompositeDataSetIndex"
+        command="SetCompositeDataSetIndex"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          In case of Composite datasets, set the flat index of the dataset to
+          pass. The flat index must point to a non-empty, non-composite dataset
+          for anything to be passed through. If the input is not a composite
+          dataset, then this index is ignored.
+        </Documentation>
+        <CompositeTreeDomain name="tree" mode="leaves">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+       </CompositeTreeDomain>
+      </IntVectorProperty>
 
       <StringVectorProperty name="SeriesVisibilityInfo"
         number_of_elements_per_command="2"
@@ -6872,7 +6917,6 @@
 
       <StringVectorProperty name="SeriesVisibility"
         command="SetSeriesVisibility"
-        update_self="1"
         number_of_elements_per_command="2"
         element_types="2 0"
         repeat_command="1"
@@ -6893,7 +6937,6 @@
 
       <StringVectorProperty name="LineThickness"
         command="SetLineThickness"
-        update_self="1"
         number_of_elements_per_command="1"
         element_types="0"
         repeat_command="1"
@@ -6914,7 +6957,6 @@
 
       <StringVectorProperty name="LineStyle"
         command="SetLineStyle"
-        update_self="1"
         number_of_elements_per_command="1"
         element_types="0"
         repeat_command="1"
@@ -6936,7 +6978,6 @@
 
       <StringVectorProperty name="SeriesLabel"
         command="SetLabel"
-        update_self="1"
         number_of_elements_per_command="2"
         element_types="2 2"
         repeat_command="1"
@@ -6956,7 +6997,6 @@
 
       <StringVectorProperty name="Color"
         command="SetColor"
-        update_self="1"
         number_of_elements_per_command="3"
         element_types="1 1 1"
         repeat_command="1"
@@ -6976,7 +7016,6 @@
 
       <StringVectorProperty name="Opacity"
         command="SetOpacity"
-        update_self="1"
         number_of_elements_per_command="1"
         element_types="1"
         repeat_command="1"
@@ -6988,10 +7027,12 @@
 
     </ParallelCoordinatesRepresentationProxy>
 
-    !-- New representation for ContextView based charts. -->
-    <XYChartRepresentationProxy name="XYChartRepresentation"
+    <!-- New representation for ContextView based charts. -->
+    <ChartRepresentationProxy name="XYChartRepresentation"
       base_proxygroup="representations"
-      base_proxyname="XYChartRepresentationBase" >
+      base_proxyname="XYChartRepresentationBase"
+      class="vtkXYChartRepresentation"
+      processes="client|dataserver" >
       <Documentation>
         Representation used by XYChartView.
       </Documentation>
@@ -7003,12 +7044,14 @@
         number_of_elements="1"
         default_values="Line" >
       </StringVectorProperty>
-    </XYChartRepresentationProxy>
+    </ChartRepresentationProxy>
 
     <!-- New representation for ContextView based charts. -->
-    <XYChartRepresentationProxy name="XYBarChartRepresentation"
+    <ChartRepresentationProxy name="XYBarChartRepresentation"
       base_proxygroup="representations"
-      base_proxyname="XYChartRepresentationBase" >
+      base_proxyname="XYChartRepresentationBase"
+      class="vtkXYChartRepresentation"
+      processes="client|dataserver" >
       <Documentation>
         Representation used by XYBarChartView.
       </Documentation>
@@ -7020,7 +7063,7 @@
         number_of_elements="1"
         default_values="Bar" >
       </StringVectorProperty>
-    </XYChartRepresentationProxy>
+    </ChartRepresentationProxy>
 
     <BlockDeliveryRepresentationProxy name="BlockDeliveryRepresentation">
       <Documentation>
@@ -8038,7 +8081,8 @@
 
   <ProxyGroup name="options">
   <!-- =================================================================== -->
-    <ContextNamedOptionsProxy name="PlotOptionsBase">
+    <ContextNamedOptionsProxy name="PlotOptionsBase" class="vtkContextNamedOptions"
+      processes="client|dataserver" >
       <StringVectorProperty name="VisibilityInfo"
         number_of_elements_per_command="2"
         repeat_command="1"

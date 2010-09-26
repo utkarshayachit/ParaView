@@ -39,6 +39,7 @@ SET(Filters_SRCS
   vtkCameraInterpolator2.cxx
   vtkCameraManipulator.cxx
   vtkCameraManipulatorGUIHelper.cxx
+  vtkChartRepresentation.cxx
   vtkCleanArrays.cxx
   vtkCleanUnstructuredGrid.cxx
   vtkClientServerMoveData.cxx
@@ -46,6 +47,7 @@ SET(Filters_SRCS
   vtkCompositeAnimationPlayer.cxx
   vtkCompositeDataToUnstructuredGridFilter.cxx
   vtkCompositeRepresentation.cxx
+  vtkContextNamedOptions.cxx
   vtkCSVExporter.cxx
   vtkCSVWriter.cxx
   vtkCubeAxesRepresentation.cxx
@@ -87,6 +89,7 @@ SET(Filters_SRCS
   vtkOutlineRepresentation.cxx
   vtkPConvertSelection.cxx
   vtkPExtractHistogram.cxx
+  vtkParallelCoordinatesRepresentation.cxx
   vtkParallelSerialWriter.cxx
   vtkPEnSightGoldBinaryReader.cxx
   vtkPEnSightGoldReader.cxx
@@ -115,6 +118,7 @@ SET(Filters_SRCS
   vtkPVClipClosedSurface.cxx
   vtkPVClipDataSet.cxx
   vtkPVConnectivityFilter.cxx
+  vtkPVContextView.cxx
   vtkPVContourFilter.cxx
   vtkPVDataRepresentation.cxx
   vtkPVDesktopDeliveryClient.cxx
@@ -165,6 +169,7 @@ SET(Filters_SRCS
   vtkPVUpdateSuppressor.cxx
   vtkPVHardwareSelector.cxx
   vtkPVView.cxx
+  vtkPVXYChartView.cxx
   vtkQuerySelectionSource.cxx
   vtkRealtimeAnimationPlayer.cxx
   vtkRectilinearGridConnectivity.cxx
@@ -213,6 +218,7 @@ SET(Filters_SRCS
   vtkXMLCollectionReader.cxx
   vtkXMLPVAnimationWriter.cxx
   vtkXMLPVDWriter.cxx
+  vtkXYChartRepresentation.cxx
   )
 
 SET_SOURCE_FILES_PROPERTIES(
@@ -231,6 +237,7 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkImageCompressor.cxx
   vtkPEnSightReader.cxx
   vtkPVClientServerRenderManager.cxx
+  vtkPVContextView.cxx
   vtkPVJoystickFly.cxx
   vtkPVRenderViewProxy.cxx
   vtkPVView.cxx
@@ -405,6 +412,8 @@ TARGET_LINK_LIBRARIES(vtkPVFilters
   vtkWidgetsCS
   vtkViews
   vtkViewsCS
+  vtkCharts
+  vtkChartsCS
   KWCommon
   vtksys
   ${OPENGL_gl_LIBRARY}

@@ -15,13 +15,13 @@
 #include "vtkSMContextViewProxy.h"
 
 #include "vtkContextView.h"
-#include "vtkRenderWindow.h"
-#include "vtkWindowToImageFilter.h"
-#include "vtkProcessModule.h"
 #include "vtkErrorCode.h"
-
 #include "vtkObjectFactory.h"
+#include "vtkProcessModule.h"
+#include "vtkPVContextView.h"
+#include "vtkRenderWindow.h"
 #include "vtkSMUtilities.h"
+#include "vtkWindowToImageFilter.h"
 
 //-----------------------------------------------------------------------------
 // Minimal storage class for STL containers etc.
@@ -45,11 +45,6 @@ vtkSMContextViewProxy::vtkSMContextViewProxy()
 //----------------------------------------------------------------------------
 vtkSMContextViewProxy::~vtkSMContextViewProxy()
 {
-  if (this->ChartView)
-    {
-    this->ChartView->Delete();
-    this->ChartView = NULL;
-    }
   delete this->Storage;
   this->Storage = NULL;
 }
@@ -61,12 +56,18 @@ void vtkSMContextViewProxy::CreateVTKObjects()
     {
     return;
     }
+  this->Superclass::CreateVTKObjects();
+  if (!this->ObjectsCreated)
+    {
+    return;
+    }
+
+  vtkPVContextView* pvview = vtkPVContextView::SafeDownCast(
+    this->GetClientSideObject());
 
   this->Storage = new Private;
-  this->ChartView = vtkContextView::New();
+  this->ChartView = pvview->GetContextView();
   this->NewChartView();
-
-  this->Superclass::CreateVTKObjects();
 }
 
 //----------------------------------------------------------------------------
@@ -84,16 +85,15 @@ vtkContextView* vtkSMContextViewProxy::GetChartView()
 //----------------------------------------------------------------------------
 vtkChart* vtkSMContextViewProxy::GetChart()
 {
-  return NULL;
+  vtkPVContextView* pvview = vtkPVContextView::SafeDownCast(
+    this->GetClientSideObject());
+  return pvview? pvview->GetChart() : NULL;
 }
 
 //-----------------------------------------------------------------------------
 vtkImageData* vtkSMContextViewProxy::CaptureWindow(int magnification)
 {
-  // Now update all representation pipelines - should not be necessary once
-  // ParaView is ported to use vtkRenderViewBase, and handle the logic
-  // centrally for all views derived from the base view.
-  this->UpdateAllRepresentations();
+  this->InvokeCommand("StillRender");
 
   this->GetChartView()->Render();
 
@@ -108,6 +108,7 @@ vtkImageData* vtkSMContextViewProxy::CaptureWindow(int magnification)
   capture->ShallowCopy(w2i->GetOutput());
   w2i->Delete();
 
+#ifdef FIXME
   // Update image extents based on ViewPosition
   int extents[6];
   capture->GetExtent(extents);
@@ -116,7 +117,7 @@ vtkImageData* vtkSMContextViewProxy::CaptureWindow(int magnification)
     extents[cc] += this->ViewPosition[cc/2]*magnification;
     }
   capture->SetExtent(extents);
-
+#endif
   return capture;
 }
 
@@ -132,14 +133,6 @@ int vtkSMContextViewProxy::WriteImage(const char* filename,
   vtkSmartPointer<vtkImageData> shot;
   shot.TakeReference(this->CaptureWindow(magnification));
   return vtkSMUtilities::SaveImageOnProcessZero(shot, filename, writerName);
-}
-
-//----------------------------------------------------------------------------
-void vtkSMContextViewProxy::PerformRender()
-{
-  int size[2];
-  this->GetGUISize(size);
-  this->GetChartView()->Render();
 }
 
 //----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ParaView
-  Module:    vtkSMXYChartViewProxy.cxx
+  Module:    vtkPVXYChartView.cxx
 
   Copyright (c) Kitware, Inc.
   All rights reserved.
@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkSMXYChartViewProxy.h"
+#include "vtkPVXYChartView.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkContextView.h"
@@ -29,15 +29,15 @@
 #include "vtkCommand.h"
 
 // Command implementation
-class vtkSMXYChartViewProxy::CommandImpl : public vtkCommand
+class vtkPVXYChartView::CommandImpl : public vtkCommand
 {
 public:
-  static CommandImpl* New(vtkSMXYChartViewProxy *proxy)
+  static CommandImpl* New(vtkPVXYChartView *proxy)
   {
     return new CommandImpl(proxy);
   }
 
-  CommandImpl(vtkSMXYChartViewProxy* proxy)
+  CommandImpl(vtkPVXYChartView* proxy)
     : Target(proxy), Initialized(false)
   { }
 
@@ -45,21 +45,24 @@ public:
   {
     Target->SelectionChanged();
   }
-  vtkSMXYChartViewProxy* Target;
+  vtkPVXYChartView* Target;
   bool Initialized;
 };
 
-vtkStandardNewMacro(vtkSMXYChartViewProxy);
+vtkStandardNewMacro(vtkPVXYChartView);
 //----------------------------------------------------------------------------
-vtkSMXYChartViewProxy::vtkSMXYChartViewProxy()
+vtkPVXYChartView::vtkPVXYChartView()
 {
   this->Chart = NULL;
   this->InternalTitle = NULL;
   this->Command = CommandImpl::New(this);
+
+  // Use the buffer id - performance issues are fixed.
+  this->ContextView->GetScene()->SetUseBufferId(true);
 }
 
 //----------------------------------------------------------------------------
-vtkSMXYChartViewProxy::~vtkSMXYChartViewProxy()
+vtkPVXYChartView::~vtkPVXYChartView()
 {
   if (this->Chart)
     {
@@ -71,18 +74,7 @@ vtkSMXYChartViewProxy::~vtkSMXYChartViewProxy()
 }
 
 //----------------------------------------------------------------------------
-vtkContextView* vtkSMXYChartViewProxy::NewChartView()
-{
-  // Construct a new chart view and return the view of it
-
-  // Use the buffer id - performance issues are fixed.
-  this->ChartView->GetScene()->SetUseBufferId(true);
-
-  return this->ChartView;
-}
-
-//----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetChartType(const char *type)
+void vtkPVXYChartView::SetChartType(const char *type)
 {
   if (this->Chart)
     {
@@ -107,12 +99,12 @@ void vtkSMXYChartViewProxy::SetChartType(const char *type)
     this->SetAxisTitle(1, "");
 
     this->Chart->AddObserver(vtkCommand::SelectionChangedEvent, this->Command);
-    this->ChartView->GetScene()->AddItem(this->Chart);
+    this->ContextView->GetScene()->AddItem(this->Chart);
     }
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetTitle(const char* title)
+void vtkPVXYChartView::SetTitle(const char* title)
 {
   if (this->Chart)
     {
@@ -130,7 +122,7 @@ void vtkSMXYChartViewProxy::SetTitle(const char* title)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetTitleFont(const char* family, int pointSize,
+void vtkPVXYChartView::SetTitleFont(const char* family, int pointSize,
                                          bool bold, bool italic)
 {
   if (this->Chart)
@@ -143,7 +135,7 @@ void vtkSMXYChartViewProxy::SetTitleFont(const char* family, int pointSize,
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetTitleColor(double red, double green, double blue)
+void vtkPVXYChartView::SetTitleColor(double red, double green, double blue)
 {
   if (this->Chart)
     {
@@ -152,7 +144,7 @@ void vtkSMXYChartViewProxy::SetTitleColor(double red, double green, double blue)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetTitleAlignment(int alignment)
+void vtkPVXYChartView::SetTitleAlignment(int alignment)
 {
   if (this->Chart)
     {
@@ -161,7 +153,7 @@ void vtkSMXYChartViewProxy::SetTitleAlignment(int alignment)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetLegendVisibility(int visible)
+void vtkPVXYChartView::SetLegendVisibility(int visible)
 {
   if (this->Chart)
     {
@@ -170,7 +162,7 @@ void vtkSMXYChartViewProxy::SetLegendVisibility(int visible)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisVisibility(int index, bool visible)
+void vtkPVXYChartView::SetAxisVisibility(int index, bool visible)
 {
   if (this->Chart)
     {
@@ -179,7 +171,7 @@ void vtkSMXYChartViewProxy::SetAxisVisibility(int index, bool visible)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetGridVisibility(int index, bool visible)
+void vtkPVXYChartView::SetGridVisibility(int index, bool visible)
 {
   if (this->Chart)
     {
@@ -188,7 +180,7 @@ void vtkSMXYChartViewProxy::SetGridVisibility(int index, bool visible)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisColor(int index, double red, double green,
+void vtkPVXYChartView::SetAxisColor(int index, double red, double green,
                                          double blue)
 {
   if (this->Chart)
@@ -198,7 +190,7 @@ void vtkSMXYChartViewProxy::SetAxisColor(int index, double red, double green,
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetGridColor(int index, double red, double green,
+void vtkPVXYChartView::SetGridColor(int index, double red, double green,
                                          double blue)
 {
   if (this->Chart)
@@ -208,7 +200,7 @@ void vtkSMXYChartViewProxy::SetGridColor(int index, double red, double green,
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisLabelVisibility(int index, bool visible)
+void vtkPVXYChartView::SetAxisLabelVisibility(int index, bool visible)
 {
   if (this->Chart)
     {
@@ -217,7 +209,7 @@ void vtkSMXYChartViewProxy::SetAxisLabelVisibility(int index, bool visible)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisLabelFont(int index, const char* family,
+void vtkPVXYChartView::SetAxisLabelFont(int index, const char* family,
                                              int pointSize, bool bold,
                                              bool italic)
 {
@@ -232,7 +224,7 @@ void vtkSMXYChartViewProxy::SetAxisLabelFont(int index, const char* family,
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisLabelColor(int index, double red,
+void vtkPVXYChartView::SetAxisLabelColor(int index, double red,
                                               double green, double blue)
 {
   if (this->Chart)
@@ -243,7 +235,7 @@ void vtkSMXYChartViewProxy::SetAxisLabelColor(int index, double red,
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisLabelNotation(int index, int notation)
+void vtkPVXYChartView::SetAxisLabelNotation(int index, int notation)
 {
   if (this->Chart)
     {
@@ -252,7 +244,7 @@ void vtkSMXYChartViewProxy::SetAxisLabelNotation(int index, int notation)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisLabelPrecision(int index, int precision)
+void vtkPVXYChartView::SetAxisLabelPrecision(int index, int precision)
 {
   if (this->Chart)
     {
@@ -261,7 +253,7 @@ void vtkSMXYChartViewProxy::SetAxisLabelPrecision(int index, int precision)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisBehavior(int index, int behavior)
+void vtkPVXYChartView::SetAxisBehavior(int index, int behavior)
 {
   if (this->Chart)
     {
@@ -271,7 +263,7 @@ void vtkSMXYChartViewProxy::SetAxisBehavior(int index, int behavior)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisRange(int index, double min, double max)
+void vtkPVXYChartView::SetAxisRange(int index, double min, double max)
 {
   if (this->Chart && this->Chart->GetAxis(index)->GetBehavior() > 0)
     {
@@ -282,7 +274,7 @@ void vtkSMXYChartViewProxy::SetAxisRange(int index, double min, double max)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisLogScale(int index, bool logScale)
+void vtkPVXYChartView::SetAxisLogScale(int index, bool logScale)
 {
   if (this->Chart)
     {
@@ -293,7 +285,7 @@ void vtkSMXYChartViewProxy::SetAxisLogScale(int index, bool logScale)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisTitle(int index, const char* title)
+void vtkPVXYChartView::SetAxisTitle(int index, const char* title)
 {
   if (this->Chart && this->Chart->GetAxis(index))
     {
@@ -302,7 +294,7 @@ void vtkSMXYChartViewProxy::SetAxisTitle(int index, const char* title)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisTitleFont(int index, const char* family,
+void vtkPVXYChartView::SetAxisTitleFont(int index, const char* family,
                                              int pointSize, bool bold,
                                              bool italic)
 {
@@ -317,7 +309,7 @@ void vtkSMXYChartViewProxy::SetAxisTitleFont(int index, const char* family,
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::SetAxisTitleColor(int index, double red,
+void vtkPVXYChartView::SetAxisTitleColor(int index, double red,
                                               double green, double blue)
 {
   if (this->Chart)
@@ -328,13 +320,13 @@ void vtkSMXYChartViewProxy::SetAxisTitleColor(int index, double red,
 }
 
 //----------------------------------------------------------------------------
-vtkChart* vtkSMXYChartViewProxy::GetChart()
+vtkChart* vtkPVXYChartView::GetChart()
 {
   return this->Chart;
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::PerformRender()
+void vtkPVXYChartView::Render(bool interactive)
 {
   if (!this->Chart)
     {
@@ -348,22 +340,25 @@ void vtkSMXYChartViewProxy::PerformRender()
     if (pos != vtkstd::string::npos)
       {
       // The string was found - replace it and set the chart title.
+#ifdef FIXME
       timeStream << this->GetViewUpdateTime();
       title.replace(pos, pos+6, timeStream.str());
       this->Chart->SetTitle(title.c_str());
+#endif
       }
     }
 
-  this->ChartView->Render();
+  this->Superclass::Render(interactive);
 }
 
-void vtkSMXYChartViewProxy::SelectionChanged()
+//----------------------------------------------------------------------------
+void vtkPVXYChartView::SelectionChanged()
 {
   this->InvokeEvent(vtkCommand::SelectionChangedEvent);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMXYChartViewProxy::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPVXYChartView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
