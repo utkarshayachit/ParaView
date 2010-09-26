@@ -25,6 +25,7 @@
 
 class vtkCollection;
 class vtkPVGenericRenderWindowInteractor;
+class vtkRenderer;
 class vtkRenderWindow;
 
 class VTK_EXPORT vtkSMRenderViewProxy : public vtkSMViewProxy
@@ -46,6 +47,14 @@ public:
     bool multiple_selections=false);
 
   // Description:
+  // Returns true if it's possible to do GPU-based cell selection.
+  bool IsSelectVisibleCellsAvailable() { return true; }
+
+  // Description:
+  // Returns true if it's possible to do GPU-based cell selection.
+  bool IsSelectVisiblePointsAvailable() { return true; }
+
+  // Description:
   // Returns the interactor.
   vtkPVGenericRenderWindowInteractor* GetInteractor();
 
@@ -53,8 +62,18 @@ public:
   // Returns the client-side render window.
   vtkRenderWindow* GetRenderWindow();
 
+  // Description:
+  // Returns the client-side renderer (composited or 3D).
+  vtkRenderer* GetRenderer();
+
 //  vtkSMProxy* SelectFrustumCells(int region[4]);
 //  vtkSMProxy* SelectFrustumPoints(int region[4]);
+
+  // Description:
+  // Create a default representation for the given source proxy.
+  // Returns a new proxy.
+  virtual vtkSMRepresentationProxy* CreateDefaultRepresentation(
+    vtkSMProxy*, int);
 
 //BTX
 protected:

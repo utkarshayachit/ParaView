@@ -23,9 +23,14 @@
 #include "vtkPVLastSelectionInformation.h"
 #include "vtkPVRenderView.h"
 #include "vtkPVRenderViewProxy.h"
+#include "vtkPVXMLElement.h"
 #include "vtkSmartPointer.h"
+#include "vtkSMInputProperty.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMProxyManager.h"
+#include "vtkSMRepresentationProxy.h"
 #include "vtkSMSelectionHelper.h"
+#include "vtkSMSourceProxy.h"
 #include "vtkWeakPointer.h"
 
 namespace
@@ -73,6 +78,15 @@ vtkRenderWindow* vtkSMRenderViewProxy::GetRenderWindow()
 }
 
 //----------------------------------------------------------------------------
+vtkRenderer* vtkSMRenderViewProxy::GetRenderer()
+{
+  this->CreateVTKObjects();
+  vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(
+    this->GetClientSideObject());
+  return rv? rv->GetRenderer() : NULL;
+}
+
+//----------------------------------------------------------------------------
 vtkPVGenericRenderWindowInteractor* vtkSMRenderViewProxy::GetInteractor()
 {
   this->CreateVTKObjects();
@@ -116,6 +130,100 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
       obs);
     obs->Delete();
     }
+}
+
+
+//----------------------------------------------------------------------------
+vtkSMRepresentationProxy* vtkSMRenderViewProxy::CreateDefaultRepresentation(
+  vtkSMProxy* source, int opport)
+{
+  if (!source)
+    {
+    return 0;
+    }
+
+  vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+
+  // Update with time to avoid domains updating without time later.
+  vtkSMSourceProxy* sproxy = vtkSMSourceProxy::SafeDownCast(source);
+  if (sproxy)
+    {
+    double view_time = vtkSMPropertyHelper(this, "ViewTime").GetAsDouble();
+    sproxy->UpdatePipeline(view_time);
+    }
+
+  // Choose which type of representation proxy to create.
+  vtkSMProxy* prototype = pxm->GetPrototypeProxy("new_representations",
+    "UnstructuredGridRepresentation");
+
+  vtkSMInputProperty* pp = vtkSMInputProperty::SafeDownCast(
+    prototype->GetProperty("Input"));
+  pp->RemoveAllUncheckedProxies();
+  pp->AddUncheckedInputConnection(source, opport);
+  bool usg = (pp->IsInDomains()>0);
+  pp->RemoveAllUncheckedProxies();
+  if (usg)
+    {
+    return vtkSMRepresentationProxy::SafeDownCast(
+      pxm->NewProxy("new_representations", "UnstructuredGridRepresentation"));
+    }
+
+  prototype = pxm->GetPrototypeProxy("representations",
+    "UniformGridRepresentation");
+  pp = vtkSMInputProperty::SafeDownCast(
+    prototype->GetProperty("Input"));
+  pp->RemoveAllUncheckedProxies();
+  pp->AddUncheckedInputConnection(source, opport);
+  bool sg = (pp->IsInDomains()>0);
+  pp->RemoveAllUncheckedProxies();
+  if (sg)
+    {
+    return vtkSMRepresentationProxy::SafeDownCast(
+      pxm->NewProxy("new_representations", "UniformGridRepresentation"));
+    }
+
+  prototype = pxm->GetPrototypeProxy("new_representations",
+    "GeometryRepresentation");
+  pp = vtkSMInputProperty::SafeDownCast(
+    prototype->GetProperty("Input"));
+  pp->RemoveAllUncheckedProxies();
+  pp->AddUncheckedInputConnection(source, opport);
+  bool g = (pp->IsInDomains()>0);
+  pp->RemoveAllUncheckedProxies();
+  if (g)
+    {
+    return vtkSMRepresentationProxy::SafeDownCast(
+      pxm->NewProxy("new_representations", "GeometryRepresentation"));
+    }
+
+  vtkPVXMLElement* hints = source->GetHints();
+  if (hints)
+    {
+    // If the source has an hint as follows, then it's a text producer and must
+    // be is display-able.
+    //  <Hints>
+    //    <OutputPort name="..." index="..." type="text" />
+    //  </Hints>
+
+    unsigned int numElems = hints->GetNumberOfNestedElements();
+    for (unsigned int cc=0; cc < numElems; cc++)
+      {
+      int index;
+      vtkPVXMLElement* child = hints->GetNestedElement(cc);
+      if (child->GetName() &&
+        strcmp(child->GetName(), "OutputPort") == 0 &&
+        child->GetScalarAttribute("index", &index) &&
+        index == opport &&
+        child->GetAttribute("type") &&
+        strcmp(child->GetAttribute("type"), "text") == 0)
+        {
+        return vtkSMRepresentationProxy::SafeDownCast(
+          pxm->NewProxy("representations", "TextSourceRepresentation"));
+        }
+      }
+    }
+
+  return 0;
 }
 
 //----------------------------------------------------------------------------

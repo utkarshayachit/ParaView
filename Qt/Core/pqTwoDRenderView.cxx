@@ -85,9 +85,7 @@ void pqTwoDRenderView::resetCamera()
 {
   vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
     this->getProxy());
-
-  vtkSMRenderViewProxy* renModule = view->GetRenderView();
-  renModule->ResetCamera();
+  view->InvokeCommand("ResetCamera");
   this->render();
 }
 
@@ -107,11 +105,10 @@ void pqTwoDRenderView::initializeWidgets()
   vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
     this->getProxy());
 
-  vtkSMRenderViewProxy* renModule = view->GetRenderView();
   QVTKWidget* vtkwidget = qobject_cast<QVTKWidget*>(this->getWidget());
   if (vtkwidget)
     {
-    vtkwidget->SetRenderWindow(renModule->GetRenderWindow());
+    vtkwidget->SetRenderWindow(view->GetRenderWindow());
     }
 }
 
@@ -123,8 +120,7 @@ vtkImageData* pqTwoDRenderView::captureImage(int magnification)
     vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
       this->getProxy());
 
-    vtkSMRenderViewProxy* renModule = view->GetRenderView();
-    return renModule->CaptureWindow(magnification);
+    return view->CaptureWindow(magnification);
     }
 
   // Don't return any image when the view is not visible.

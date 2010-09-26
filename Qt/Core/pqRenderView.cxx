@@ -268,7 +268,7 @@ void pqRenderView::onResetCameraEvent()
 void pqRenderView::resetCamera()
 {
   this->fakeInteraction(true);
-  this->getRenderViewProxy()->ResetCamera();
+  this->getRenderViewProxy()->InvokeCommand("ResetCamera");
   this->fakeInteraction(false);
   this->render();
 }
@@ -681,6 +681,7 @@ void pqRenderView::emitSelectionSignal(QList<pqOutputPort*> opPorts)
 void pqRenderView::pick(int pos[2])
 {
   vtkSMRenderViewProxy* renderView = this->getRenderViewProxy();
+#ifdef FIXME
   vtkSMRepresentationProxy* repr = renderView->Pick(pos[0], pos[1]);
   if (repr)
     {
@@ -691,6 +692,7 @@ void pqRenderView::pick(int pos[2])
       emit this->picked(pq_repr->getOutputPortFromInput());
       }
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -768,20 +770,30 @@ void pqRenderView::selectOnSurfaceInternal(
 {
   vtkSMRenderViewProxy* renderModuleP = this->getRenderViewProxy();
 
-  vtkSmartPointer<vtkCollection> selectedRepresentations = 
+  vtkSmartPointer<vtkCollection> selectedRepresentations =
     vtkSmartPointer<vtkCollection>::New();
-  vtkSmartPointer<vtkCollection> surfaceSelections = 
+  vtkSmartPointer<vtkCollection> selectionSources =
     vtkSmartPointer<vtkCollection>::New();
-  vtkSmartPointer<vtkCollection> selectionSources = 
-    vtkSmartPointer<vtkCollection>::New();
-  if (!renderModuleP->SelectOnSurface(rect[0], rect[1], rect[2], rect[3], 
-      selectedRepresentations, selectionSources, surfaceSelections, 
-      this->UseMultipleRepresentationSelection, select_points))
+  if (select_points)
     {
-    return;
+    if (!renderModuleP->SelectSurfacePoints(rect,
+        selectedRepresentations, selectionSources,
+        this->UseMultipleRepresentationSelection))
+      {
+      return;
+      }
+    }
+  else
+    {
+    if (!renderModuleP->SelectSurfaceCells(rect,
+        selectedRepresentations, selectionSources,
+        this->UseMultipleRepresentationSelection))
+      {
+      return;
+      }
     }
 
-  this->collectSelectionPorts(selectedRepresentations, 
+  this->collectSelectionPorts(selectedRepresentations,
     selectionSources, pqOutputPorts, expand, select_blocks);
 }
 
@@ -798,6 +810,7 @@ void pqRenderView::selectPointsOnSurface(int rect[4], bool expand)
 //-----------------------------------------------------------------------------
 void pqRenderView::selectFrustum(int rect[4])
 {
+#ifdef FIXME
   vtkSMRenderViewProxy* renderModuleP = this->getRenderViewProxy();
 
   vtkSmartPointer<vtkCollection> selectedRepresentations = 
@@ -822,11 +835,13 @@ void pqRenderView::selectFrustum(int rect[4])
   // Fire selection event to let the world know that this view selected
   // something.
   this->emitSelectionSignal(output_ports);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqRenderView::selectFrustumPoints(int rect[4])
 {
+#ifdef FIXME
   vtkSMRenderViewProxy* renderModuleP = this->getRenderViewProxy();
 
   vtkSmartPointer<vtkCollection> selectedRepresentations = 
@@ -851,6 +866,7 @@ void pqRenderView::selectFrustumPoints(int rect[4])
   // Fire selection event to let the world know that this view selected
   // something.
   this->emitSelectionSignal(output_ports);
+#endif
 }
 
 //-----------------------------------------------------------------------------

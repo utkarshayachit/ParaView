@@ -164,7 +164,9 @@ public:
     data.Link->AddLinkedProxy(newRepr, vtkSMLink::OUTPUT);
 
     // Add the cloned representation to the view
+#ifdef FIXME
     view->AddRepresentation(newRepr);
+#endif
 
     // Add the cloned representation to the RepresentationData struct
     // The clone is added to a map where its view is the key.
@@ -276,7 +278,8 @@ bool vtkSMComparativeViewProxy::BeginCreateVTKObjects()
   this->Internal->ViewLink->AddException("CameraViewAngleInfo");
   this->Internal->ViewLink->AddException("CameraViewAngle");
 
-  return this->Superclass::BeginCreateVTKObjects();
+  return true;
+//  return this->Superclass::BeginCreateVTKObjects();
 }
 
 //----------------------------------------------------------------------------
@@ -296,6 +299,7 @@ void vtkSMComparativeViewProxy::SetOverlayAllComparisons(bool overlay)
 //----------------------------------------------------------------------------
 void vtkSMComparativeViewProxy::Build(int dx, int dy)
 {
+#if 0
   // Ensure objects are created before building.
   this->CreateVTKObjects();
 
@@ -379,11 +383,13 @@ void vtkSMComparativeViewProxy::Build(int dx, int dy)
 
   // Whenever the layout changes we'll fire the ConfigureEvent.
   this->InvokeEvent(vtkCommand::ConfigureEvent);
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMComparativeViewProxy::UpdateViewLayout()
 {
+#if 0
   int dx = this->OverlayAllComparisons? 1 : this->Dimensions[0];
   int dy = this->OverlayAllComparisons? 1 : this->Dimensions[1];
   int width = 
@@ -411,6 +417,7 @@ void vtkSMComparativeViewProxy::UpdateViewLayout()
       view->UpdateVTKObjects();
       }
     }
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -473,6 +480,7 @@ void vtkSMComparativeViewProxy::AddNewView()
 //----------------------------------------------------------------------------
 void vtkSMComparativeViewProxy::RemoveView(vtkSMViewProxy* view)
 {
+#ifdef FIXME
   if (view == this->GetRootView())
     {
     vtkErrorMacro("Root view cannot be removed.");
@@ -510,11 +518,13 @@ void vtkSMComparativeViewProxy::RemoveView(vtkSMViewProxy* view)
       break;
       }
     }
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMComparativeViewProxy::AddRepresentation(vtkSMRepresentationProxy* repr)
 {
+#ifdef FIXME
   if (!repr)
     {
     return;
@@ -575,11 +585,13 @@ void vtkSMComparativeViewProxy::AddRepresentation(vtkSMRepresentationProxy* repr
 
   // Override superclass' AddRepresentation since  repr has already been added
   // to the rootView.
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMComparativeViewProxy::RemoveRepresentation(vtkSMRepresentationProxy* repr)
 {
+#ifdef FIXME
   vtkInternal::MapOfReprClones::iterator reprDataIter
     = this->Internal->RepresentationClones.find(repr);
   if (!repr || reprDataIter == this->Internal->RepresentationClones.end())
@@ -618,6 +630,7 @@ void vtkSMComparativeViewProxy::RemoveRepresentation(vtkSMRepresentationProxy* r
 
   // Override superclass' RemoveRepresentation since  repr was not added to this
   // view at all, we added it to (and removed from) the root view.
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -713,6 +726,7 @@ void vtkSMComparativeViewProxy::UpdateAllRepresentations()
     {
     for (int x=0; x < this->Dimensions[0]; x++)
       {
+#ifdef FIXME
       int view_index = this->OverlayAllComparisons? 0 : index;
       vtkSMViewProxy* view = this->Internal->Views[view_index];
 
@@ -742,7 +756,7 @@ void vtkSMComparativeViewProxy::UpdateAllRepresentations()
 
       // Make the view cache the current setup. 
       this->UpdateAllRepresentations(x, y);
-
+#endif
       index++;
       }
     }
@@ -753,6 +767,7 @@ void vtkSMComparativeViewProxy::UpdateAllRepresentations()
 //----------------------------------------------------------------------------
 void vtkSMComparativeViewProxy::UpdateAllRepresentations(int x, int y)
 {
+#ifdef FIXME
   vtkSMViewProxy* view = this->OverlayAllComparisons?
     this->Internal->Views[0] :
     this->Internal->Views[y*this->Dimensions[0] + x];
@@ -776,11 +791,13 @@ void vtkSMComparativeViewProxy::UpdateAllRepresentations(int x, int y)
       }
     }
   collection->Delete();
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMComparativeViewProxy::ClearDataCaches()
 {
+#ifdef FIXME
   vtkInternal::VectorOfViews::iterator viter;
   for (viter = this->Internal->Views.begin(); 
     viter != this->Internal->Views.end(); ++viter)
@@ -806,6 +823,7 @@ void vtkSMComparativeViewProxy::ClearDataCaches()
     {
     viter->GetPointer()->SetUseCache(true);
     }
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -900,21 +918,6 @@ void vtkSMComparativeViewProxy::GetRepresentations(int x, int y,
       collection->AddItem(data.Clones[index-1].CloneRepresentation);
       }
     }
-}
-
-//----------------------------------------------------------------------------
-const char* vtkSMComparativeViewProxy::GetSuggestedViewType(vtkIdType connectionID)
-{
-  vtkSMViewProxy* rootView = vtkSMViewProxy::SafeDownCast(this->GetSubProxy("RootView"));
-  if (rootView)
-    {
-    vtksys_ios::ostringstream stream;
-    stream << "Comparative" << rootView->GetSuggestedViewType(connectionID);
-    this->Internal->SuggestedViewType = stream.str();
-    return this->Internal->SuggestedViewType.c_str();
-    }
-
-  return this->Superclass::GetSuggestedViewType(connectionID);
 }
 
 //----------------------------------------------------------------------------

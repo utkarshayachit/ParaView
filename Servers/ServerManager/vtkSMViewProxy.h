@@ -32,6 +32,7 @@
 #include "vtkSMProxy.h"
 
 class vtkImageData;
+class vtkSMRepresentationProxy;
 
 class VTK_EXPORT vtkSMViewProxy : public vtkSMProxy
 {
@@ -49,6 +50,12 @@ public:
   virtual void InteractiveRender();
 
   // Description:
+  // Create a default representation for the given source proxy.
+  // Returns a new proxy.
+  virtual vtkSMRepresentationProxy* CreateDefaultRepresentation(
+    vtkSMProxy*, int);
+
+  // Description:
   // Captures a image from this view. Default implementation returns NULL.
   virtual vtkImageData* CaptureWindow(int vtkNotUsed(magnification))
     { return NULL; }
@@ -57,6 +64,13 @@ public:
 protected:
   vtkSMViewProxy();
   ~vtkSMViewProxy();
+
+  // Description:
+  // Read attributes from an XML element.
+  virtual int ReadXMLAttributes(vtkSMProxyManager* pm, vtkPVXMLElement* element);
+
+  vtkSetStringMacro(DefaultRepresentationName);
+  char* DefaultRepresentationName;
 
 private:
   vtkSMViewProxy(const vtkSMViewProxy&); // Not implemented

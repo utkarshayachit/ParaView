@@ -51,8 +51,8 @@ SET(Kit_SRCS
 #  vtkSMClientDeliveryRepresentationProxy.cxx
 #  vtkSMClientServerRenderSyncManagerHelper.cxx
 #  vtkSMClientServerRenderViewProxy.cxx
-#  vtkSMComparativeAnimationCueProxy.cxx
-#vtkSMComparativeViewProxy.cxx
+  vtkSMComparativeAnimationCueProxy.cxx
+  vtkSMComparativeViewProxy.cxx
   vtkSMCompositeKeyFrameProxy.cxx
   vtkSMCompositeTreeDomain.cxx
   vtkSMCompoundSourceProxy.cxx
@@ -160,8 +160,7 @@ SET(Kit_SRCS
   vtkSMRepresentationProxy2.cxx
   vtkSMScalarBarActorProxy.cxx
   vtkSMScalarBarWidgetRepresentationProxy.cxx
-  vtkSMScatterPlotArraysInformationHelper.cxx
-#  vtkSMScatterPlotRepresentationProxy.cxx
+#  vtkSMScatterPlotArraysInformationHelper.cxx
 #  vtkSMScatterPlotViewProxy.cxx
 #  vtkSMSelectionDeliveryRepresentationProxy.cxx
   vtkSMSelectionHelper.cxx
@@ -197,7 +196,7 @@ SET(Kit_SRCS
   vtkSMTimeRangeInformationHelper.cxx
   vtkSMTimeStepsInformationHelper.cxx
   vtkSMTransformProxy.cxx
-#  vtkSMTwoDRenderViewProxy.cxx
+  vtkSMTwoDRenderViewProxy.cxx
   vtkSMUndoElement.cxx
   vtkSMUndoRedoStateLoader.cxx
   vtkSMUndoStackBuilder.cxx

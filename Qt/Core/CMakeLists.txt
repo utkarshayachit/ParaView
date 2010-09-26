@@ -47,10 +47,10 @@ QT4_WRAP_CPP(MOC_BUILT_SOURCES
   pqColorButtonEventPlayer.h
   pqColorButtonEventTranslator.h
   pqCommandServerStartup.h
-  pqComparativeContextView.h
-  pqComparativeRenderView.h
-  pqComparativeXYBarChartView.h
-  pqComparativeXYChartView.h
+#  pqComparativeContextView.h
+#  pqComparativeRenderView.h
+#  pqComparativeXYBarChartView.h
+#  pqComparativeXYChartView.h
   pqCoreTestUtility.h
   pqDataRepresentation.h
   pqDisplayPolicy.h
@@ -93,7 +93,7 @@ QT4_WRAP_CPP(MOC_BUILT_SOURCES
   pqScalarBarVisibilityAdaptor.h
   pqScalarOpacityFunction.h
   pqScalarsToColors.h
-  pqScatterPlotRepresentation.h
+#  pqScatterPlotRepresentation.h
   pqServer.h
   pqServerManagerModel.h
   pqServerManagerModelItem.h
@@ -113,7 +113,7 @@ QT4_WRAP_CPP(MOC_BUILT_SOURCES
   pqTextRepresentation.h
   pqTimeKeeper.h
   pqTwoDRenderView.h
-  pqScatterPlotView.h
+#  pqScatterPlotView.h
   pqUndoStack.h
   pqView.h
   pqViewExporterManager.h
@@ -192,14 +192,14 @@ ADD_LIBRARY(pqCore
   pqColorButtonEventTranslator.h
   pqCommandServerStartup.cxx
   pqCommandServerStartup.h
-  pqComparativeContextView.cxx
-  pqComparativeContextView.h
-  pqComparativeRenderView.cxx
-  pqComparativeRenderView.h
-  pqComparativeXYBarChartView.cxx
-  pqComparativeXYBarChartView.h
-  pqComparativeXYChartView.cxx
-  pqComparativeXYChartView.h
+#  pqComparativeContextView.cxx
+#  pqComparativeContextView.h
+#  pqComparativeRenderView.cxx
+#  pqComparativeRenderView.h
+#  pqComparativeXYBarChartView.cxx
+#  pqComparativeXYBarChartView.h
+#  pqComparativeXYChartView.cxx
+#  pqComparativeXYChartView.h
   pqCoreExport.h
   pqCoreInit.cxx
   pqCoreInit.h
@@ -309,8 +309,8 @@ ADD_LIBRARY(pqCore
   pqScalarOpacityFunction.h
   pqScalarsToColors.cxx
   pqScalarsToColors.h
-  pqScatterPlotRepresentation.cxx
-  pqScatterPlotRepresentation.h
+#  pqScatterPlotRepresentation.cxx
+#  pqScatterPlotRepresentation.h
   pqServer.cxx
   pqServer.h
   pqServerManagerModel.cxx
@@ -356,8 +356,8 @@ ADD_LIBRARY(pqCore
   pqTreeLayoutStrategyInterface.h
   pqTwoDRenderView.cxx
   pqTwoDRenderView.h
-  pqScatterPlotView.cxx
-  pqScatterPlotView.h
+#  pqScatterPlotView.cxx
+#  pqScatterPlotView.h
   pqUndoStack.cxx
   pqUndoStack.h
   pqView.cxx

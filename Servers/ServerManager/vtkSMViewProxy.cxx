@@ -18,6 +18,10 @@
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
+#include "vtkPVXMLElement.h"
+#include "vtkSmartPointer.h"
+#include "vtkSMProxyManager.h"
+#include "vtkSMRepresentationProxy.h"
 
 #include <vtkstd/vector>
 
@@ -26,11 +30,13 @@ vtkStandardNewMacro(vtkSMViewProxy);
 vtkSMViewProxy::vtkSMViewProxy()
 {
   this->SetServers(vtkProcessModule::CLIENT_AND_SERVERS);
+  this->DefaultRepresentationName = 0;
 }
 
 //----------------------------------------------------------------------------
 vtkSMViewProxy::~vtkSMViewProxy()
 {
+  this->SetDefaultRepresentationName(0);
 }
 
 //----------------------------------------------------------------------------
@@ -61,6 +67,42 @@ void vtkSMViewProxy::InteractiveRender()
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   pm->SendStream(this->ConnectionID, this->Servers, stream);
   this->InvokeEvent(vtkCommand::EndEvent, &interactive);
+}
+
+//----------------------------------------------------------------------------
+vtkSMRepresentationProxy* vtkSMViewProxy::CreateDefaultRepresentation(
+  vtkSMProxy* vtkNotUsed(proxy), int vtkNotUsed(opport))
+{
+  if (this->DefaultRepresentationName)
+    {
+    vtkSMProxyManager* pxm = vtkSMObject::GetProxyManager();
+    vtkSmartPointer<vtkSMProxy> p;
+    p.TakeReference(pxm->NewProxy("representations", this->DefaultRepresentationName));
+    vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(p);
+    if (repr)
+      {
+      repr->Register(this);
+      return repr;
+      }
+    }
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+int vtkSMViewProxy::ReadXMLAttributes(
+  vtkSMProxyManager* pm, vtkPVXMLElement* element)
+{
+  if (!this->Superclass::ReadXMLAttributes(pm, element))
+    {
+    return 0;
+    }
+
+  const char* repr_name = element->GetAttribute("representation_name");
+  if (repr_name)
+    {
+    this->SetDefaultRepresentationName(repr_name);
+    }
+  return 1;
 }
 
 //----------------------------------------------------------------------------
