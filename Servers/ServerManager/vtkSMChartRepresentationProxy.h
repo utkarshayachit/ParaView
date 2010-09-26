@@ -19,15 +19,15 @@
 #ifndef __vtkSMChartRepresentationProxy_h
 #define __vtkSMChartRepresentationProxy_h
 
-#include "vtkSMRepresentationProxy2.h"
+#include "vtkSMRepresentationProxy.h"
 
 class vtkChartRepresentation;
 
-class VTK_EXPORT vtkSMChartRepresentationProxy : public vtkSMRepresentationProxy2
+class VTK_EXPORT vtkSMChartRepresentationProxy : public vtkSMRepresentationProxy
 {
 public:
   static vtkSMChartRepresentationProxy* New();
-  vtkTypeMacro(vtkSMChartRepresentationProxy, vtkSMRepresentationProxy2);
+  vtkTypeMacro(vtkSMChartRepresentationProxy, vtkSMRepresentationProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:

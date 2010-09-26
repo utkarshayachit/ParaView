@@ -17,7 +17,9 @@
 #include "vtkDataSetAttributes.h"
 #include "vtkObjectFactory.h"
 #include "vtkSMPropertyHelper.h"
+#ifdef FIXME
 #include "vtkSMSpreadSheetRepresentationProxy.h"
+#endif
 #include "vtkSMViewProxy.h"
 #include "vtkCSVExporter.h"
 #include "vtkTable.h"
@@ -49,6 +51,7 @@ void vtkSMCSVExporterProxy::Write()
   // Locate first visible representation.
   vtkSMPropertyHelper helper(this->View, "Representations");
 
+#ifdef FIXME
   vtkSMSpreadSheetRepresentationProxy* activeRepr = 0;
   unsigned int numReprs = helper.GetNumberOfElements();
   for (unsigned int cc=0; cc < numReprs; cc++)
@@ -92,6 +95,7 @@ void vtkSMCSVExporterProxy::Write()
       }
     }
   exporter->Close();
+#endif
 }
 
 //----------------------------------------------------------------------------

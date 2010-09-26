@@ -25,14 +25,13 @@
 #ifndef __vtkSMPVRepresentationProxy_h
 #define __vtkSMPVRepresentationProxy_h
 
-#include "vtkSMRepresentationProxy2.h"
+#include "vtkSMRepresentationProxy.h"
 
-class VTK_EXPORT vtkSMPVRepresentationProxy :
-  public vtkSMRepresentationProxy2
+class VTK_EXPORT vtkSMPVRepresentationProxy : public vtkSMRepresentationProxy
 {
 public:
   static vtkSMPVRepresentationProxy* New();
-  vtkTypeMacro(vtkSMPVRepresentationProxy, vtkSMRepresentationProxy2);
+  vtkTypeMacro(vtkSMPVRepresentationProxy, vtkSMRepresentationProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:

@@ -43,7 +43,7 @@ SET(Kit_SRCS
   vtkSMCameraConfigurationReader.cxx
   vtkSMCameraConfigurationWriter.cxx
   vtkSMCameraKeyFrameProxy.cxx
-#  vtkSMCameraLink.cxx
+  vtkSMCameraLink.cxx
 #  vtkSMCameraManipulatorProxy.cxx
 #  vtkSMCameraProxy.cxx
   #vtkSMCaveRenderModuleProxy.cxx
@@ -63,8 +63,6 @@ SET(Kit_SRCS
   vtkSMContextNamedOptionsProxy.cxx
   vtkSMContextViewProxy.cxx
   vtkSMCSVExporterProxy.cxx
-#  vtkSMDataLabelRepresentationProxy.cxx
-#  vtkSMDataRepresentationProxy.cxx
   vtkSMDataTypeDomain.cxx
   vtkSMDeserializer.cxx
   vtkSMDimensionsDomain.cxx
@@ -157,8 +155,7 @@ SET(Kit_SRCS
   vtkSMRenderViewProxy.cxx
   vtkSMRenderViewExporterProxy.cxx
   vtkSMRepresentationAnimationHelperProxy.cxx
-#  vtkSMRepresentationProxy.cxx
-  vtkSMRepresentationProxy2.cxx
+  vtkSMRepresentationProxy.cxx
   vtkSMScalarBarActorProxy.cxx
   vtkSMScalarBarWidgetRepresentationProxy.cxx
 #  vtkSMScatterPlotArraysInformationHelper.cxx
@@ -233,7 +230,6 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkSMAnimationSceneWriter.cxx
   vtkSMClientServerRenderSyncManagerHelper.cxx
   vtkSMContextViewProxy.cxx
-  vtkSMDataRepresentationProxy.cxx
   vtkSMDomain.cxx
   vtkSMInformationHelper.cxx
   vtkSMLink.cxx

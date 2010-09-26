@@ -46,7 +46,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSmartPointer.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMSourceProxy.h"
+#ifdef FIXME
 #include "vtkSMSpreadSheetRepresentationProxy.h"
+#endif
 #include "vtkStdString.h"
 #include "vtkTable.h"
 #include "vtkUnsignedIntArray.h"
@@ -83,13 +85,16 @@ public:
   }
 
   QPointer<pqDataRepresentation> DataRepresentation;
+#ifdef FIXME
   vtkSmartPointer<vtkSMSpreadSheetRepresentationProxy> Representation;
+#endif
   int NumberOfColumns;
   int NumberOfRows;
   QItemSelectionModel SelectionModel;
   vtkIdType ActiveBlockNumber;
   int DecimalPrecision;
   
+#ifdef FIXME
   vtkIdType getBlockSize()
     {
     vtkIdType blocksize = pqSMAdaptor::getElementProperty(
@@ -150,7 +155,7 @@ public:
       }
     return 0;
     }
-
+#endif
   QTimer Timer;
   QSet<vtkIdType> PendingBlocks;
 
@@ -198,9 +203,11 @@ int pqSpreadSheetViewModel::columnCount(const QModelIndex&) const
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::setRepresentation(pqDataRepresentation* repr)
 {
+#ifdef FIXME
   this->Internal->DataRepresentation = repr;
   this->setRepresentationProxy(repr? 
     vtkSMSpreadSheetRepresentationProxy::SafeDownCast(repr->getProxy()) : 0);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -213,6 +220,7 @@ pqDataRepresentation* pqSpreadSheetViewModel::getRepresentation() const
 void pqSpreadSheetViewModel::setRepresentationProxy(
   vtkSMSpreadSheetRepresentationProxy* repr)
 {
+#ifdef FIXME
   if (this->Internal->Representation.GetPointer() != repr)
     {
     this->Internal->VTKConnect->Disconnect();
@@ -225,6 +233,7 @@ void pqSpreadSheetViewModel::setRepresentationProxy(
         this, SLOT(markDirty()));
       }
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -238,16 +247,20 @@ void pqSpreadSheetViewModel::markDirty()
 vtkSMSpreadSheetRepresentationProxy* pqSpreadSheetViewModel::
 getRepresentationProxy() const
 {
+#ifdef FIXME
   return this->Internal->Representation;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 int pqSpreadSheetViewModel::getFieldType() const
 {
+#ifdef FIXME
   if (this->Internal->Representation)
     {
     return this->Internal->getFieldType();
     }
+#endif
   return -1;
 }
 
@@ -263,6 +276,7 @@ void pqSpreadSheetViewModel::update()
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::forceUpdate()
 {
+#ifdef FIXME
   this->Internal->Dirty = false;
   // Note that this method is called after the representation has already been
   // updated.
@@ -301,11 +315,13 @@ void pqSpreadSheetViewModel::forceUpdate()
   
   // We do not fetch any data just yet. All data fetches happen when we want to
   // show the data on the GUI.
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::updateSelectionForBlock(vtkIdType blockNumber)
 {
+#ifdef FIXME
   vtkSMSpreadSheetRepresentationProxy* repr = this->Internal->Representation;
   if (repr && 
     (this->Internal->getFieldType() == vtkDataObject::FIELD_ASSOCIATION_CELLS ||
@@ -332,11 +348,13 @@ void pqSpreadSheetViewModel::updateSelectionForBlock(vtkIdType blockNumber)
       }
     emit this->selectionChanged(this->Internal->SelectionModel.selection());
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::delayedUpdate()
 {
+#ifdef FIXME
   vtkSMSpreadSheetRepresentationProxy* repr = 
     this->Internal->Representation;
   if (repr)
@@ -366,11 +384,13 @@ void pqSpreadSheetViewModel::delayedUpdate()
       this->headerDataChanged(Qt::Horizontal, 0, this->columnCount()-1);
       }
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::delayedSelectionUpdate()
 {
+#ifdef FIXME
   vtkSMSpreadSheetRepresentationProxy* repr = 
     this->Internal->Representation;
   if (repr)
@@ -385,11 +405,13 @@ void pqSpreadSheetViewModel::delayedSelectionUpdate()
     // whether or not to allow further selections
     emit this->selectionOnly( repr->GetSelectionOnly() );
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::setActiveBlock(QModelIndex top, QModelIndex bottom)
 {
+#ifdef FIXME
   this->Internal->PendingBlocks.clear();
   this->Internal->PendingSelectionBlocks.clear();
   if (this->Internal->Representation)
@@ -402,12 +424,14 @@ void pqSpreadSheetViewModel::setActiveBlock(QModelIndex top, QModelIndex bottom)
       this->Internal->PendingSelectionBlocks.insert(cc);
       }
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 QVariant pqSpreadSheetViewModel::data(
   const QModelIndex& idx, int role/*=Qt::DisplayRole*/) const
 {
+#ifdef FIXME
   vtkSMSpreadSheetRepresentationProxy* repr = 
     this->Internal->Representation;
   int row = idx.row();
@@ -512,12 +536,14 @@ QVariant pqSpreadSheetViewModel::data(
     }
 
   return QVariant();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 QVariant pqSpreadSheetViewModel::headerData (int section, Qt::Orientation orientation, 
     int role/*=Qt::DisplayRole*/) const 
 {
+#ifdef FIXME
   vtkSMSpreadSheetRepresentationProxy* repr = 
     this->Internal->Representation;
   if (orientation == Qt::Horizontal && repr && role == Qt::DisplayRole)
@@ -594,11 +620,13 @@ QVariant pqSpreadSheetViewModel::headerData (int section, Qt::Orientation orient
     }
 
   return this->Superclass::headerData(section, orientation, role);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 QModelIndex pqSpreadSheetViewModel::indexFor(vtkSelectionNode* node, vtkIdType vtkindex)
 {
+#ifdef FIXME
   vtkSMSpreadSheetRepresentationProxy* repr = 
     this->Internal->Representation;
 
@@ -710,11 +738,13 @@ QModelIndex pqSpreadSheetViewModel::indexFor(vtkSelectionNode* node, vtkIdType v
 
   ids->Delete();
   return idx;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 QItemSelection pqSpreadSheetViewModel::convertToQtSelection(vtkSelection* vtkselection)
 {
+#ifdef FIXME
   if (!vtkselection)
     {
     return QItemSelection();
@@ -761,12 +791,14 @@ QItemSelection pqSpreadSheetViewModel::convertToQtSelection(vtkSelection* vtksel
     qSel.merge(qSelCur, QItemSelectionModel::Select);
     }
   return qSel;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 QSet<pqSpreadSheetViewModel::vtkIndex> pqSpreadSheetViewModel::getVTKIndices(
   const QModelIndexList& indexes)
 {
+#ifdef FIXME
   // each variant in the vtkindices is 3 tuple
   // - (-1, pid, id) or
   // - (cid, pid, id) or
@@ -828,12 +860,14 @@ QSet<pqSpreadSheetViewModel::vtkIndex> pqSpreadSheetViewModel::getVTKIndices(
       }
     }
   return vtkindices;
+#endif
 }
 
 
 //-----------------------------------------------------------------------------
 bool pqSpreadSheetViewModel::isDataValid( const QModelIndex &idx) const
 {
+#ifdef FIXME
   // First make sure the index itself is valid
   if(!idx.isValid())
     {
@@ -875,11 +909,13 @@ bool pqSpreadSheetViewModel::isDataValid( const QModelIndex &idx) const
     }
 
   return false;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::resetCompositeDataSetIndex()
 {
+#ifdef FIXME
   if (!this->getRepresentation())
     {
     return;
@@ -934,6 +970,7 @@ void pqSpreadSheetViewModel::resetCompositeDataSetIndex()
   pqSMAdaptor::setElementProperty(
     reprProxy->GetProperty("CompositeDataSetIndex"), cur_index);
   reprProxy->UpdateVTKObjects();
+#endif
 }
    
 //-----------------------------------------------------------------------------

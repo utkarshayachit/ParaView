@@ -34,7 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Server Manager Includes.
 #include "vtkSMProperty.h"
 #include "vtkSMSourceProxy.h"
+#ifdef FIXME
 #include "vtkSMSpreadSheetRepresentationProxy.h"
+#endif
 #include "vtkSMViewProxy.h"
 
 // Qt Includes.
@@ -144,16 +146,19 @@ void pqSpreadSheetView::onAddRepresentation(pqRepresentation* repr)
 //-----------------------------------------------------------------------------
 void pqSpreadSheetView::onRemoveRepresentation(pqRepresentation* repr)
 {
+#ifdef FIXME
   if (repr && repr->getProxy() == this->Internal->Model.getRepresentationProxy())
     {
     this->Internal->Model.setRepresentation(0);
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetView::updateRepresentationVisibility(
   pqRepresentation* repr, bool visible)
 {
+#ifdef FIXME
   if (!visible && repr &&
     this->Internal->Model.getRepresentationProxy() == repr->getProxy())
     {
@@ -179,11 +184,13 @@ void pqSpreadSheetView::updateRepresentationVisibility(
   pqDataRepresentation* dataRepr = qobject_cast<pqDataRepresentation*>(repr);
   this->Internal->Model.setRepresentation(dataRepr);
   emit this->showing(dataRepr);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetView::onBeginRender()
 {
+#ifdef FIXME
   // If in "selection-only" mode, and showing composite dataset, we want to make
   // sure that we are shown a block with non-empty cells/points (if possible).
   vtkSMProxy* repr = this->Internal->Model.getRepresentationProxy();
@@ -202,6 +209,7 @@ void pqSpreadSheetView::onBeginRender()
       */
       }
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------

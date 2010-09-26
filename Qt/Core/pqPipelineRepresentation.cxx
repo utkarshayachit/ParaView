@@ -38,7 +38,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ParaView Server Manager includes.
 #include "vtkCommand.h"
+#include "vtkDataObject.h"
 #include "vtkEventQtSlotConnect.h"
+#include "vtkGeometryRepresentation.h"
 #include "vtkMath.h"
 #include "vtkProcessModule.h"
 #include "vtkProperty.h"
@@ -47,15 +49,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVGeometryInformation.h"
 #include "vtkPVTemporalDataInformation.h"
 #include "vtkScalarsToColors.h"
-#include "vtkSmartPointer.h" 
+#include "vtkSmartPointer.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMGlobalPropertiesManager.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMPVRepresentationProxy.h"
-#include "vtkSMSourceProxy.h"
-#include "vtkSMSurfaceRepresentationProxy.h"
 
 // Qt includes.
 #include <QList>
@@ -86,7 +86,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class pqPipelineRepresentation::pqInternal
 {
 public:
-  vtkSmartPointer<vtkSMPropRepresentationProxy> RepresentationProxy;
+  vtkSmartPointer<vtkSMRepresentationProxy> RepresentationProxy;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKConnect;
 //  pqScalarOpacityFunction *Opacity;
 
@@ -104,7 +104,7 @@ public:
       {
       return 0; 
       }
-    vtkSMDataRepresentationProxy* repr = this->RepresentationProxy;
+    vtkSMRepresentationProxy* repr = this->RepresentationProxy;
     vtkPVDataInformation* dataInfo = argInfo? argInfo: repr->GetRepresentedDataInformation();
     if(!dataInfo)
       {
@@ -112,7 +112,7 @@ public:
       }
 
     vtkPVArrayInformation* info = NULL;
-    if(fieldType == vtkSMDataRepresentationProxy::CELL_DATA)
+    if(fieldType == vtkDataObject::FIELD_ASSOCIATION_CELLS)
       {
       vtkPVDataSetAttributesInformation* cellinfo = 
         dataInfo->GetCellDataInformation();
@@ -138,11 +138,11 @@ pqPipelineRepresentation::pqPipelineRepresentation(
 {
   this->Internal = new pqPipelineRepresentation::pqInternal();
   this->Internal->RepresentationProxy
-    = vtkSMPropRepresentationProxy::SafeDownCast(display);
+    = vtkSMRepresentationProxy::SafeDownCast(display);
 
   if (!this->Internal->RepresentationProxy)
     {
-    qFatal("Display given is not a vtkSMPropRepresentationProxy.");
+    qFatal("Display given is not a vtkSMRepresentationProxy.");
     }
 
   // If any of these properties change, we know that the coloring for the
@@ -189,7 +189,7 @@ pqPipelineRepresentation::~pqPipelineRepresentation()
 }
 
 //-----------------------------------------------------------------------------
-vtkSMPropRepresentationProxy* pqPipelineRepresentation::getRepresentationProxy() const
+vtkSMRepresentationProxy* pqPipelineRepresentation::getRepresentationProxy() const
 {
   return this->Internal->RepresentationProxy;
 }
@@ -284,7 +284,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
   // created from LookupTableManager (Bug# 0008876)
   // this->createHelperProxies();
 
-  vtkSMPropRepresentationProxy* repr = this->getRepresentationProxy();
+  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
   if (!repr)
     {
     return;
@@ -437,7 +437,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     pqPipelineRepresentation::getColorArray(attrInfo, inAttrInfo, arrayInfo);
     if (arrayInfo)
       {
-      chosenFieldType = vtkSMDataRepresentationProxy::POINT_DATA;
+      chosenFieldType = vtkDataObject::FIELD_ASSOCIATION_CELLS;
       chosenArrayInfo = arrayInfo;
       }
     }
@@ -450,7 +450,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     pqPipelineRepresentation::getColorArray(attrInfo, inAttrInfo, arrayInfo);
     if (arrayInfo)
       {
-      chosenFieldType = vtkSMDataRepresentationProxy::CELL_DATA;
+      chosenFieldType = vtkDataObject::FIELD_ASSOCIATION_CELLS;
       chosenArrayInfo = arrayInfo;
       }
     }
@@ -463,7 +463,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     if (arrayInfo)
       {
       chosenArrayInfo = arrayInfo;
-      chosenFieldType = vtkSMDataRepresentationProxy::POINT_DATA;
+      chosenFieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
       }
     }
 
@@ -475,7 +475,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     if(arrayInfo)
       {
       chosenArrayInfo = arrayInfo;
-      chosenFieldType = vtkSMDataRepresentationProxy::CELL_DATA;
+      chosenFieldType = vtkDataObject::FIELD_ASSOCIATION_CELLS;
       }
     }
 
@@ -547,7 +547,7 @@ QString pqPipelineRepresentation::getComponentName(
 //-----------------------------------------------------------------------------
 void pqPipelineRepresentation::colorByArray(const char* arrayname, int fieldtype)
 {
-  vtkSMPropRepresentationProxy* repr = this->getRepresentationProxy();
+  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
   if (!repr)
     {
     return;
@@ -652,7 +652,7 @@ void pqPipelineRepresentation::colorByArray(const char* arrayname, int fieldtype
       old_stc->hideUnusedScalarBars();
       }
 
-  if(fieldtype == vtkSMDataRepresentationProxy::CELL_DATA)
+  if(fieldtype == vtkDataObject::FIELD_ASSOCIATION_CELLS)
     {
     pqSMAdaptor::setEnumerationProperty(
       repr->GetProperty("ColorAttributeType"), "CELL_DATA");
@@ -701,7 +701,7 @@ int pqPipelineRepresentation::getRepresentationType() const
     case VTK_WIREFRAME:
       return vtkSMPVRepresentationProxy::WIREFRAME;
 
-    case VTK_SURFACE_WITH_EDGES:
+    case vtkGeometryRepresentation::SURFACE_WITH_EDGES:
       return vtkSMPVRepresentationProxy::SURFACE_WITH_EDGES;
 
     case VTK_SURFACE:
@@ -768,7 +768,7 @@ void pqPipelineRepresentation::resetLookupTableScalarRange()
 //-----------------------------------------------------------------------------
 void pqPipelineRepresentation::resetLookupTableScalarRangeOverTime()
 {
-  vtkSMPropRepresentationProxy* repr = this->getRepresentationProxy();
+  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
   pqScalarsToColors* lut = this->getLookupTable();
   QString colorField = this->getColorField(true);
 
@@ -898,7 +898,7 @@ void pqPipelineRepresentation::getColorArray(
 //-----------------------------------------------------------------------------
 QList<QString> pqPipelineRepresentation::getColorFields()
 {
-  vtkSMPropRepresentationProxy* repr = this->getRepresentationProxy();
+  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
 
   QList<QString> ret;
   if(!repr)
@@ -988,7 +988,7 @@ QList<QString> pqPipelineRepresentation::getColorFields()
 int pqPipelineRepresentation::getColorFieldNumberOfComponents(const QString& array)
 {
   QString field = array;
-  int fieldType = vtkSMDataRepresentationProxy::POINT_DATA;
+  int fieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
 
   if(field == pqPipelineRepresentation::solidColor())
     {
@@ -997,12 +997,12 @@ int pqPipelineRepresentation::getColorFieldNumberOfComponents(const QString& arr
   if(field.right(strlen(" (cell)")) == " (cell)")
     {
     field.chop(strlen(" (cell)"));
-    fieldType = vtkSMDataRepresentationProxy::CELL_DATA;
+    fieldType = vtkDataObject::FIELD_ASSOCIATION_CELLS;
     }
   else if(field.right(strlen(" (point)")) == " (point)")
     {
     field.chop(strlen(" (point)"));
-    fieldType = vtkSMDataRepresentationProxy::POINT_DATA;
+    fieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
     }
 
   return this->getNumberOfComponents(field.toAscii().data(),
@@ -1013,7 +1013,7 @@ int pqPipelineRepresentation::getColorFieldNumberOfComponents(const QString& arr
 QString pqPipelineRepresentation::getColorFieldComponentName( const QString& array, const int &component )
 {
   QString field = array;
-  int fieldType = vtkSMDataRepresentationProxy::POINT_DATA;
+  int fieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
 
   if(field == pqPipelineRepresentation::solidColor())
     {
@@ -1022,12 +1022,12 @@ QString pqPipelineRepresentation::getColorFieldComponentName( const QString& arr
   if(field.right(strlen(" (cell)")) == " (cell)")
     {
     field.chop(strlen(" (cell)"));
-    fieldType = vtkSMDataRepresentationProxy::CELL_DATA;
+    fieldType = vtkDataObject::FIELD_ASSOCIATION_CELLS;
     }
   else if(field.right(strlen(" (point)")) == " (point)")
     {
     field.chop(strlen(" (point)"));
-    fieldType = vtkSMDataRepresentationProxy::POINT_DATA;
+    fieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
     }
 
    return this->getComponentName(field.toAscii().data(), fieldType, component );
@@ -1048,7 +1048,7 @@ pqPipelineRepresentation::getColorFieldRange(const QString& array, int component
   QPair<double,double>ret(0.0, 1.0);
 
   QString field = array;
-  int fieldType = vtkSMDataRepresentationProxy::POINT_DATA;
+  int fieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
 
   if(field == pqPipelineRepresentation::solidColor())
     {
@@ -1057,12 +1057,12 @@ pqPipelineRepresentation::getColorFieldRange(const QString& array, int component
   if(field.right(strlen(" (cell)")) == " (cell)")
     {
     field.chop(strlen(" (cell)"));
-    fieldType = vtkSMDataRepresentationProxy::CELL_DATA;
+    fieldType = vtkDataObject::FIELD_ASSOCIATION_CELLS;
     }
   else if(field.right(strlen(" (point)")) == " (point)")
     {
     field.chop(strlen(" (point)"));
-    fieldType = vtkSMDataRepresentationProxy::POINT_DATA;
+    fieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
     }
 
   vtkPVArrayInformation* representedInfo = this->Internal->getArrayInformation(
@@ -1124,7 +1124,7 @@ QPair<double, double> pqPipelineRepresentation::getColorFieldRange()
 //-----------------------------------------------------------------------------
 void pqPipelineRepresentation::setColorField(const QString& value)
 {
-  vtkSMPropRepresentationProxy* repr = this->getRepresentationProxy();
+  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
 
   if(!repr)
     {
@@ -1143,13 +1143,13 @@ void pqPipelineRepresentation::setColorField(const QString& value)
       {
       field.chop(strlen(" (cell)"));
       this->colorByArray(field.toAscii().data(), 
-                         vtkSMDataRepresentationProxy::CELL_DATA);
+                         vtkDataObject::FIELD_ASSOCIATION_CELLS);
       }
     else if(field.right(strlen(" (point)")) == " (point)")
       {
       field.chop(strlen(" (point)"));
       this->colorByArray(field.toAscii().data(), 
-                         vtkSMDataRepresentationProxy::POINT_DATA);
+                         vtkDataObject::FIELD_ASSOCIATION_POINTS);
       }
     }
 }
@@ -1158,7 +1158,7 @@ void pqPipelineRepresentation::setColorField(const QString& value)
 //-----------------------------------------------------------------------------
 QString pqPipelineRepresentation::getColorField(bool raw)
 {
-  vtkSMPropRepresentationProxy* repr = this->getRepresentationProxy();
+  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
   if (!repr)
     {
     return pqPipelineRepresentation::solidColor();
@@ -1192,7 +1192,7 @@ QString pqPipelineRepresentation::getColorField(bool raw)
 //-----------------------------------------------------------------------------
 void pqPipelineRepresentation::setRepresentation(int representation)
 {
-  vtkSMPropRepresentationProxy* repr = this->getRepresentationProxy();
+  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
   pqSMAdaptor::setElementProperty(
     repr->GetProperty("Representation"), representation);
   repr->UpdateVTKObjects();
@@ -1202,7 +1202,7 @@ void pqPipelineRepresentation::setRepresentation(int representation)
 //-----------------------------------------------------------------------------
 void pqPipelineRepresentation::onRepresentationChanged()
 {
-  vtkSMPropRepresentationProxy* repr = this->getRepresentationProxy();
+  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
   if (!repr)
     {
     return;
@@ -1323,7 +1323,7 @@ double pqPipelineRepresentation::getUnstructuredGridOutlineThreshold()
 
 //-----------------------------------------------------------------------------
 vtkSMProxy* pqPipelineRepresentation::createOpacityFunctionProxy(
-  vtkSMPropRepresentationProxy* repr)
+  vtkSMRepresentationProxy* repr)
 {
   if (!repr || !repr->GetProperty("ScalarOpacityFunction"))
     {

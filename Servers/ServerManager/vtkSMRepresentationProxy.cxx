@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ParaView
-  Module:    vtkSMRepresentationProxy.cxx
+  Module:    $RCSfile$
 
   Copyright (c) Kitware, Inc.
   All rights reserved.
@@ -14,25 +14,21 @@
 =========================================================================*/
 #include "vtkSMRepresentationProxy.h"
 
+#include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
-#include "vtkSMIntVectorProperty.h"
-#include "vtkSMInputProperty.h"
-#include "vtkInformation.h"
-#include "vtkPVDataInformation.h"
+#include "vtkProcessModule.h"
+#include "vtkMemberFunctionCommand.h"
 
-vtkCxxSetObjectMacro(vtkSMRepresentationProxy, ViewInformation, vtkInformation);
+vtkStandardNewMacro(vtkSMRepresentationProxy);
 //----------------------------------------------------------------------------
 vtkSMRepresentationProxy::vtkSMRepresentationProxy()
 {
-  this->ViewInformation = 0;
-  this->ViewUpdateTime = 0;
-  this->ViewUpdateTimeInitialized = false;
+
 }
 
 //----------------------------------------------------------------------------
 vtkSMRepresentationProxy::~vtkSMRepresentationProxy()
 {
-  this->SetViewInformation(0);
 }
 
 //----------------------------------------------------------------------------
@@ -42,92 +38,44 @@ void vtkSMRepresentationProxy::CreateVTKObjects()
     {
     return;
     }
-
-  if (!this->BeginCreateVTKObjects())
-    {
-    // BeginCreateVTKObjects() requested an abortion of VTK object creation.
-    return;
-    }
-
   this->Superclass::CreateVTKObjects();
-  this->EndCreateVTKObjects();
+
+  vtkMemberFunctionCommand<vtkSMRepresentationProxy>* observer =
+    vtkMemberFunctionCommand<vtkSMRepresentationProxy>::New();
+  observer->SetCallback(*this, &vtkSMRepresentationProxy::RepresentationUpdated);
+
+  vtkObject::SafeDownCast(this->GetClientSideObject())->AddObserver(
+    vtkCommand::UpdateDataEvent, observer);
+  observer->Delete();
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMRepresentationProxy::GetVisibility()
+void vtkSMRepresentationProxy::MarkDirty(vtkSMProxy* modifiedProxy)
 {
-  if (!this->ObjectsCreated)
+  cout << "MarkModified" << endl;
+  if (modifiedProxy != this && this->ObjectsCreated && !this->NeedsUpdate)
     {
-    return false;
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke
+      << this->GetID()
+      << "MarkModified"
+      << vtkClientServerStream::End;
+    vtkProcessModule::GetProcessModule()->SendStream(
+      this->ConnectionID,
+      this->Servers, stream);
     }
-
-  vtkSMIntVectorProperty* ivp = vtkSMIntVectorProperty::SafeDownCast(
-    this->GetProperty("Visibility"));
-  if (ivp && ivp->GetNumberOfElements()== 1 && ivp->GetElement(0))
-    {
-    return true;
-    }
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-bool vtkSMRepresentationProxy::GetBounds(double bounds[6])
-{
-  vtkPVDataInformation* info = this->GetRepresentedDataInformation(true);
-  if (!info)
-    {
-    return false;
-    }
-  info->GetBounds(bounds);
-  
-  if(bounds[1] < bounds[0])
-    {
-    return false;
-    }
-
-  return true;
+  this->Superclass::MarkModified(modifiedProxy);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMRepresentationProxy::Connect(vtkSMProxy* producer,
-  vtkSMProxy* consumer, const char* propertyname/*="Input"*/,
-  int outputport/*=0*/)
+void vtkSMRepresentationProxy::RepresentationUpdated()
 {
-  if (!propertyname)
-    {
-    vtkErrorMacro("propertyname cannot be NULL.");
-    return;
-    }
-
-  vtkSMProxyProperty* pp = vtkSMProxyProperty::SafeDownCast(
-    consumer->GetProperty(propertyname));
-  vtkSMInputProperty* ip = vtkSMInputProperty::SafeDownCast(pp);
-  if (!pp)
-    {
-    vtkErrorMacro("Failed to locate property " << propertyname
-      << " on the consumer " << consumer->GetXMLName());
-    return;
-    }
-
-  if (ip)
-    {
-    ip->RemoveAllProxies();
-    ip->AddInputConnection(producer, outputport);
-    }
-  else
-    {
-    pp->RemoveAllProxies();
-    pp->AddProxy(producer);
-    }
-  consumer->UpdateProperty(propertyname);
+  cout << "RepresentationUpdated" << endl;
+  this->PostUpdateData();
 }
 
 //----------------------------------------------------------------------------
 void vtkSMRepresentationProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "ViewUpdateTime: " << this->ViewUpdateTime << endl;
-  os << indent << "ViewInformation: " << this->ViewInformation << endl;
 }
-
-

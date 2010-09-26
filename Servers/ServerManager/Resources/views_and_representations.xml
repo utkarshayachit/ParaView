@@ -1,6 +1,6 @@
 <ServerManagerConfiguration>
   <!-- ==================================================================== -->
-  <ProxyGroup name="new_views">
+  <ProxyGroup name="views">
 
     <!-- ================================================================== -->
     <RenderView2Proxy name="RenderView2" class="vtkPVRenderView"

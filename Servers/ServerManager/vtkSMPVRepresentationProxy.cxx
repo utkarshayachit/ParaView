@@ -32,10 +32,10 @@ class vtkSMPVRepresentationProxy::vtkInternals
 public:
   struct vtkValue
     {
-    vtkSMRepresentationProxy2* Representation;
+    vtkSMRepresentationProxy* Representation;
     int Value;
     vtkstd::string Text;
-    vtkValue(vtkSMRepresentationProxy2* repr= 0, int value=-1, const char* text="")
+    vtkValue(vtkSMRepresentationProxy* repr= 0, int value=-1, const char* text="")
       {
       this->Representation = repr;
       this->Value = value;
@@ -49,7 +49,7 @@ public:
   // This is in some sense unnecessary, since the RepresentationProxies map
   // keeps this information, however, this makes it easy to iterate over unique
   // proxies.
-  typedef vtkstd::set<vtkSMRepresentationProxy2*> RepresentationProxiesSet;
+  typedef vtkstd::set<vtkSMRepresentationProxy*> RepresentationProxiesSet;
   RepresentationProxiesSet UniqueRepresentationProxies;
 
 
@@ -189,8 +189,8 @@ int vtkSMPVRepresentationProxy::CreateSubProxiesAndProperties(
         "RepresentationType") == 0)
       {
       const char* name = child->GetAttribute("subproxy");
-      vtkSMRepresentationProxy2* subproxy =
-        vtkSMRepresentationProxy2::SafeDownCast(this->GetSubProxy(name));
+      vtkSMRepresentationProxy* subproxy =
+        vtkSMRepresentationProxy::SafeDownCast(this->GetSubProxy(name));
       if (!subproxy)
         {
         vtkErrorMacro("Missing data representation subproxy '"
