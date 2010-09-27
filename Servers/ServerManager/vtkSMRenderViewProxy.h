@@ -87,6 +87,7 @@ protected:
     vtkCollection* selectionSources);
 
   void OnSelect(vtkObject*, unsigned long, void* vregion);
+
   // Description:
   // Called at the end of CreateVTKObjects().
   virtual void CreateVTKObjects();

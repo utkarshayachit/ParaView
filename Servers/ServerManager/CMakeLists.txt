@@ -356,6 +356,7 @@ SET(resourceFiles
   ${CMAKE_CURRENT_SOURCE_DIR}/Resources/utilities.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/Resources/rendering.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/Resources/views_and_representations.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/Resources/3d_widgets.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/Resources/internal_writers.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/Resources/writers.xml
   ${PARAVIEW_EXTRA_SERVERMANAGER_RESOURCES}

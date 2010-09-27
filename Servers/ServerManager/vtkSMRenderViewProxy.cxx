@@ -102,13 +102,24 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
     {
     return;
     }
+
   this->Superclass::CreateVTKObjects();
+
+  if (!this->ObjectsCreated)
+    {
+    return;
+    }
 
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke
          << this->GetID()
          << "Initialize"
          << static_cast<unsigned int>(this->GetSelfID().ID)
+         << vtkClientServerStream::End;
+  stream << vtkClientServerStream::Invoke
+         << this->GetID()
+         << "SetActiveCamera"
+         << this->GetSubProxy("ActiveCamera")->GetID()
          << vtkClientServerStream::End;
 
   vtkProcessModule::GetProcessModule()->SendStream(
@@ -131,7 +142,6 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
     obs->Delete();
     }
 }
-
 
 //----------------------------------------------------------------------------
 vtkSMRepresentationProxy* vtkSMRenderViewProxy::CreateDefaultRepresentation(

@@ -57,6 +57,7 @@ class vtkPVSynchronizedRenderWindows;
 class vtkRenderer;
 class vtkRenderViewBase;
 class vtkRenderWindow;
+class vtkTexture;
 
 class VTK_EXPORT vtkPVRenderView : public vtkPVView
 {
@@ -100,8 +101,10 @@ public:
   vtkRenderer* GetRenderer();
 
   // Description:
-  // Get the active camera.
+  // Get/Set the active camera. The active camera is set on both the composited
+  // and non-composited renderer.
   vtkCamera* GetActiveCamera();
+  virtual void SetActiveCamera(vtkCamera*);
 
   // Description:
   // Returns the render window.
@@ -282,6 +285,53 @@ public:
   //*****************************************************************
   // Forward to vtkPVGenericRenderWindowInteractor.
   void SetCenterOfRotation(double x, double y, double z);
+
+  //*****************************************************************
+  // Forward to vtkLightKit.
+  void SetKeyLightWarmth(double val);
+  void SetKeyLightIntensity(double val);
+  void SetKeyLightElevation(double val);
+  void SetKeyLightAzimuth(double val);
+  void SetFillLightWarmth(double val);
+  void SetKeyToFillRatio(double val);
+  void SetFillLightElevation(double val);
+  void SetFillLightAzimuth(double val);
+  void SetBackLightWarmth(double val);
+  void SetKeyToBackRatio(double val);
+  void SetBackLightElevation(double val);
+  void SetBackLightAzimuth(double val);
+  void SetHeadLightWarmth(double val);
+  void SetKeyToHeadRatio(double val);
+  void SetMaintainLuminance(int val);
+
+  //*****************************************************************
+  // Forward to 3D renderer.
+  void SetUseDepthPeeling(int val);
+  void SetMaximumNumberOfPeels(int val);
+  void SetBackground(double r, double g, double b);
+  void SetBackground2(double r, double g, double b);
+  void SetBackgroundTexture(vtkTexture* val);
+  void SetGradientBackground(int val);
+  void SetTexturedBackground(int val);
+
+  //*****************************************************************
+  // Forward to vtkLight.
+  void SetAmbientColor(double r, double g, double b);
+  void SetSpecularColor(double r, double g, double b);
+  void SetDiffuseColor(double r, double g, double b);
+  void SetIntensity(double val);
+  void SetLightType(int val);
+
+  //*****************************************************************
+  // Forward to vtkRenderWindow.
+  void SetStereoCapableWindow(int val);
+  void SetStereoRender(int val);
+  void SetStereoType(int val);
+  void SetOffScreenRendering(int val);
+  void SetMultiSamples(int val);
+  void SetAlphaBitPlanes(int val);
+  void SetStencilCapable(int val);
+
 
 //BTX
 protected:

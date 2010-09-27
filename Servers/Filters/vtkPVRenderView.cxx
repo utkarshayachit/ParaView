@@ -144,6 +144,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->Light->SetLightType(2); // CameraLight
   this->LightKit = vtkLightKit::New();
   this->GetRenderer()->AddLight(this->Light);
+  this->GetRenderer()->SetAutomaticLightCreation(0);
 
   this->OrderedCompositingBSPCutsSource = vtkBSPCutsGenerator::New();
 
@@ -223,6 +224,13 @@ void vtkPVRenderView::Initialize(unsigned int id)
 vtkRenderer* vtkPVRenderView::GetRenderer()
 {
   return this->RenderView->GetRenderer();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetActiveCamera(vtkCamera* camera)
+{
+  this->GetRenderer()->SetActiveCamera(camera);
+  this->GetNonCompositedRenderer()->SetActiveCamera(camera);
 }
 
 //----------------------------------------------------------------------------
@@ -813,6 +821,7 @@ void vtkPVRenderView::SetOrientationAxesOutlineColor(double r, double g, double 
 
 //*****************************************************************
 // Forwarded to center axes.
+//----------------------------------------------------------------------------
 void vtkPVRenderView::SetCenterAxesVisibility(bool v)
 {
   this->CenterAxes->SetVisibility(v);
@@ -820,6 +829,7 @@ void vtkPVRenderView::SetCenterAxesVisibility(bool v)
 
 //*****************************************************************
 // Forward to vtkPVGenericRenderWindowInteractor.
+//----------------------------------------------------------------------------
 void vtkPVRenderView::SetCenterOfRotation(double x, double y, double z)
 {
   this->CenterAxes->SetPosition(x, y, z);
@@ -827,4 +837,216 @@ void vtkPVRenderView::SetCenterOfRotation(double x, double y, double z)
     {
     this->Interactor->SetCenterOfRotation(x, y, z);
     }
+}
+
+//*****************************************************************
+// Forward to vtkLightKit.
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetKeyLightWarmth(double val)
+{
+  this->LightKit->SetKeyLightWarmth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetKeyLightIntensity(double val)
+{
+  this->LightKit->SetKeyLightIntensity(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetKeyLightElevation(double val)
+{
+  this->LightKit->SetKeyLightElevation(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetKeyLightAzimuth(double val)
+{
+  this->LightKit->SetKeyLightAzimuth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetFillLightWarmth(double val)
+{
+  this->LightKit->SetFillLightWarmth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetKeyToFillRatio(double val)
+{
+  this->LightKit->SetKeyToFillRatio(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetFillLightElevation(double val)
+{
+  this->LightKit->SetFillLightElevation(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetFillLightAzimuth(double val)
+{
+  this->LightKit->SetFillLightAzimuth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackLightWarmth(double val)
+{
+  this->LightKit->SetBackLightWarmth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetKeyToBackRatio(double val)
+{
+  this->LightKit->SetKeyToBackRatio(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackLightElevation(double val)
+{
+  this->LightKit->SetBackLightElevation(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackLightAzimuth(double val)
+{
+  this->LightKit->SetBackLightAzimuth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetHeadLightWarmth(double val)
+{
+  this->LightKit->SetHeadLightWarmth(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetKeyToHeadRatio(double val)
+{
+  this->LightKit->SetKeyToHeadRatio(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetMaintainLuminance(int val)
+{
+  this->LightKit->SetMaintainLuminance(val);
+}
+
+//*****************************************************************
+// Forward to 3D renderer.
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetUseDepthPeeling(int val)
+{
+  this->GetRenderer()->SetUseDepthPeeling(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetMaximumNumberOfPeels(int val)
+{
+  this->GetRenderer()->SetMaximumNumberOfPeels(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackground(double r, double g, double b)
+{
+  this->GetRenderer()->SetBackground(r, g, b);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackground2(double r, double g, double b)
+{
+  this->GetRenderer()->SetBackground2(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackgroundTexture(vtkTexture* val)
+{
+  this->GetRenderer()->SetBackgroundTexture(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetGradientBackground(int val)
+{
+  this->GetRenderer()->SetGradientBackground(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetTexturedBackground(int val)
+{
+  this->GetRenderer()->SetTexturedBackground(val);
+}
+
+//*****************************************************************
+// Forward to vtkLight.
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetAmbientColor(double r, double g, double b)
+{
+  this->Light->SetAmbientColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetSpecularColor(double r, double g, double b)
+{
+  this->Light->SetSpecularColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetDiffuseColor(double r, double g, double b)
+{
+  this->Light->SetDiffuseColor(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetIntensity(double val)
+{
+  this->Light->SetIntensity(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetLightType(int val)
+{
+  this->Light->SetLightType(val);
+}
+
+//*****************************************************************
+// Forward to vtkRenderWindow.
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetStereoCapableWindow(int val)
+{
+  this->GetRenderWindow()->SetStereoCapableWindow(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetStereoRender(int val)
+{
+  this->GetRenderWindow()->SetStereoRender(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetStereoType(int val)
+{
+  this->GetRenderWindow()->SetStereoType(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetOffScreenRendering(int)
+{
+  // FIXME
+  //this->GetRenderWindow()->SetOffScreenRendering(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetMultiSamples(int val)
+{
+  this->GetRenderWindow()->SetMultiSamples(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetAlphaBitPlanes(int val)
+{
+  this->GetRenderWindow()->SetAlphaBitPlanes(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetStencilCapable(int val)
+{
+  this->GetRenderWindow()->SetStencilCapable(val);
 }

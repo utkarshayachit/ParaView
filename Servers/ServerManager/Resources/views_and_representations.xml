@@ -3,7 +3,7 @@
   <ProxyGroup name="views">
 
     <!-- ================================================================== -->
-    <RenderView2Proxy name="RenderView2" class="vtkPVRenderView"
+    <RenderViewProxy name="RenderView" class="vtkPVRenderView"
            processes="client|renderserver|dataserver">
 
       <IntVectorProperty
@@ -186,11 +186,607 @@
         </Documentation>
       </DoubleVectorProperty>
 
-      <Property name="ResetCamera" command="ResetCamera" />
+      <!-- Key Light -->
+      <DoubleVectorProperty name="KeyLightWarmth"
+        command="SetKeyLightWarmth"
+        number_of_elements="1"
+        default_values="0.60" >
+        <DoubleRangeDomain name="range" min="0" max="1" resolution="0.01"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="KeyLightIntensity"
+        command="SetKeyLightIntensity"
+        number_of_elements="1"
+        default_values="0.75" >
+        <DoubleRangeDomain name="range" min="0" max="2" resolution="0.05"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="KeyLightElevation"
+        command="SetKeyLightElevation"
+        number_of_elements="1"
+        default_values="50.0" >
+        <DoubleRangeDomain name="range" min="0" max="90" resolution="1"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="KeyLightAzimuth"
+        command="SetKeyLightAzimuth"
+        number_of_elements="1"
+        default_values="10.0" >
+        <DoubleRangeDomain name="range" min="-90" max="90" resolution="1"/>
+      </DoubleVectorProperty>
+
+      <!-- Fill Light -->
+      <DoubleVectorProperty name="FillLightWarmth"
+        command="SetFillLightWarmth"
+        number_of_elements="1"
+        default_values="0.40" >
+        <DoubleRangeDomain name="range" min="0" max="1" resolution="0.01"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="FillLightK:F Ratio"
+        command="SetKeyToFillRatio"
+        number_of_elements="1"
+        default_values="3.0" >
+        <DoubleRangeDomain name="range" min="1" max="15" resolution="0.1"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="FillLightElevation"
+        command="SetFillLightElevation"
+        number_of_elements="1"
+        default_values="-75.0" >
+        <DoubleRangeDomain name="range" min="-90" max="10" resolution="1"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="FillLightAzimuth"
+        command="SetFillLightAzimuth"
+        number_of_elements="1"
+        default_values="-10.0" >
+        <DoubleRangeDomain name="range" min="-90" max="90" resolution="1"/>
+      </DoubleVectorProperty>
+
+      <!-- Back Light -->
+      <DoubleVectorProperty name="BackLightWarmth"
+        command="SetBackLightWarmth"
+        number_of_elements="1"
+        default_values="0.50" >
+        <DoubleRangeDomain name="range" min="0" max="1" resolution="0.01"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="BackLightK:B Ratio"
+        command="SetKeyToBackRatio"
+        number_of_elements="1"
+        default_values="3.5" >
+        <DoubleRangeDomain name="range" min="1" max="15" resolution="0.1"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="BackLightElevation"
+        command="SetBackLightElevation"
+        number_of_elements="1"
+        default_values="0.0" >
+        <DoubleRangeDomain name="range" min="-45" max="45" resolution="1"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="BackLightAzimuth"
+        command="SetBackLightAzimuth"
+        number_of_elements="1"
+        default_values="110.0" >
+        <DoubleRangeDomain name="range" min="60" max="170" resolution="1"/>
+      </DoubleVectorProperty>
+
+      <!-- Head Light -->
+      <DoubleVectorProperty name="HeadLightWarmth"
+        command="SetHeadLightWarmth"
+        number_of_elements="1"
+        default_values="0.50" >
+        <DoubleRangeDomain name="range" min="0" max="1" resolution="0.01"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="HeadLightK:H Ratio"
+        command="SetKeyToHeadRatio"
+        number_of_elements="1"
+        default_values="3.0" >
+        <DoubleRangeDomain name="range" min="1" max="15" resolution="0.1"/>
+      </DoubleVectorProperty>
+
+      <!-- Maintain Luminance -->
+     <IntVectorProperty name="MaintainLuminance"
+        command="SetMaintainLuminance"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+     </IntVectorProperty>
+
+     <IntVectorProperty name="DepthPeeling"
+       command="SetUseDepthPeeling"
+       number_of_elements="1"
+       default_values="1">
+       <BooleanDomain name="bool"/>
+     </IntVectorProperty>
+
+     <IntVectorProperty name="MaximumNumberOfPeels"
+       command="SetMaximumNumberOfPeels"
+       number_of_elements="1"
+       default_values="4">
+       <Documentation>
+         In case of depth peeling, define the maximum number of peeling layers.
+         Initial value is 4. A special value of 0 means no maximum limit. It
+         has to be a positive value.
+       </Documentation>
+       <IntRangeDomain name="range" min="0" />
+     </IntVectorProperty>
+
+     <DoubleVectorProperty name="Background"
+       command="SetBackground"
+       number_of_elements="3"
+       default_values="0 0 0" >
+       <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1"/>
+     </DoubleVectorProperty>
+
+     <DoubleVectorProperty name="Background2"
+       command="SetBackground2"
+       number_of_elements="3"
+       default_values="0 0 0.165" >
+       <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1"/>
+     </DoubleVectorProperty>
+
+     <ProxyProperty name="BackgroundTexture"
+       command="SetBackgroundTexture">
+       <ProxyGroupDomain name="groups">
+         <Group name="textures"/>
+       </ProxyGroupDomain>
+     </ProxyProperty>
+
+     <IntVectorProperty name="UseGradientBackground"
+       command="SetGradientBackground"
+       number_of_elements="1"
+       default_values="0" >
+       <BooleanDomain name="bool"/>
+     </IntVectorProperty>
+
+     <IntVectorProperty name="UseTexturedBackground"
+       command="SetTexturedBackground"
+       number_of_elements="1"
+       default_values="0" >
+       <BooleanDomain name="bool"/>
+     </IntVectorProperty>
+
+     <DoubleVectorProperty name="LightAmbientColor"
+       command="SetAmbientColor"
+       number_of_elements="3"
+       default_values="1.0 1.0 1.0">
+       <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+     </DoubleVectorProperty>
+
+     <DoubleVectorProperty name="LightSpecularColor"
+       command="SetSpecularColor"
+       number_of_elements="3"
+       default_values="1.0 1.0 1.0">
+       <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+     </DoubleVectorProperty>
+
+     <DoubleVectorProperty name="LightDiffuseColor"
+       command="SetDiffuseColor"
+       number_of_elements="3"
+       default_values="1.0 1.0 1.0">
+       <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+     </DoubleVectorProperty>
+
+     <DoubleVectorProperty name="LightIntensity"
+       command="SetIntensity"
+       number_of_elements="1"
+       default_values="1.0">
+       <DoubleRangeDomain name="range" min="0" max="1" />
+     </DoubleVectorProperty>
+
+     <IntVectorProperty name="LightType"
+       command="SetLightType"
+       number_of_elements="1"
+       default_values="1">
+       <EnumerationDomain name="enum">
+         <Entry value="1" text="HeadLight" />
+         <Entry value="2" text="CameraLight" />
+         <Entry value="3" text="SceneLight" />
+       </EnumerationDomain>
+     </IntVectorProperty>
+
+     <IntVectorProperty name="StereoCapableWindow"
+       command="SetStereoCapableWindow"
+       number_of_elements="1"
+       default_values="0">
+       <BooleanDomain name="bool"/>
+     </IntVectorProperty>
+
+     <IntVectorProperty name="StereoRender"
+       command="SetStereoRender"
+       number_of_elements="1"
+       default_values="0">
+       <BooleanDomain name="bool"/>
+     </IntVectorProperty>
+
+     <IntVectorProperty name="StereoType"
+       command="SetStereoType"
+       number_of_elements="1"
+       default_values="2">
+       <EnumerationDomain name="enum">
+         <Entry value="1" text="Crystal Eyes" />
+         <Entry value="2" text="Red-Blue" />
+         <Entry value="3" text="Interlaced" />
+         <Entry value="4" text="Left" />
+         <Entry value="5" text="Right" />
+         <Entry value="6" text="Dresden" />
+         <Entry value="7" text="Anaglyph" />
+         <Entry value="8" text="Checkerboard" />
+       </EnumerationDomain>
+     </IntVectorProperty>
+
+     <IntVectorProperty name="OffScreenRendering"
+       command="SetOffScreenRendering"
+       number_of_elements="1"
+       default_values="0">
+       <BooleanDomain name="bool" />
+     </IntVectorProperty>
+
+     <IntVectorProperty name="MultiSamples"
+       command="SetMultiSamples"
+       number_of_elements="1"
+       default_values="0">
+     </IntVectorProperty>
+
+     <IntVectorProperty name="AlphaBitPlanes"
+       command="SetAlphaBitPlanes"
+       number_of_elements="1"
+       default_values="1">
+       <BooleanDomain name="bool"/>
+     </IntVectorProperty>
+
+     <IntVectorProperty name="StencilCapable"
+       command="SetStencilCapable"
+       number_of_elements="1"
+       default_values="1">
+       <BooleanDomain name="bool"/>
+     </IntVectorProperty>
+
+     <Property name="ResetCamera" command="ResetCamera" />
+     <Property name="StillRender" command="StillRender" />
+     <Property name="InteractiveRender" command="InteractiveRender" />
+
+     <SubProxy>
+       <Proxy name="ActiveCamera" proxyname="Camera" proxygroup="camera">
+       </Proxy>
+       <ExposedProperties>
+         <Property name="CameraPositionInfo" />
+         <Property name="CameraPosition" />
+         <Property name="CameraFocalPointInfo" />
+         <Property name="CameraFocalPoint" />
+         <Property name="CameraViewUpInfo" />
+         <Property name="CameraViewUp" />
+         <Property name="CameraViewAngle" />
+         <Property name="CameraClippingRangeInfo" />
+         <Property name="CameraClippingRange" />
+         <Property name="CameraParallelScale" />
+         <Property name="CameraParallelScaleInfo" />
+         <Property name="CameraParallelProjection" />
+         <Property name="EyeAngle" />
+       </ExposedProperties>
+     </SubProxy>
+
+    </RenderViewProxy>
+
+    <!-- ================================================================== -->
+    <ContextViewProxy name="XYChartViewBase"
+                      class="vtkPVXYChartView"
+                      processes="client|renderserver|dataserver">
+      <Documentation>
+        This is the base proxy for XY chart views.
+      </Documentation>
+
       <Property name="StillRender" command="StillRender" />
       <Property name="InteractiveRender" command="InteractiveRender" />
 
-    </RenderView2Proxy>
+      <IntVectorProperty name="Position"
+        command="SetPosition"
+        number_of_elements="2"
+        default_values="0 0">
+        <Documentation>
+          Set the position on this view in the multiview configuration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="Size"
+        command="SetSize"
+        number_of_elements="2"
+        default_values="400 400" >
+        <Documentation>
+          Set the size of this view in the multiview configuration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <ProxyProperty name="Representations"
+        command="AddRepresentation"
+        remove_command="RemoveRepresentation"
+        repeatable="1">
+        <Documentation>
+          Representations in this view.
+        </Documentation>
+      </ProxyProperty>
+
+      <StringVectorProperty
+        name="ChartTitle"
+        command="SetTitle"
+        number_of_elements="1">
+      </StringVectorProperty>
+
+      <StringVectorProperty
+        name="ChartTitleFont"
+        command="SetTitleFont"
+        number_of_elements="4"
+        element_types="2 0 0 0"
+        default_values_delimiter=";"
+        default_values="Arial;14;0;0" >
+        <Documentation>
+          Set the chart title font (familyname, size, bold, italics).
+        </Documentation>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty
+        name="ChartTitleColor"
+        command="SetTitleColor"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty
+        name="ChartTitleAlignment"
+        command="SetTitleAlignment"
+        number_of_elements="1"
+        default_values="1">
+        <IntRangeDomain name="range" min="0" max="2" />
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="ShowLegend"
+        command="SetLegendVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="ShowAxis"
+        command="SetAxisVisibility"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="1"
+        number_of_elements="4"
+        default_values="1 1 0 0">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="AxisLogScale"
+        command="SetAxisLogScale"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="1"
+        number_of_elements="4"
+        default_values="0 0 0 0">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="ShowAxisGrid"
+        command="SetGridVisibility"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="1"
+        number_of_elements="4"
+        default_values="1 1 0 0">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty
+        name="AxisColor"
+        command="SetAxisColor"
+        repeat_command="1"
+        number_of_elements_per_command="3"
+        use_index="1"
+        number_of_elements="12"
+        default_values=
+          "0.0 0.0 0.0   0.0 0.0 0.0   0.0 0.0 0.0   0.0 0.0 0.0">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="AxisGridColor"
+        command="SetGridColor"
+        use_index="1"
+        repeat_command="1"
+        number_of_elements_per_command="3"
+        number_of_elements="12"
+        default_values=
+          "0.95 0.95 0.95   0.95 0.95 0.95   0.95 0.95 0.95   0.95 0.95 0.95">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty
+        name="ShowAxisLabels"
+        command="SetAxisLabelVisibility"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="1"
+        number_of_elements="4"
+        default_values="1 1 1 1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <StringVectorProperty
+        name="AxisLabelFont"
+        command="SetAxisLabelFont"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="4"
+        element_types="2 0 0 0"
+        number_of_elements="16"
+        default_values_delimiter=";"
+        default_values="Arial;12;0;0;Arial;12;0;0;Arial;12;0;0;Arial;12;0;0" >
+        <Documentation>
+          Set the axis title font (familyname, size, bold, italics).
+        </Documentation>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty
+        name="AxisLabelColor"
+        command="SetAxisLabelColor"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="3"
+        number_of_elements="12"
+        default_values="0 0 0   0 0 0   0 0 0   0 0 0" >
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <IntVectorProperty
+        name="AxisLabelNotation"
+        command="SetAxisLabelNotation"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="1"
+        number_of_elements="4"
+        default_values="0 0 0 0">
+        <IntRangeDomain name="range" min="0" max="2" />
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="AxisLabelPrecision"
+        command="SetAxisLabelPrecision"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="1"
+        number_of_elements="4"
+        default_values="2 2 2 2">
+        <IntRangeDomain name="range" min="0" max="6" />
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="AxisBehavior"
+        command="SetAxisBehavior"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="1"
+        number_of_elements="4"
+        default_values="0 0 0 0">
+        <IntRangeDomain name="range" min="0" max="2" />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty
+        name="AxisRange"
+        command="SetAxisRange"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="2"
+        number_of_elements="8"
+        default_values="0 1 0 1 0 1 0 1">
+      </DoubleVectorProperty>
+
+      <StringVectorProperty
+        name="AxisTitle"
+        command="SetAxisTitle"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="1"
+        number_of_elements="4">
+      </StringVectorProperty>
+
+      <StringVectorProperty
+        name="AxisTitleFont"
+        command="SetAxisTitleFont"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="4"
+        element_types="2 0 0 0"
+        number_of_elements="16"
+        default_values_delimiter=";"
+        default_values="Arial;12;1;0;Arial;12;1;0;Arial;12;1;0;Arial;12;1;0">
+        <Documentation>
+          Set the axis title font (familyname, size, bold, italics).
+        </Documentation>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty
+        name="AxisTitleColor"
+        command="SetAxisTitleColor"
+        repeat_command="1"
+        use_index="1"
+        number_of_elements_per_command="3"
+        number_of_elements="12"
+        default_values="0 0 0   0 0 0   0 0 0.5   0 0 0.5" >
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+    </ContextViewProxy>
+
+    <!-- ================================================================== -->
+    <ContextViewProxy name="XYChartView"
+      base_proxygroup="views"
+      base_proxyname="XYChartViewBase"
+      class="vtkPVXYChartView"
+      processes="client|renderserver|dataserver"
+      representation_name="XYChartRepresentation">
+      <Documentation>
+        This is the proxy for the XY line chart view.
+      </Documentation>
+
+      <StringVectorProperty
+        name="ChartType"
+        command="SetChartType"
+        number_of_elements="1"
+        default_values="Line" >
+      </StringVectorProperty>
+
+    </ContextViewProxy>
+
+    <!-- ================================================================== -->
+    <ContextViewProxy name="XYBarChartView"
+      base_proxygroup="views"
+      base_proxyname="XYChartViewBase"
+      class="vtkPVXYChartView"
+      processes="client|renderserver|dataserver"
+      representation_name="XYBarChartRepresentation">
+      <Documentation>
+        This is the proxy for bar chart view.
+      </Documentation>
+
+      <StringVectorProperty
+        name="ChartType"
+        command="SetChartType"
+        number_of_elements="1"
+        default_values="Bar" >
+      </StringVectorProperty>
+
+    </ContextViewProxy>
+
+    <ContextViewProxy name="ParallelCoordinatesChartView"
+      base_proxygroup="views"
+      base_proxyname="ViewBase"
+      class="vtkPVXYChartView"
+      processes="client|renderserver|dataserver"
+      representation_name="ParallelCoordinatesRepresentation">
+      <Documentation>
+        This is the proxy for parallel coordinates chart view.
+      </Documentation>
+
+      <StringVectorProperty
+        name="ChartType"
+        command="SetChartType"
+        update_self="1"
+        number_of_elements="1"
+        default_values="ParallelCoordinates" >
+      </StringVectorProperty>
+
+    </ContextViewProxy>
+
+
   </ProxyGroup>
 
   <!-- ==================================================================== -->
@@ -829,7 +1425,7 @@
     </UniformGridVolumeRepresentationProxy>
 
     <!-- ================================================================== -->
-    <RepresentationProxy2 name="OutlineRepresentation"
+    <RepresentationProxy name="OutlineRepresentation"
                           class="vtkOutlineRepresentation"
                           processes="client|renderserver|dataserver">
       <Documentation>
@@ -998,10 +1594,10 @@
       </IntVectorProperty>
 
       <!-- end of OutlineRepresentation -->
-    </RepresentationProxy2>
+    </RepresentationProxy>
 
     <!-- ================================================================== -->
-    <RepresentationProxy2 name="ImageSliceRepresentation"
+    <RepresentationProxy name="ImageSliceRepresentation"
                           class="vtkImageSliceRepresentation"
                           processes="client|renderserver|dataserver">
       <Documentation>
@@ -1161,10 +1757,10 @@
       </IntVectorProperty>
 
       <!-- End of ImageSliceRepresentation -->
-    </RepresentationProxy2>
+    </RepresentationProxy>
 
     <!-- ================================================================== -->
-    <RepresentationProxy2 name="SurfaceRepresentation"
+    <RepresentationProxy name="SurfaceRepresentation"
                           class="vtkGeometryRepresentation"
                           processes="client|renderserver|dataserver">
       <Documentation>
@@ -1431,10 +2027,10 @@
       </IntVectorProperty>
 
       <!-- End of SurfaceRepresentation -->
-    </RepresentationProxy2>
+    </RepresentationProxy>
 
     <!-- ================================================================== -->
-    <RepresentationProxy2 name="CubeAxesRepresentation"
+    <RepresentationProxy name="CubeAxesRepresentation"
                           class="vtkCubeAxesRepresentation"
                           processes="client|renderserver|dataserver">
       <Documentation>
@@ -1526,168 +2122,10 @@
       </SubProxy>
 
       <!-- End of CubeAxesRepresentation -->
-    </RepresentationProxy2>
+    </RepresentationProxy>
 
     <!-- ================================================================== -->
-    <ScalarBarWidgetRepresentationProxy name="ScalarBarWidgetRepresentation"
-        class="vtk3DWidgetRepresentation">
-      <Documentation>
-        ScalarBarWidgetRepresentation is a representation for a scalar bar
-        including a widget to control the position and orientation of the scalar
-        bar.
-      </Documentation>
-      <IntVectorProperty name="Enabled"
-                         command="SetEnabled"
-                         number_of_elements="1"
-                         default_values="0">
-        <BooleanDomain name="bool"/>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="UseNonCompositedRenderer"
-        command="SetUseNonCompositedRenderer"
-        number_of_elements="1"
-        default_values="1">
-      </IntVectorProperty>
-
-      <SubProxy>
-        <Proxy name="Prop2D"
-               proxygroup="props" proxyname="ScalarBarRepresentation">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="Visibility"/>
-          <Property name="Position"/>
-          <Property name="Position2"/>
-          <Property name="Orientation" />
-          <Property name="PositionInfo"/>
-          <Property name="Position2Info"/>
-          <Property name="OrientationInfo" />
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="Prop2DActor"
-               proxygroup="annotations" proxyname="ScalarBarActor">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="LookupTable" />
-          <Property name="Title" />
-          <Property name="ComponentTitle" />
-          <Property name="AutomaticLabelFormat" />
-          <Property name="LabelFormat" />
-          <Property name="NumberOfLabels" />
-          <Property name="AspectRatio" />
-          <!-- properties for Label -->
-          <Property name="LabelColor"     />
-          <Property name="LabelOpacity"   />
-          <Property name="LabelFontFamily"/>
-          <Property name="LabelBold"      />
-          <Property name="LabelItalic"    />
-          <Property name="LabelShadow"    />
-          <Property name="LabelFontSize"  />
-          <!-- properties for Title -->
-          <Property name="TitleColor"     />
-          <Property name="TitleOpacity"   />
-          <Property name="TitleFontFamily"/>
-          <Property name="TitleBold"      />
-          <Property name="TitleItalic"    />
-          <Property name="TitleShadow"    />
-          <Property name="TitleFontSize"  />
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="Widget"
-               proxygroup="3d_widgets" proxyname="ScalarBarWidget">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="Selectable" />
-          <Property name="Resizable" />
-          <Property name="Repositionable" />
-        </ExposedProperties>
-      </SubProxy>
-    </ScalarBarWidgetRepresentationProxy>
-
-    <!-- ================================================================== -->
-    <TextWidgetRepresentationProxy name="TextWidgetRepresentation"
-      class="vtk3DWidgetRepresentation" >
-      <Documentation>
-        TextWidgetRepresentation is a representation for text widget as well as
-        the representation for the text shown in the widget.
-      </Documentation>
-      <IntVectorProperty name="Enabled"
-        command="SetEnabled"
-        number_of_elements="1"
-        default_values="0">
-        <BooleanDomain name="bool"/>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="UseNonCompositedRenderer"
-        command="SetUseNonCompositedRenderer"
-        number_of_elements="1"
-        default_values="1">
-      </IntVectorProperty>
-
-      <SubProxy>
-        <Proxy name="Prop2D"
-          proxygroup="props" proxyname="TextRepresentation">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="Visibility"/>
-          <Property name="Text"/>
-          <Property name="Position"/>
-          <Property name="Position2"/>
-          <Property name="PositionInfo"/>
-          <Property name="Position2Info"/>
-          <Property name="WindowLocation"/>
-          <Property name="TextActor"/>
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="Prop2DActor"
-          proxygroup="props" proxyname="TextActor">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="TextScaleMode"/>
-          <Property name="TextProperty"/>
-        </ExposedProperties>
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="Prop2DProperty"
-          proxygroup="properties" proxyname="TextProperty">
-        </Proxy>
-
-        <ExposedProperties>
-          <Property name="Justification"/>
-          <Property name="Orientation"/>
-          <Property name="Color"/>
-          <Property name="Opacity"/>
-          <Property name="FontFamily"/>
-          <Property name="Bold"/>
-          <Property name="Italic"/>
-          <Property name="Shadow"/>
-          <Property name="FontSize"/>
-        </ExposedProperties>
-
-      </SubProxy>
-
-      <SubProxy>
-        <Proxy name="Widget"
-          proxygroup="3d_widgets" proxyname="TextWidget">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="ProcessEvents"/>
-          <Property name="Selectable"/>
-          <Property name="Resizable"/>
-        </ExposedProperties>
-      </SubProxy>
-
-      <!-- End of TextWidgetRepresentation -->
-    </TextWidgetRepresentationProxy>
-
-    <!-- ================================================================== -->
-    <RepresentationProxy2 name="DataLabelRepresentation"
+    <RepresentationProxy name="DataLabelRepresentation"
                           class="vtkDataLabelRepresentation"
                           processes="client|renderserver|dataserver">
       <Documentation>
@@ -1909,7 +2347,7 @@
       </StringVectorProperty>
 
     <!-- End of DataLabelRepresentation -->
-    </RepresentationProxy2>
+    </RepresentationProxy>
 
     <!-- ================================================================== -->
     <SelectionRepresentationProxy name="SelectionRepresentation"
@@ -2005,6 +2443,361 @@
 
     <!-- End of SelectionRepresentation -->
     </SelectionRepresentationProxy>
+
+    <!-- =================================================================== -->
+    <ChartRepresentationProxy name="XYChartRepresentationBase"
+      base_proxygroup="representations"
+      class="vtkXYChartRepresentation"
+      processes="client|dataserver" >
+      <Documentation>
+        Representation used by XYChartView.
+      </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection" >
+        <Documentation>
+          Data input for the representation.
+        </Documentation>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject"/>
+        </DataTypeDomain>
+      </InputProperty>
+
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1" >
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Visibility of the representation.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="FieldAssociation"
+        command="SetFieldAssociation"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Select the attribute data to pass.
+        </Documentation>
+        <FieldDataDomain name="enum"
+           enable_field_data="1"
+           disable_update_domain_entries="1" >
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </FieldDataDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="CompositeDataSetIndex"
+        command="SetCompositeDataSetIndex"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          In case of Composite datasets, set the flat index of the dataset to
+          pass. The flat index must point to a non-empty, non-composite dataset
+          for anything to be passed through. If the input is not a composite
+          dataset, then this index is ignored.
+        </Documentation>
+        <CompositeTreeDomain name="tree" mode="leaves">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+       </CompositeTreeDomain>
+      </IntVectorProperty>
+
+      <StringVectorProperty name="SeriesNamesInfo"
+        number_of_elements_per_command="1"
+        element_types="2"
+        information_only="1">
+        <Documentation>
+          Property providing list of available series that can be plotted.
+        </Documentation>
+        <ContextArraysInformationHelper />
+      </StringVectorProperty>
+
+      <StringVectorProperty name="XArrayName"
+        command="SetXAxisSeriesName"
+        number_of_elements="1"
+        default_values="">
+        <Documentation>
+          Set the array to use on X axis. This is used only when
+          UseIndexForXAxis is set to 0.
+        </Documentation>
+        <StringListDomain name="array_list" >
+          <RequiredProperties>
+             <Property name="SeriesNamesInfo" function="ArrayList"/>
+          </RequiredProperties>
+        </StringListDomain>
+      </StringVectorProperty>
+
+      <IntVectorProperty name="UseIndexForXAxis"
+        command="SetUseIndexForXAxis"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          When set, the array index will be used for X axis, otherwise the array
+          identified by XArrayName will be used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <SubProxy>
+        <Proxy name="PlotOptions"
+          proxygroup="options"
+          proxyname="PlotOptionsBase">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Visibility" exposed_name="SeriesVisibility" />
+          <Property name="Color" exposed_name="SeriesColor" />
+          <Property name="LineThickness" exposed_name="SeriesLineThickness" />
+          <Property name="LineStyle" exposed_name="SeriesLineStyle" />
+          <Property name="Label" exposed_name="SeriesLabel" />
+          <Property name="MarkerStyle" exposed_name="SeriesMarkerStyle" />
+          <Property name="PlotCorner" exposed_name="SeriesPlotCorner" />
+
+          <Property name="VisibilityInfo" exposed_name="SeriesVisibilityInfo" />
+          <Property name="ColorInfo" exposed_name="SeriesColorInfo" />
+          <Property name="LineThicknessInfo" exposed_name="SeriesLineThicknessInfo" />
+          <Property name="LineStyleInfo" exposed_name="SeriesLineStyleInfo" />
+          <Property name="LabelInfo" exposed_name="SeriesLabelInfo" />
+          <Property name="MarkerStyleInfo" exposed_name="SeriesMarkerStyleInfo" />
+          <Property name="PlotCornerInfo" exposed_name="SeriesPlotCornerInfo" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <!--
+      <SubProxy>
+        <Proxy name="SelectionRepresentation"
+          proxygroup="representations"
+          proxyname="ClientDeliveryRepresentation">
+        </Proxy>
+      </SubProxy>
+      -->
+
+      <!-- End of XYChartRepresentationBase -->
+    </ChartRepresentationProxy>
+
+    <!-- =================================================================== -->
+    <ParallelCoordinatesRepresentationProxy name="ParallelCoordinatesRepresentation"
+      class="vtkParallelCoordinatesRepresentation"
+      processes="client|dataserver" >
+      <Documentation>
+        Representation used by ParallelCoordinatesChartView.
+      </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection" >
+        <Documentation>
+          Data input for the representation.
+        </Documentation>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject"/>
+        </DataTypeDomain>
+      </InputProperty>
+
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1" >
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Visibility of the representation.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="FieldAssociation"
+        command="SetFieldAssociation"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Select the attribute data to pass.
+        </Documentation>
+        <FieldDataDomain name="enum"
+           enable_field_data="1"
+           disable_update_domain_entries="1" >
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </FieldDataDomain>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="CompositeDataSetIndex"
+        command="SetCompositeDataSetIndex"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          In case of Composite datasets, set the flat index of the dataset to
+          pass. The flat index must point to a non-empty, non-composite dataset
+          for anything to be passed through. If the input is not a composite
+          dataset, then this index is ignored.
+        </Documentation>
+        <CompositeTreeDomain name="tree" mode="leaves">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+       </CompositeTreeDomain>
+      </IntVectorProperty>
+
+      <StringVectorProperty name="SeriesVisibilityInfo"
+        number_of_elements_per_command="2"
+        repeat_command="1"
+        information_only="1">
+        <Documentation>
+          Property which has the current state of visibility for the series
+          available currently.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="SeriesVisibility"
+        command="SetSeriesVisibility"
+        number_of_elements_per_command="2"
+        element_types="2 0"
+        repeat_command="1"
+        information_property="SeriesVisibilityInfo" >
+        <Documentation>
+          Set the series visibility.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="LineThicknessInfo"
+        number_of_elements_per_command="1"
+        information_only="1">
+        <Documentation>
+          Property which has the current state of line thickness for the series
+          available currently.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="LineThickness"
+        command="SetLineThickness"
+        number_of_elements_per_command="1"
+        element_types="0"
+        repeat_command="1"
+        information_property="LineThicknessInfo" >
+        <Documentation>
+          Set the series line thickness.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="LineStyleInfo"
+        number_of_elements_per_command="1"
+        information_only="1">
+        <Documentation>
+          Property which has the current state of line style for the series
+          available currently.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="LineStyle"
+        command="SetLineStyle"
+        number_of_elements_per_command="1"
+        element_types="0"
+        repeat_command="1"
+        information_property="LineStyleInfo">
+        <Documentation>
+          Set the series line style.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="SeriesLabelInfo"
+        number_of_elements_per_command="2"
+        repeat_command="1"
+        information_only="1">
+        <Documentation>
+          Property which has the current state of labels for the series
+          available currently.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="SeriesLabel"
+        command="SetLabel"
+        number_of_elements_per_command="2"
+        element_types="2 2"
+        repeat_command="1"
+        information_property="LabelInfo">
+        <Documentation>
+          Set the series labels.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="ColorInfo"
+        number_of_elements_per_command="3"
+        information_only="1">
+        <Documentation>
+          Property which has the current state of line color for the series.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="Color"
+        command="SetColor"
+        number_of_elements_per_command="3"
+        element_types="1 1 1"
+        repeat_command="1"
+        information_property="ColorInfo" >
+        <Documentation>
+          Set the series line color.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="OpacityInfo"
+        number_of_elements_per_command="1"
+        information_only="1">
+        <Documentation>
+          Property which has the current state of line color for the series.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="Opacity"
+        command="SetOpacity"
+        number_of_elements_per_command="1"
+        element_types="1"
+        repeat_command="1"
+        information_property="OpacityInfo" >
+        <Documentation>
+          Set the opacity of the lines.
+        </Documentation>
+      </StringVectorProperty>
+
+    </ParallelCoordinatesRepresentationProxy>
+
+    <!-- =================================================================== -->
+    <!-- New representation for ContextView based charts. -->
+    <ChartRepresentationProxy name="XYChartRepresentation"
+      base_proxygroup="representations"
+      base_proxyname="XYChartRepresentationBase"
+      class="vtkXYChartRepresentation"
+      processes="client|dataserver" >
+      <Documentation>
+        Representation used by XYChartView.
+      </Documentation>
+
+      <StringVectorProperty
+        name="ChartType"
+        command="SetChartType"
+        update_self="1"
+        number_of_elements="1"
+        default_values="Line" >
+      </StringVectorProperty>
+    </ChartRepresentationProxy>
+
+    <!-- =================================================================== -->
+    <!-- New representation for ContextView based charts. -->
+    <ChartRepresentationProxy name="XYBarChartRepresentation"
+      base_proxygroup="representations"
+      base_proxyname="XYChartRepresentationBase"
+      class="vtkXYChartRepresentation"
+      processes="client|dataserver" >
+      <Documentation>
+        Representation used by XYBarChartView.
+      </Documentation>
+
+      <StringVectorProperty
+        name="ChartType"
+        command="SetChartType"
+        update_self="1"
+        number_of_elements="1"
+        default_values="Bar" >
+      </StringVectorProperty>
+    </ChartRepresentationProxy>
 
   </ProxyGroup>
 
