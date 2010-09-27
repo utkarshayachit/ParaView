@@ -26,7 +26,9 @@
 #include "vtkPVXMLElement.h"
 #include "vtkSmartPointer.h"
 #include "vtkSMInputProperty.h"
+#include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMPropertyIterator.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMRepresentationProxy.h"
 #include "vtkSMSelectionHelper.h"
@@ -68,6 +70,31 @@ vtkSMRenderViewProxy::~vtkSMRenderViewProxy()
 {
 }
 
+//-----------------------------------------------------------------------------
+void vtkSMRenderViewProxy::SynchronizeCameraProperties()
+{
+  if (!this->ObjectsCreated)
+    {
+    return;
+    }
+
+  vtkSMProxy* cameraProxy = this->GetSubProxy("ActiveCamera");
+  cameraProxy->UpdatePropertyInformation();
+  vtkSMPropertyIterator* iter = cameraProxy->NewPropertyIterator();
+  for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
+    {
+    vtkSMProperty *cur_property = iter->GetProperty();
+    vtkSMProperty *info_property = cur_property->GetInformationProperty();
+    if (!info_property)
+      {
+      continue;
+      }
+    cur_property->Copy(info_property);
+    //cur_property->UpdateLastPushedValues();
+    }
+  iter->Delete();
+}
+
 //----------------------------------------------------------------------------
 vtkRenderWindow* vtkSMRenderViewProxy::GetRenderWindow()
 {
@@ -84,6 +111,15 @@ vtkRenderer* vtkSMRenderViewProxy::GetRenderer()
   vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(
     this->GetClientSideObject());
   return rv? rv->GetRenderer() : NULL;
+}
+
+//----------------------------------------------------------------------------
+vtkCamera* vtkSMRenderViewProxy::GetActiveCamera()
+{
+  this->CreateVTKObjects();
+  vtkPVRenderView* rv = vtkPVRenderView::SafeDownCast(
+    this->GetClientSideObject());
+  return rv? rv->GetActiveCamera() : NULL;
 }
 
 //----------------------------------------------------------------------------

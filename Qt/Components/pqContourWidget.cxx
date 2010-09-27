@@ -147,13 +147,17 @@ void pqContourWidget::select()
   this->setLineColor(QColor::fromRgbF(1.0,0.0,1.0));
   this->Superclass::select();
   this->Superclass::updatePickShortcut(true);
-  this->getWidgetProxy()->SetEnabled(1);
+  vtkSMPropertyHelper(this->getWidgetProxy(), "Enabled").Set(1);
+  this->getWidgetProxy()->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------
 bool pqContourWidget::getBounds(double bounds[6]) const
 {
+  return false;
+#ifdef FIXME
   return this->getWidgetProxy()->GetBounds(bounds);
+#endif
 }
 
 //-----------------------------------------------------------------------------

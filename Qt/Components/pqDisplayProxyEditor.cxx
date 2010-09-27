@@ -805,7 +805,7 @@ void pqDisplayProxyEditor::updateEnableState()
     this->Internal->BackfaceStyleGroupOptions->setEnabled(!backFollowsFront);
     }
 
-  vtkSMDataRepresentationProxy* display =
+  vtkSMRepresentationProxy* display =
     this->Internal->Representation->getRepresentationProxy();
   if (display)
     {
@@ -876,6 +876,7 @@ void pqDisplayProxyEditor::zoomToData()
     }
 
   double bounds[6];
+#ifdef FIXME
   this->Internal->Representation->getRepresentationProxy()->GetBounds(bounds);
   if (bounds[0]<=bounds[1] && bounds[2]<=bounds[3] && bounds[4]<=bounds[5])
     {
@@ -888,6 +889,7 @@ void pqDisplayProxyEditor::zoomToData()
       renModule->render();
       }
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1035,7 +1037,7 @@ void pqDisplayProxyEditor::volumeBlockSelected()
       this->Internal->CompositeTreeAdaptor->getCurrentFlatIndex(&valid);
     if (valid && selectedIndex > 0)
       {
-      vtkSMDataRepresentationProxy* repr =
+      vtkSMRepresentationProxy* repr =
         this->Internal->Representation->getRepresentationProxy();
       pqSMAdaptor::setElementProperty(
         repr->GetProperty("ExtractedBlockIndex"), selectedIndex);

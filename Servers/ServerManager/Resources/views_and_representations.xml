@@ -3,11 +3,21 @@
   <ProxyGroup name="views">
 
     <!-- ================================================================== -->
-    <RenderViewProxy name="RenderView" class="vtkPVRenderView"
-           processes="client|renderserver|dataserver">
+    <Proxy name="ViewBase" class="vtkPVView"
+      processes="client|renderserver|dataserver">
 
-      <IntVectorProperty
-        name="Position"
+      <DoubleVectorProperty name="ViewTime"
+        command="SetViewTime"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range"/>
+        <Documentation>
+          The pipeline update time for this view.
+          This gets passed to all representations added to this view.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="2"
         default_values="0 0">
@@ -16,8 +26,7 @@
         </Documentation>
       </IntVectorProperty>
 
-      <IntVectorProperty
-        name="Size"
+      <IntVectorProperty name="Size"
         command="SetSize"
         number_of_elements="2"
         default_values="400 400" >
@@ -25,6 +34,24 @@
           Set the size of this view in the multiview configuration.
         </Documentation>
       </IntVectorProperty>
+
+      <ProxyProperty name="Representations"
+        command="AddRepresentation"
+        remove_command="RemoveRepresentation"
+        repeatable="1">
+        <Documentation>
+          Representations in this view.
+        </Documentation>
+      </ProxyProperty>
+
+     <Property name="StillRender" command="StillRender" />
+     <Property name="InteractiveRender" command="InteractiveRender" />
+    </Proxy>
+
+    <!-- ================================================================== -->
+    <RenderViewProxy name="RenderView" class="vtkPVRenderView"
+           processes="client|renderserver|dataserver"
+           base_proxygroup="views" base_proxyname="ViewBase" >
 
       <IntVectorProperty
         name="InteractionMode"
@@ -166,15 +193,6 @@
           number_of_elements="3"
           default_values="1 1 1">
       </DoubleVectorProperty>
-
-      <ProxyProperty name="Representations"
-        command="AddRepresentation"
-        remove_command="RemoveRepresentation"
-        repeatable="1">
-        <Documentation>
-          Representations in this view.
-        </Documentation>
-      </ProxyProperty>
 
       <DoubleVectorProperty
         name="CenterOfRotation"
@@ -446,9 +464,19 @@
        <BooleanDomain name="bool"/>
      </IntVectorProperty>
 
+      <ProxyProperty name="HiddenRepresentations"
+        command="AddRepresentation"
+        remove_command="RemoveRepresentation"
+        is_internal="1"
+        repeatable="1">
+        <Documentation>
+          This property is meant for adding/removing representation secretly.
+          e.g. 3D widgets etc. This property is not saved in states nor it
+          recorded by undo-redo.
+        </Documentation>
+      </ProxyProperty>
+
      <Property name="ResetCamera" command="ResetCamera" />
-     <Property name="StillRender" command="StillRender" />
-     <Property name="InteractiveRender" command="InteractiveRender" />
 
      <SubProxy>
        <Proxy name="ActiveCamera" proxyname="Camera" proxygroup="camera">
@@ -479,36 +507,6 @@
       <Documentation>
         This is the base proxy for XY chart views.
       </Documentation>
-
-      <Property name="StillRender" command="StillRender" />
-      <Property name="InteractiveRender" command="InteractiveRender" />
-
-      <IntVectorProperty name="Position"
-        command="SetPosition"
-        number_of_elements="2"
-        default_values="0 0">
-        <Documentation>
-          Set the position on this view in the multiview configuration.
-        </Documentation>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="Size"
-        command="SetSize"
-        number_of_elements="2"
-        default_values="400 400" >
-        <Documentation>
-          Set the size of this view in the multiview configuration.
-        </Documentation>
-      </IntVectorProperty>
-
-      <ProxyProperty name="Representations"
-        command="AddRepresentation"
-        remove_command="RemoveRepresentation"
-        repeatable="1">
-        <Documentation>
-          Representations in this view.
-        </Documentation>
-      </ProxyProperty>
 
       <StringVectorProperty
         name="ChartTitle"
@@ -766,6 +764,7 @@
 
     </ContextViewProxy>
 
+    <!-- ================================================================== -->
     <ContextViewProxy name="ParallelCoordinatesChartView"
       base_proxygroup="views"
       base_proxyname="ViewBase"
@@ -785,7 +784,6 @@
       </StringVectorProperty>
 
     </ContextViewProxy>
-
 
   </ProxyGroup>
 

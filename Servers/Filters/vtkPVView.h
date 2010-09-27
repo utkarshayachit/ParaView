@@ -74,6 +74,11 @@ public:
   bool SynchronizeBounds(double bounds[6]);
   bool SynchronizeSize(unsigned long &size);
 
+  // Description:
+  // Get/Set the time this view is showing.
+  vtkSetMacro(ViewTime, double);
+  vtkGetMacro(ViewTime, double);
+
 //BTX
 protected:
   vtkPVView();
@@ -99,6 +104,8 @@ protected:
   // Every view gets a unique identifier that it uses to register itself with
   // the SynchronizedWindows. This is set in Initialize().
   unsigned int Identifier;
+
+  double ViewTime;
 
 private:
   vtkPVView(const vtkPVView&); // Not implemented

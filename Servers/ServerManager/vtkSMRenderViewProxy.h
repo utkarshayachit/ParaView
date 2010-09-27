@@ -23,6 +23,7 @@
 
 #include "vtkSMViewProxy.h"
 
+class vtkCamera;
 class vtkCollection;
 class vtkPVGenericRenderWindowInteractor;
 class vtkRenderer;
@@ -66,6 +67,10 @@ public:
   // Returns the client-side renderer (composited or 3D).
   vtkRenderer* GetRenderer();
 
+  // Description:
+  // Returns the client-side camera object.
+  vtkCamera* GetActiveCamera();
+
 //  vtkSMProxy* SelectFrustumCells(int region[4]);
 //  vtkSMProxy* SelectFrustumPoints(int region[4]);
 
@@ -74,6 +79,15 @@ public:
   // Returns a new proxy.
   virtual vtkSMRepresentationProxy* CreateDefaultRepresentation(
     vtkSMProxy*, int);
+
+  // Description:
+  // This method calls UpdateInformation on the Camera Proxy
+  // and sets the Camera properties according to the info
+  // properties.
+  // This approach is a bit lame. We need to ensure that camera properties are
+  // always/automatically synchronized. Camera properties cannot be treated same
+  // way as other properties.
+  void SynchronizeCameraProperties();
 
 //BTX
 protected:

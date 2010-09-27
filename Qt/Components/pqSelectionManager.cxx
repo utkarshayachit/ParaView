@@ -53,8 +53,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSelection.h"
 #include "vtkSelectionNode.h"
 #include "vtkSmartPointer.h"
+#ifdef FIXME
 #include "vtkSMClientDeliveryRepresentationProxy.h"
 #include "vtkSMClientDeliveryStrategyProxy.h"
+#endif
 #include "vtkSMInputProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
@@ -272,6 +274,7 @@ QList<vtkIdType> pqSelectionManager::getGlobalIDs()
 //-----------------------------------------------------------------------------
 QList<vtkIdType> pqSelectionManager::getGlobalIDs(vtkSMProxy* selectionSource,pqOutputPort* opport)
 {
+#ifdef FIXME
   QList<vtkIdType> gids;
   int selectionPort = 0;
   vtkSMProxy* dataSource = opport->getSource()->getProxy();
@@ -328,6 +331,7 @@ QList<vtkIdType> pqSelectionManager::getGlobalIDs(vtkSMProxy* selectionSource,pq
   convertor->Delete();
   strategy->Delete();
   return gids;
+#endif
 }
 
 
@@ -344,6 +348,7 @@ QList<QPair<int, vtkIdType> > pqSelectionManager::getIndices()
 //-----------------------------------------------------------------------------
 QList<QPair<int, vtkIdType> > pqSelectionManager::getIndices(vtkSMProxy* selectionSource,pqOutputPort* opport)
 {
+#ifdef FIXME
   QList<QPair<int, vtkIdType> > indices;
   int selectionPort = 0;
   vtkSMProxy* dataSource = opport->getSource()->getProxy();
@@ -399,6 +404,7 @@ QList<QPair<int, vtkIdType> > pqSelectionManager::getIndices(vtkSMProxy* selecti
   convertor->Delete();
   strategy->Delete();
   return indices;
+#endif
 }
 
 //-----------------------------------------------------------------------------

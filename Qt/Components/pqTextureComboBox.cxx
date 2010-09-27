@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkProcessModule.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVDataSetAttributesInformation.h"
-#include "vtkSMDataRepresentationProxy.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMProxyManager.h"
@@ -434,8 +433,8 @@ void pqTextureComboBox::updateEnableState()
   if (this->Internal->Representation)
     {
     // Enable only if we have point texture coordinates.
-    vtkPVDataInformation* dataInfo = vtkSMDataRepresentationProxy::SafeDownCast(
-      this->Internal->Representation->getProxy())->GetRepresentedDataInformation(false);
+    vtkPVDataInformation* dataInfo =
+      this->Internal->Representation->getRepresentedDataInformation();
     if (!dataInfo)
       {
       return;

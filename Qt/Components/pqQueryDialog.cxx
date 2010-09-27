@@ -51,7 +51,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMSourceProxy.h"
+#ifdef FIXME
 #include "vtkSMSpreadSheetRepresentationProxy.h"
+#endif
 
 #include <QList>
 
@@ -117,6 +119,7 @@ pqQueryDialog::pqQueryDialog(
   // Setup the spreadsheet view.
   this->Internals->spreadsheet->setModel(&this->Internals->DataModel);
 
+#ifdef FIXME
   // Create representation to show the producer.
   vtkSMSpreadSheetRepresentationProxy* repr = 
     vtkSMSpreadSheetRepresentationProxy::SafeDownCast(
@@ -133,7 +136,7 @@ pqQueryDialog::pqQueryDialog(
   repr->UpdateVTKObjects();
   this->Internals->DataModel.setRepresentationProxy(repr);
   repr->Delete();
-
+#endif
 
   // Link the selection color to the global selection color so that it will
   // affect all views, otherwise user may be get confused ;).
@@ -312,6 +315,7 @@ void pqQueryDialog::runQuery()
 
   this->producer()->renderAllViews();
 
+#ifdef FIXME
   int attr_type = this->Internals->selectionType->itemData(
     this->Internals->selectionType->currentIndex()).toInt();
   vtkSMSpreadSheetRepresentationProxy* repr =
@@ -332,7 +336,7 @@ void pqQueryDialog::runQuery()
   
   // update the list of available labels.
   this->updateLabels();
-
+#endif
   emit this->selected(this->producer());
 }
 
