@@ -44,8 +44,8 @@ SET(Kit_SRCS
   vtkSMCameraConfigurationWriter.cxx
   vtkSMCameraKeyFrameProxy.cxx
   vtkSMCameraLink.cxx
-#  vtkSMCameraManipulatorProxy.cxx
-#  vtkSMCameraProxy.cxx
+  vtkSMCameraManipulatorProxy.cxx
+  vtkSMCameraProxy.cxx
   #vtkSMCaveRenderModuleProxy.cxx
 #  vtkSMCaveRenderViewProxy.cxx
   vtkSMChartRepresentationProxy.cxx
@@ -162,7 +162,7 @@ SET(Kit_SRCS
 #  vtkSMScatterPlotViewProxy.cxx
 #  vtkSMSelectionDeliveryRepresentationProxy.cxx
   vtkSMSelectionHelper.cxx
-#  vtkSMSelectionRepresentationProxy.cxx
+  vtkSMSelectionRepresentationProxy.cxx
   vtkSMServerFileListingProxy.cxx
   vtkSMServerProxyManagerReviver.cxx
   vtkSMServerSideAnimationPlayer.cxx
@@ -235,7 +235,6 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkSMLink.cxx
 #  vtkSMMultiProcessRenderView.cxx
   vtkSMProxyManagerReviver.cxx
-  vtkSMRepresentationProxy.cxx
   vtkSMStateVersionControllerBase.cxx
   vtkSMStateVersionControllerBase.cxx
   vtkSMUndoElement.cxx

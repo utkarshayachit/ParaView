@@ -199,7 +199,7 @@ vtkSMRepresentationProxy* vtkSMRenderViewProxy::CreateDefaultRepresentation(
     }
 
   // Choose which type of representation proxy to create.
-  vtkSMProxy* prototype = pxm->GetPrototypeProxy("new_representations",
+  vtkSMProxy* prototype = pxm->GetPrototypeProxy("representations",
     "UnstructuredGridRepresentation");
 
   vtkSMInputProperty* pp = vtkSMInputProperty::SafeDownCast(
@@ -211,7 +211,7 @@ vtkSMRepresentationProxy* vtkSMRenderViewProxy::CreateDefaultRepresentation(
   if (usg)
     {
     return vtkSMRepresentationProxy::SafeDownCast(
-      pxm->NewProxy("new_representations", "UnstructuredGridRepresentation"));
+      pxm->NewProxy("representations", "UnstructuredGridRepresentation"));
     }
 
   prototype = pxm->GetPrototypeProxy("representations",
@@ -225,10 +225,10 @@ vtkSMRepresentationProxy* vtkSMRenderViewProxy::CreateDefaultRepresentation(
   if (sg)
     {
     return vtkSMRepresentationProxy::SafeDownCast(
-      pxm->NewProxy("new_representations", "UniformGridRepresentation"));
+      pxm->NewProxy("representations", "UniformGridRepresentation"));
     }
 
-  prototype = pxm->GetPrototypeProxy("new_representations",
+  prototype = pxm->GetPrototypeProxy("representations",
     "GeometryRepresentation");
   pp = vtkSMInputProperty::SafeDownCast(
     prototype->GetProperty("Input"));
@@ -239,7 +239,7 @@ vtkSMRepresentationProxy* vtkSMRenderViewProxy::CreateDefaultRepresentation(
   if (g)
     {
     return vtkSMRepresentationProxy::SafeDownCast(
-      pxm->NewProxy("new_representations", "GeometryRepresentation"));
+      pxm->NewProxy("representations", "GeometryRepresentation"));
     }
 
   vtkPVXMLElement* hints = source->GetHints();

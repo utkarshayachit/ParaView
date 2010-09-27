@@ -20,15 +20,15 @@
 #ifndef __vtkSMSelectionRepresentationProxy_h
 #define __vtkSMSelectionRepresentationProxy_h
 
-#include "vtkSMRepresentationProxy2.h"
+#include "vtkSMRepresentationProxy.h"
 
 class vtkSMDataLabelRepresentationProxy;
 
-class VTK_EXPORT vtkSMSelectionRepresentationProxy : public vtkSMRepresentationProxy2
+class VTK_EXPORT vtkSMSelectionRepresentationProxy : public vtkSMRepresentationProxy
 {
 public:
   static vtkSMSelectionRepresentationProxy* New();
-  vtkTypeMacro(vtkSMSelectionRepresentationProxy, vtkSMRepresentationProxy2);
+  vtkTypeMacro(vtkSMSelectionRepresentationProxy, vtkSMRepresentationProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 //BTX

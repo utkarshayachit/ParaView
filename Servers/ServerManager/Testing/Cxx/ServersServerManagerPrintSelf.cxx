@@ -33,7 +33,6 @@
 #include "vtkSMCameraLink.h"
 #include "vtkSMCameraManipulatorProxy.h"
 #include "vtkSMCameraProxy.h"
-#include "vtkSMClientDeliveryStrategyProxy.h"
 #include "vtkSMCompositeKeyFrameProxy.h"
 #include "vtkSMCompoundSourceProxy.h"
 #include "vtkSMCompoundProxyDefinitionLoader.h"
@@ -95,8 +94,6 @@
 #include "vtkSMServerSideAnimationPlayer.h"
 #include "vtkSMSimpleDoubleInformationHelper.h"
 #include "vtkSMSimpleIntInformationHelper.h"
-#include "vtkSMSimpleParallelStrategy.h"
-#include "vtkSMSimpleStrategy.h"
 #include "vtkSMSimpleStringInformationHelper.h"
 #include "vtkSMSinusoidKeyFrameProxy.h"
 #include "vtkSMSourceProxy.h"
@@ -128,22 +125,14 @@
 #include "vtkSMViewProxy.h"
 
 // Representation Proxies
-#include "vtkSMAxesRepresentationProxy.h"
-#include "vtkSMClientDeliveryRepresentationProxy.h"
 #include "vtkSMNewWidgetRepresentationProxy.h"
-#include "vtkSMOutlineRepresentationProxy.h"
 #include "vtkSMScalarBarWidgetRepresentationProxy.h"
-#include "vtkSMSurfaceRepresentationProxy.h"
-#include "vtkSMUniformGridVolumeRepresentationProxy.h"
-#include "vtkSMUnstructuredGridVolumeRepresentationProxy.h"
 
 #ifdef PARAVIEW_USE_ICE_T
 #include "vtkSMProcessModule.h"
 #include "vtkSMPropertyInternals.h"
 #include "vtkSMProxyInternals.h"
 #include "vtkSMProxyManagerInternals.h"
-#include "vtkSMIceTCompositeViewProxy.h"
-#include "vtkSMIceTDesktopRenderViewProxy.h"
 
 #endif  //PARAVIEW_USE_ICE_T
 
@@ -172,7 +161,6 @@ int main(int , char *[])
   c = vtkSMCompoundSourceProxy::New(); c->Print( cout ); c->Delete();
   c = vtkSMCompoundProxyDefinitionLoader::New(); c->Print( cout ); c->Delete();
   c = vtkSMCompositeKeyFrameProxy::New(); c->Print( cout ); c->Delete();
-  c = vtkSMClientDeliveryStrategyProxy::New(); c->Print( cout ); c->Delete();
   c = vtkSMConnectionCleanerProxy::New(); c->Print( cout ); c->Delete();
   c = vtkSMDataTypeDomain::New(); c->Print( cout ); c->Delete();
   c = vtkSMDocumentation::New(); c->Print( cout ); c->Delete();
@@ -231,8 +219,6 @@ int main(int , char *[])
   c = vtkSMDoubleArrayInformationHelper::New(); c->Print( cout ); c->Delete();
   c = vtkSMSimpleDoubleInformationHelper::New(); c->Print( cout ); c->Delete();
   c = vtkSMSimpleIntInformationHelper::New(); c->Print( cout ); c->Delete();
-  c = vtkSMSimpleParallelStrategy::New(); c->Print( cout ); c->Delete();
-  c = vtkSMSimpleStrategy::New(); c->Print( cout ); c->Delete();
   c = vtkSMSimpleStringInformationHelper::New(); c->Print( cout ); c->Delete();
   c = vtkSMSinusoidKeyFrameProxy::New(); c->Print( cout ); c->Delete();
   c = vtkSMSourceProxy::New(); c->Print( cout ); c->Delete();
@@ -262,22 +248,14 @@ int main(int , char *[])
   c = vtkSMViewProxy::New(); c->Print( cout ); c->Delete();
 
   // Representation Proxies
-  c = vtkSMAxesRepresentationProxy::New(); c->Print( cout ); c->Delete();
-  c = vtkSMClientDeliveryRepresentationProxy::New(); c->Print( cout ); c->Delete();
   c = vtkSMNewWidgetRepresentationProxy::New(); c->Print( cout ); c->Delete();
-  c = vtkSMOutlineRepresentationProxy::New(); c->Print( cout ); c->Delete();
   c = vtkSMScalarBarWidgetRepresentationProxy::New(); c->Print( cout ); c->Delete();
-  c = vtkSMSurfaceRepresentationProxy::New(); c->Print( cout ); c->Delete();
-  c = vtkSMUniformGridVolumeRepresentationProxy::New(); c->Print( cout ); c->Delete();
-  c = vtkSMUnstructuredGridVolumeRepresentationProxy::New(); c->Print( cout ); c->Delete();
 
 #ifdef PARAVIEW_USE_ICE_T
   c = vtkSMProcessModule::New(); c->Print( cout ); c->Delete();
   c = vtkSMPropertyInternals::New(); c->Print( cout ); c->Delete();
   c = vtkSMProxyInternals::New(); c->Print( cout ); c->Delete();
   c = vtkSMProxyManagerInternals::New(); c->Print( cout ); c->Delete();
-  c = vtkSMIceTCompositeViewProxy::New(); c->Print( cout ); c->Delete();
-  c = vtkSMIceTDesktopRenderViewProxy::New(); c->Print( cout ); c->Delete();
 #endif  //PARAVIEW_USE_ICE_T
 
   return 0;

@@ -22,15 +22,15 @@
 #ifndef __vtkSMUniformGridVolumeRepresentationProxy_h
 #define __vtkSMUniformGridVolumeRepresentationProxy_h
 
-#include "vtkSMRepresentationProxy2.h"
+#include "vtkSMRepresentationProxy.h"
 
 class VTK_EXPORT vtkSMUniformGridVolumeRepresentationProxy :
-  public vtkSMRepresentationProxy2
+  public vtkSMRepresentationProxy
 {
 public:
   static vtkSMUniformGridVolumeRepresentationProxy* New();
   vtkTypeMacro(vtkSMUniformGridVolumeRepresentationProxy,
-    vtkSMRepresentationProxy2);
+    vtkSMRepresentationProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 //BTX

@@ -57,7 +57,7 @@
         name="InteractionMode"
         command="SetInteractionMode"
         number_of_elements="1"
-        default_values="3">
+        default_values="0">
         <EnumerationDomain name="enum">
           <Entry text="3D" value="0" />
           <Entry text="2D" value="1" />
@@ -788,7 +788,7 @@
   </ProxyGroup>
 
   <!-- ==================================================================== -->
-  <ProxyGroup name="new_representations">
+  <ProxyGroup name="representations">
 
     <PVRepresentationProxy name="PVRepresentationBase"
                                class="vtkPVDataRepresentation"
@@ -841,7 +841,7 @@
 
       <SubProxy>
         <Proxy name="SurfaceRepresentation"
-          proxygroup="new_representations"
+          proxygroup="representations"
           proxyname="SurfaceRepresentation">
         </Proxy>
         <ExposedProperties>
@@ -875,7 +875,7 @@
 
       <SubProxy>
         <Proxy name="OutlineRepresentation"
-          proxygroup="new_representations" proxyname="OutlineRepresentation">
+          proxygroup="representations" proxyname="OutlineRepresentation">
         </Proxy>
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
@@ -885,7 +885,7 @@
 
       <SubProxy>
         <Proxy name="CubeAxesRepresentation"
-          proxygroup="new_representations"
+          proxygroup="representations"
           proxyname="CubeAxesRepresentation">
         </Proxy>
         <ExposedProperties>
@@ -920,7 +920,7 @@
 
       <SubProxy>
         <Proxy name="SelectionRepresentation"
-          proxygroup="new_representations"
+          proxygroup="representations"
           proxyname="SelectionRepresentation" />
         <ExposedProperties>
           <Property name="CellFieldDataArrayIndex" exposed_name="SelectionCellFieldDataArrayIndex" />
@@ -959,7 +959,7 @@
     <PVRepresentationProxy name="GeometryRepresentation"
                            class="vtkPVDataRepresentation"
                            processes="client|renderserver|dataserver"
-                           base_proxygroup="new_representations"
+                           base_proxygroup="representations"
                            base_proxyname="PVRepresentationBase">
       <Documentation>
         ParaView's default representation for showing any type of dataset in the
@@ -982,7 +982,7 @@
     <PVRepresentationProxy name="UnstructuredGridRepresentation"
                            class="vtkPVDataRepresentation"
                            processes="client|renderserver|dataserver"
-                           base_proxygroup="new_representations"
+                           base_proxygroup="representations"
                            base_proxyname="PVRepresentationBase">
       <Documentation>
         This representation is used to show unstructured grid as
@@ -1003,7 +1003,7 @@
 
       <SubProxy>
         <Proxy name="VolumeRepresentation"
-          proxygroup="new_representations"
+          proxygroup="representations"
           proxyname="UnstructuredGridVolumeRepresentation" />
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
@@ -1023,7 +1023,7 @@
     <PVRepresentationProxy name="UniformGridRepresentation"
                            class="vtkPVDataRepresentation"
                            processes="client|renderserver|dataserver"
-                           base_proxygroup="new_representations"
+                           base_proxygroup="representations"
                            base_proxyname="PVRepresentationBase">
       <Documentation>
         This representation is used to show image data as
@@ -1045,7 +1045,7 @@
 
       <SubProxy>
         <Proxy name="VolumeRepresentation"
-          proxygroup="new_representations"
+          proxygroup="representations"
           proxyname="UniformGridVolumeRepresentation" />
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
@@ -1064,7 +1064,7 @@
 
       <SubProxy>
         <Proxy name="SliceRepresentation"
-          proxygroup="new_representations"
+          proxygroup="representations"
           proxyname="ImageSliceRepresentation" />
         <ShareProperties subproxy="SurfaceRepresentation" >
           <Exception name="Input" />
@@ -2414,7 +2414,7 @@
 
       <SubProxy>
         <Proxy name="LabelRepresentation"
-          proxygroup="new_representations"
+          proxygroup="representations"
           proxyname="DataLabelRepresentation" />
         <ExposedProperties>
           <Property name="PointLabelColor" />
