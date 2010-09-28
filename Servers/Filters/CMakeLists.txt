@@ -120,6 +120,7 @@ SET(Filters_SRCS
   vtkPVConnectivityFilter.cxx
   vtkPVContextView.cxx
   vtkPVContourFilter.cxx
+  vtkPVCompositeRepresentation.cxx
   vtkPVDataRepresentation.cxx
   vtkPVDesktopDeliveryClient.cxx
   vtkPVDesktopDeliveryServer.cxx
@@ -238,6 +239,7 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkPEnSightReader.cxx
   vtkPVClientServerRenderManager.cxx
   vtkPVContextView.cxx
+  vtkPVDataRepresentation.cxx
   vtkPVJoystickFly.cxx
   vtkPVRenderViewProxy.cxx
   vtkPVView.cxx

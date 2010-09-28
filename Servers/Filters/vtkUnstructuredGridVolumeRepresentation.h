@@ -22,7 +22,7 @@
 #ifndef __vtkUnstructuredGridVolumeRepresentation_h
 #define __vtkUnstructuredGridVolumeRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 
 class vtkColorTransferFunction;
 class vtkOrderedCompositeDistributor;
@@ -36,11 +36,11 @@ class vtkUnstructuredGridVolumeMapper;
 class vtkVolumeProperty;
 class vtkVolumeRepresentationPreprocessor;
 
-class VTK_EXPORT vtkUnstructuredGridVolumeRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkUnstructuredGridVolumeRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkUnstructuredGridVolumeRepresentation* New();
-  vtkTypeMacro(vtkUnstructuredGridVolumeRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkUnstructuredGridVolumeRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // This is same a vtkDataObject::FieldAssociation types so you can use those
@@ -84,7 +84,13 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  void MarkModified();
+  virtual void MarkModified();
+
+  // Description:
+  // Get/Set the visibility for this representation. When the visibility of
+  // representation of false, all view passes are ignored.
+  // Overridden to propagate to the active representation.
+  virtual void SetVisibility(bool val);
 
   //***************************************************************************
   // Forwarded to vtkVolumeRepresentationPreprocessor
@@ -97,7 +103,6 @@ public:
   void SetPickable(int val);
   void SetPosition(double, double, double);
   void SetScale(double, double, double);
-  void SetVisibility(int val);
 
   //***************************************************************************
   // Forwarded to vtkVolumeProperty and vtkProperty (when applicable).

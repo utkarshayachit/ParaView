@@ -40,8 +40,6 @@ vtkImageSliceRepresentation::vtkImageSliceRepresentation()
   this->DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();
   this->SliceMapper = vtkImageSliceMapper::New();
   this->Actor = vtkPVLODActor::New();
-
-  //this->SliceMapper->SetInputConnection(this->DeliveryFilter->GetOutputPort());
   this->Actor->SetMapper(this->SliceMapper);
 }
 
@@ -146,8 +144,8 @@ int vtkImageSliceRepresentation::ProcessViewRequest(
 }
 
 //----------------------------------------------------------------------------
-int vtkImageSliceRepresentation::RequestData(vtkInformation*,
-  vtkInformationVector** inputVector, vtkInformationVector*)
+int vtkImageSliceRepresentation::RequestData(vtkInformation* request,
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
@@ -160,34 +158,7 @@ int vtkImageSliceRepresentation::RequestData(vtkInformation*,
     this->DeliveryFilter->RemoveAllInputs();
     }
 
-  // We fire UpdateDataEvent to notify the representation proxy that the
-  // representation was updated. The representation proxty will then call
-  // PostUpdateData(). We do this since now representations are not updated at
-  // the proxy level.
-  this->InvokeEvent(vtkCommand::UpdateDataEvent);
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-int vtkImageSliceRepresentation::RequestUpdateExtent(vtkInformation* request,
-  vtkInformationVector** inputVector,
-  vtkInformationVector* outputVector)
-{
-  this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
-
-  // ideally, extent and time information will come from the view in
-  // REQUEST_UPDATE(), include view-time.
-  vtkMultiProcessController* controller =
-    vtkMultiProcessController::GetGlobalController();
-  if (controller && inputVector[0]->GetNumberOfInformationObjects() == 1)
-    {
-    vtkStreamingDemandDrivenPipeline* sddp =
-      vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
-    sddp->SetUpdateExtent(inputVector[0]->GetInformationObject(0),
-      controller->GetLocalProcessId(),
-      controller->GetNumberOfProcesses(), 0);
-    }
-  return 1;
+  return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
@@ -319,9 +290,10 @@ void vtkImageSliceRepresentation::SetScale(double x, double y, double z)
 }
 
 //----------------------------------------------------------------------------
-void vtkImageSliceRepresentation::SetVisibility(int val)
+void vtkImageSliceRepresentation::SetVisibility(bool val)
 {
-  this->Actor->SetVisibility(val);
+  this->Actor->SetVisibility(val? 1 : 0);
+  this->Superclass::SetVisibility(val);
 }
 
 //----------------------------------------------------------------------------

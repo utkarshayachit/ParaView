@@ -29,20 +29,26 @@
 #ifndef __vtkCompositeRepresentation_h
 #define __vtkCompositeRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 
-class VTK_EXPORT vtkCompositeRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkCompositeRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkCompositeRepresentation* New();
-  vtkTypeMacro(vtkCompositeRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkCompositeRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  // Description:
+  // Get/Set the visibility for this representation. When the visibility of
+  // representation of false, all view passes are ignored.
+  // Overridden to propagate to the active representation.
+  virtual void SetVisibility(bool val);
 
   // Description:
   // Add/Remove representations. \c key is a unique string used to identify
   // that representation.
-  void AddRepresentation(const char* key, vtkDataRepresentation* repr);
-  void RemoveRepresentation(vtkDataRepresentation* repr);
+  void AddRepresentation(const char* key, vtkPVDataRepresentation* repr);
+  void RemoveRepresentation(vtkPVDataRepresentation* repr);
   void RemoveRepresentation(const char* key);
 
   // Description:
@@ -52,11 +58,11 @@ public:
 
   // Description:
   // Returns the active representation if valid.
-  vtkDataRepresentation* GetActiveRepresentation();
+  vtkPVDataRepresentation* GetActiveRepresentation();
 
   // Description:
   // Overridden to simply pass the input to the internal representations. We
-  // won't need this if vtkDataRepresentation correctly respected in the
+  // won't need this if vtkPVDataRepresentation correctly respected in the
   // arguments passed to it during ProcessRequest() etc.
   virtual void SetInputConnection(int port, vtkAlgorithmOutput* input);
   virtual void SetInputConnection(vtkAlgorithmOutput* input);

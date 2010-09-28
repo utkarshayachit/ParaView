@@ -147,8 +147,8 @@ int vtkUnstructuredGridVolumeRepresentation::FillInputPortInformation(
 }
 
 //----------------------------------------------------------------------------
-int vtkUnstructuredGridVolumeRepresentation::RequestData(vtkInformation*,
-  vtkInformationVector** inputVector, vtkInformationVector*)
+int vtkUnstructuredGridVolumeRepresentation::RequestData(vtkInformation* request,
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
@@ -171,12 +171,7 @@ int vtkUnstructuredGridVolumeRepresentation::RequestData(vtkInformation*,
     this->LODDeliveryFilter->RemoveAllInputs();
     }
 
-  // We fire UpdateDataEvent to notify the representation proxy that the
-  // representation was updated. The representation proxty will then call
-  // PostUpdateData(). We do this since now representations are not updated at
-  // the proxy level.
-  this->InvokeEvent(vtkCommand::UpdateDataEvent);
-  return 1;
+  return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
@@ -185,21 +180,7 @@ int vtkUnstructuredGridVolumeRepresentation::RequestUpdateExtent(
   vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
 {
-  this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
-
-  // ideally, extent and time information will come from the view in
-  // REQUEST_UPDATE(), include view-time.
-  vtkMultiProcessController* controller =
-    vtkMultiProcessController::GetGlobalController();
-  if (controller && inputVector[0]->GetNumberOfInformationObjects() == 1)
-    {
-    vtkStreamingDemandDrivenPipeline* sddp =
-      vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
-    sddp->SetUpdateExtent(inputVector[0]->GetInformationObject(0),
-      controller->GetLocalProcessId(),
-      controller->GetNumberOfProcesses(), 0);
-    }
-  return 1;
+  return this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
@@ -373,9 +354,10 @@ void vtkUnstructuredGridVolumeRepresentation::SetScale(double x, double y, doubl
 }
 
 //----------------------------------------------------------------------------
-void vtkUnstructuredGridVolumeRepresentation::SetVisibility(int val)
+void vtkUnstructuredGridVolumeRepresentation::SetVisibility(bool val)
 {
-  this->Actor->SetVisibility(val);
+  this->Actor->SetVisibility(val? 1 : 0);
+  this->Superclass::SetVisibility(val);
 }
 
 //***************************************************************************

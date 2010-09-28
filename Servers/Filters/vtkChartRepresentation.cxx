@@ -38,7 +38,6 @@ vtkCxxSetObjectMacro(vtkChartRepresentation, Options, vtkContextNamedOptions);
 //----------------------------------------------------------------------------
 vtkChartRepresentation::vtkChartRepresentation()
 {
-  this->Visibility = 1;
   this->AnnLink = vtkAnnotationLink::New();
   this->Options = 0;
 
@@ -84,7 +83,7 @@ bool vtkChartRepresentation::AddToView(vtkView* view)
 
   this->ContextView = chartView;
   this->Options->SetChart(chartView->GetChart());
-  this->Options->SetTableVisibility(this->Visibility != 0);
+  this->Options->SetTableVisibility(this->GetVisibility());
   return true;
 }
 
@@ -149,26 +148,12 @@ int vtkChartRepresentation::RequestUpdateExtent(vtkInformation* request,
   vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
 {
-  this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
-
-  // ideally, extent and time information will come from the view in
-  // REQUEST_UPDATE(), include view-time.
-  vtkMultiProcessController* controller =
-    vtkMultiProcessController::GetGlobalController();
-  if (controller && inputVector[0]->GetNumberOfInformationObjects() == 1)
-    {
-    vtkStreamingDemandDrivenPipeline* sddp =
-      vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
-    sddp->SetUpdateExtent(inputVector[0]->GetInformationObject(0),
-      controller->GetLocalProcessId(),
-      controller->GetNumberOfProcesses(), 0);
-    }
-  return 1;
+  return this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
-int vtkChartRepresentation::RequestData(vtkInformation*,
-  vtkInformationVector** inputVector, vtkInformationVector*)
+int vtkChartRepresentation::RequestData(vtkInformation* request,
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
@@ -185,12 +170,7 @@ int vtkChartRepresentation::RequestData(vtkInformation*,
     this->DeliveryFilter->RemoveAllInputs();
     }
 
-  // We fire UpdateDataEvent to notify the representation proxy that the
-  // representation was updated. The representation proxty will then call
-  // PostUpdateData(). We do this since now representations are not updated at
-  // the proxy level.
-  this->InvokeEvent(vtkCommand::UpdateDataEvent);
-  return 1;
+  return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
@@ -202,13 +182,10 @@ void vtkChartRepresentation::MarkModified()
 }
 
 //----------------------------------------------------------------------------
-void vtkChartRepresentation::SetVisibility(int visible)
+void vtkChartRepresentation::SetVisibility(bool visible)
 {
-  if (this->Visibility != visible)
-    {
-    this->Visibility = visible;
-    this->Options->SetTableVisibility(visible != 0);
-    }
+  this->Superclass::SetVisibility(visible);
+  this->Options->SetTableVisibility(visible);
 }
 
 #ifdef FIXME

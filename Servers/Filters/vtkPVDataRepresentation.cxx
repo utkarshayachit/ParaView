@@ -14,114 +14,72 @@
 =========================================================================*/
 #include "vtkPVDataRepresentation.h"
 
-#include "vtkCubeAxesRepresentation.h"
-#include "vtkInformation.h"
 #include "vtkObjectFactory.h"
-#include "vtkSelectionRepresentation.h"
-#include "vtkView.h"
+#include "vtkInformationVector.h"
+#include "vtkInformation.h"
+#include "vtkCommand.h"
+#include "vtkMultiProcessController.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 
-vtkStandardNewMacro(vtkPVDataRepresentation);
-vtkCxxSetObjectMacro(vtkPVDataRepresentation, SelectionRepresentation,
-  vtkSelectionRepresentation);
-vtkCxxSetObjectMacro(vtkPVDataRepresentation, CubeAxesRepresentation,
-  vtkCubeAxesRepresentation);
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::vtkPVDataRepresentation()
 {
-  this->SetNumberOfInputPorts(2);
-  this->SelectionRepresentation = vtkSelectionRepresentation::New();
-  this->CubeAxesRepresentation = vtkCubeAxesRepresentation::New();
+  this->Visibility = true;
 }
 
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::~vtkPVDataRepresentation()
 {
-  this->SetSelectionRepresentation(NULL);
-  this->SetCubeAxesRepresentation(NULL);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataRepresentation::SetInputConnection(int port, vtkAlgorithmOutput* input)
+int vtkPVDataRepresentation::ProcessViewRequest(
+  vtkInformationRequestKey* request_type,
+  vtkInformation* inInfo, vtkInformation* outInfo)
 {
-  if (port == 0)
+  if (this->GetVisibility() == false)
     {
-    this->CubeAxesRepresentation->SetInputConnection(0, input);
-    this->Superclass::SetInputConnection(0, input);
+    return false;
     }
-  else if (port == 1)
+
+  return this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
+}
+
+//----------------------------------------------------------------------------
+int vtkPVDataRepresentation::RequestData(vtkInformation*,
+    vtkInformationVector**, vtkInformationVector*)
+{
+  // We fire UpdateDataEvent to notify the representation proxy that the
+  // representation was updated. The representation proxty will then call
+  // PostUpdateData(). We do this since now representations are not updated at
+  // the proxy level.
+  this->InvokeEvent(vtkCommand::UpdateDataEvent);
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+int vtkPVDataRepresentation::RequestUpdateExtent(vtkInformation* request,
+  vtkInformationVector** inputVector,
+  vtkInformationVector* outputVector)
+{
+  this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
+
+  // ideally, extent and time information will come from the view in
+  // REQUEST_UPDATE(), include view-time.
+  vtkMultiProcessController* controller =
+    vtkMultiProcessController::GetGlobalController();
+  if (controller && inputVector[0]->GetNumberOfInformationObjects() == 1)
     {
-    this->SelectionRepresentation->SetInputConnection(0, input);
+    vtkStreamingDemandDrivenPipeline* sddp =
+      vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
+    sddp->SetUpdateExtent(inputVector[0]->GetInformationObject(0),
+      controller->GetLocalProcessId(),
+      controller->GetNumberOfProcesses(), 0);
     }
+
+  return 1;
 }
 
-//----------------------------------------------------------------------------
-void vtkPVDataRepresentation::SetInputConnection(vtkAlgorithmOutput* input)
-{
-  // port is assumed to be 0.
-  this->CubeAxesRepresentation->SetInputConnection(input);
-  this->Superclass::SetInputConnection(input);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVDataRepresentation::AddInputConnection(
-  int port, vtkAlgorithmOutput* input)
-{
- if (port == 0)
-    {
-    this->CubeAxesRepresentation->AddInputConnection(0, input);
-    this->Superclass::AddInputConnection(0, input);
-    }
-  else if (port == 1)
-    {
-    this->SelectionRepresentation->AddInputConnection(0, input);
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkPVDataRepresentation::AddInputConnection(vtkAlgorithmOutput* input)
-{
-  // port is assumed to be 0.
-  this->CubeAxesRepresentation->AddInputConnection(input);
-  this->Superclass::AddInputConnection(input);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVDataRepresentation::RemoveInputConnection(int port, vtkAlgorithmOutput* input)
-{
-  if (port == 0)
-    {
-    this->CubeAxesRepresentation->RemoveInputConnection(0, input);
-    this->Superclass::RemoveInputConnection(0, input);
-    }
-  else if (port == 1)
-    {
-    this->SelectionRepresentation->RemoveInputConnection(0, input);
-    }
-}
-
-//----------------------------------------------------------------------------
-bool vtkPVDataRepresentation::AddToView(vtkView* view)
-{
-  view->AddRepresentation(this->CubeAxesRepresentation);
-  //view->AddRepresentation(this->SelectionRepresentation);
-  return this->Superclass::AddToView(view);
-}
-
-//----------------------------------------------------------------------------
-bool vtkPVDataRepresentation::RemoveFromView(vtkView* view)
-{
-  view->RemoveRepresentation(this->CubeAxesRepresentation);
-  //view->RemoveRepresentation(this->SelectionRepresentation);
-  return this->Superclass::RemoveFromView(view);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVDataRepresentation::MarkModified()
-{
-  this->CubeAxesRepresentation->MarkModified();
-  this->SelectionRepresentation->MarkModified();
-  this->Superclass::MarkModified();
-}
 
 //----------------------------------------------------------------------------
 void vtkPVDataRepresentation::PrintSelf(ostream& os, vtkIndent indent)

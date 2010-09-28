@@ -14,7 +14,6 @@
 =========================================================================*/
 #include "vtkCompositeRepresentation.h"
 
-#include "vtkDataRepresentation.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMemberFunctionCommand.h"
@@ -31,7 +30,7 @@
 class vtkCompositeRepresentation::vtkInternals
 {
 public:
-  typedef vtkstd::map<vtkstd::string, vtkSmartPointer<vtkDataRepresentation> >
+  typedef vtkstd::map<vtkstd::string, vtkSmartPointer<vtkPVDataRepresentation> >
     RepresentationMap;
   RepresentationMap Representations;
 
@@ -59,8 +58,19 @@ vtkCompositeRepresentation::~vtkCompositeRepresentation()
 }
 
 //----------------------------------------------------------------------------
+void vtkCompositeRepresentation::SetVisibility(bool visible)
+{
+  this->Superclass::SetVisibility(visible);
+  vtkPVDataRepresentation* repr = this->GetActiveRepresentation();
+  if (repr)
+    {
+    repr->SetVisibility(visible);
+    }
+}
+
+//----------------------------------------------------------------------------
 void vtkCompositeRepresentation::AddRepresentation(
-  const char* key, vtkDataRepresentation* repr)
+  const char* key, vtkPVDataRepresentation* repr)
 {
   assert(repr != NULL && key != NULL);
 
@@ -91,7 +101,7 @@ void vtkCompositeRepresentation::RemoveRepresentation(const char* key)
 
 //----------------------------------------------------------------------------
 void vtkCompositeRepresentation::RemoveRepresentation(
-  vtkDataRepresentation* repr)
+  vtkPVDataRepresentation* repr)
 {
   vtkInternals::RepresentationMap::iterator iter;
   for (iter = this->Internals->Representations.begin();
@@ -107,7 +117,7 @@ void vtkCompositeRepresentation::RemoveRepresentation(
 }
 
 //----------------------------------------------------------------------------
-vtkDataRepresentation* vtkCompositeRepresentation::GetActiveRepresentation()
+vtkPVDataRepresentation* vtkCompositeRepresentation::GetActiveRepresentation()
 {
   vtkInternals::RepresentationMap::iterator iter =
     this->Internals->Representations.find(this->Internals->ActiveRepresentationKey);
@@ -192,8 +202,7 @@ void vtkCompositeRepresentation::MarkModified()
   for (iter = this->Internals->Representations.begin();
     iter != this->Internals->Representations.end(); iter++)
     {
-    // FIXME
-    //iter->second.GetPointer()->MarkModified();
+    iter->second.GetPointer()->MarkModified();
     }
 }
 
@@ -201,7 +210,7 @@ void vtkCompositeRepresentation::MarkModified()
 vtkSelection* vtkCompositeRepresentation::ConvertSelection(
   vtkView* view, vtkSelection* selection)
 {
-  vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
+  vtkPVDataRepresentation* activeRepr = this->GetActiveRepresentation();
   if (activeRepr)
     {
     return activeRepr->ConvertSelection(view, selection);
@@ -214,7 +223,7 @@ vtkSelection* vtkCompositeRepresentation::ConvertSelection(
 bool vtkCompositeRepresentation::AddToView(vtkView* view)
 {
   this->Internals->View = view;
-  vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
+  vtkPVDataRepresentation* activeRepr = this->GetActiveRepresentation();
   if (activeRepr)
     {
     view->AddRepresentation(activeRepr);
@@ -225,7 +234,7 @@ bool vtkCompositeRepresentation::AddToView(vtkView* view)
 //----------------------------------------------------------------------------
 bool vtkCompositeRepresentation::RemoveFromView(vtkView* view)
 {
-  vtkDataRepresentation* activeRepr = this->GetActiveRepresentation();
+  vtkPVDataRepresentation* activeRepr = this->GetActiveRepresentation();
   if (activeRepr)
     {
     view->RemoveRepresentation(activeRepr);
@@ -249,9 +258,9 @@ void vtkCompositeRepresentation::SetActiveRepresentation(const char* key)
 {
   assert(key != NULL);
 
-  vtkDataRepresentation* curActive = this->GetActiveRepresentation();
+  vtkPVDataRepresentation* curActive = this->GetActiveRepresentation();
   this->Internals->ActiveRepresentationKey = key;
-  vtkDataRepresentation* newActive = this->GetActiveRepresentation();
+  vtkPVDataRepresentation* newActive = this->GetActiveRepresentation();
   if (curActive != newActive)
     {
     if (curActive && this->Internals->View)
@@ -262,6 +271,11 @@ void vtkCompositeRepresentation::SetActiveRepresentation(const char* key)
     if (newActive && this->Internals->View)
       {
       this->Internals->View->AddRepresentation(newActive);
+      }
+
+    if (newActive)
+      {
+      newActive->SetVisibility(this->GetVisibility());
       }
     }
   this->Modified();

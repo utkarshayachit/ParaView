@@ -51,12 +51,12 @@ vtkChartParallelCoordinates* vtkParallelCoordinatesRepresentation::GetChart()
 }
 
 //----------------------------------------------------------------------------
-void vtkParallelCoordinatesRepresentation::SetVisibility(int visible)
+void vtkParallelCoordinatesRepresentation::SetVisibility(bool visible)
 {
   this->Superclass::SetVisibility(visible);
   if (this->GetChart())
     {
-    this->GetChart()->SetVisible(visible != 0);
+    this->GetChart()->SetVisible(visible);
     }
 }
 

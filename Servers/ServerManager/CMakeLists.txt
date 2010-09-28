@@ -199,9 +199,11 @@ SET(Kit_SRCS
   vtkSMUndoRedoStateLoader.cxx
   vtkSMUndoStackBuilder.cxx
   vtkSMUndoStack.cxx
-  vtkSMUtilities.cxx
+  vtkSMUniformGridVolumeRepresentationProxy.cxx
+  vtkSMUnstructuredGridVolumeRepresentationProxy.cxx
   vtkSMUpdateInformationUndoElement.cxx
   vtkSMUpdateSuppressorProxy.cxx
+  vtkSMUtilities.cxx
   vtkSMVectorProperty.cxx
   vtkSMViewProxy.cxx
   vtkSMWidgetRepresentationProxy.cxx

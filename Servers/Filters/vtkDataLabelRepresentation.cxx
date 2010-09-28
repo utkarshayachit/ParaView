@@ -16,17 +16,14 @@
 
 #include "vtkActor2D.h"
 #include "vtkCellCenters.h"
-#include "vtkCommand.h"
 #include "vtkCompositeDataToUnstructuredGridFilter.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkLabeledDataMapper.h"
 #include "vtkMPIMoveData.h"
-#include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVRenderView.h"
 #include "vtkRenderer.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTextProperty.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
 
@@ -34,6 +31,9 @@ vtkStandardNewMacro(vtkDataLabelRepresentation);
 //----------------------------------------------------------------------------
 vtkDataLabelRepresentation::vtkDataLabelRepresentation()
 {
+  this->PointLabelVisibility = 0;
+  this->CellLabelVisibility = 0;
+
   this->MergeBlocks = vtkCompositeDataToUnstructuredGridFilter::New();
   this->DataCollector = vtkUnstructuredDataDeliveryFilter::New();
 
@@ -57,6 +57,9 @@ vtkDataLabelRepresentation::vtkDataLabelRepresentation()
 
   this->PointLabelMapper->SetLabelTextProperty(this->PointLabelProperty);
   this->CellLabelMapper->SetLabelTextProperty(this->CellLabelProperty);
+
+  this->PointLabelActor->SetVisibility(0);
+  this->CellLabelActor->SetVisibility(0);
 
   this->InitializeForCommunication();
 }
@@ -86,10 +89,27 @@ void vtkDataLabelRepresentation::InitializeForCommunication()
 }
 
 //----------------------------------------------------------------------------
+void vtkDataLabelRepresentation::SetVisibility(bool val)
+{
+  this->Superclass::SetVisibility(val);
+  this->SetPointLabelVisibility(this->PointLabelVisibility);
+  this->SetCellLabelVisibility(this->CellLabelVisibility);
+}
+
+//----------------------------------------------------------------------------
+bool vtkDataLabelRepresentation::GetVisibility()
+{
+  return this->Superclass::GetVisibility() && (
+    this->PointLabelVisibility || this->CellLabelVisibility);
+}
+
+//----------------------------------------------------------------------------
 void vtkDataLabelRepresentation::SetPointLabelVisibility(int val)
 {
-  this->PointLabelActor->SetVisibility(val);
+  this->PointLabelVisibility = val;
+  this->PointLabelActor->SetVisibility(val && this->GetVisibility());
 }
+
 //----------------------------------------------------------------------------
 void vtkDataLabelRepresentation::SetPointFieldDataArrayName(const char* val)
 {
@@ -152,8 +172,10 @@ void vtkDataLabelRepresentation::SetPointLabelFontSize(int val)
 //----------------------------------------------------------------------------
 void vtkDataLabelRepresentation::SetCellLabelVisibility(int val)
 {
-  this->CellLabelActor->SetVisibility(val);
+  this->CellLabelVisibility = val;
+  this->CellLabelActor->SetVisibility(val && this->GetVisibility());
 }
+
 //----------------------------------------------------------------------------
 void vtkDataLabelRepresentation::SetCellFieldDataArrayName(const char* val)
 {
@@ -272,8 +294,8 @@ int vtkDataLabelRepresentation::ProcessViewRequest(
 }
 
 //----------------------------------------------------------------------------
-int vtkDataLabelRepresentation::RequestData(vtkInformation*,
-  vtkInformationVector** inputVector, vtkInformationVector*)
+int vtkDataLabelRepresentation::RequestData(vtkInformation* request,
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
@@ -288,35 +310,7 @@ int vtkDataLabelRepresentation::RequestData(vtkInformation*,
     this->DataCollector->RemoveAllInputs();
     }
 
-  // We fire UpdateDataEvent to notify the representation proxy that the
-  // representation was updated. The representation proxty will then call
-  // PostUpdateData(). We do this since now representations are not updated at
-  // the proxy level.
-  this->InvokeEvent(vtkCommand::UpdateDataEvent);
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-int vtkDataLabelRepresentation::RequestUpdateExtent(vtkInformation* request,
-  vtkInformationVector** inputVector,
-  vtkInformationVector* outputVector)
-{
-
-  this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
-
-  // ideally, extent and time information will come from the view in
-  // REQUEST_UPDATE(), include view-time.
-  vtkMultiProcessController* controller =
-    vtkMultiProcessController::GetGlobalController();
-  if (controller && inputVector[0]->GetNumberOfInformationObjects() == 1)
-    {
-    vtkStreamingDemandDrivenPipeline* sddp =
-      vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
-    sddp->SetUpdateExtent(inputVector[0]->GetInformationObject(0),
-      controller->GetLocalProcessId(),
-      controller->GetNumberOfProcesses(), 0);
-    }
-  return 1;
+  return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------

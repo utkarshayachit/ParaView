@@ -31,7 +31,6 @@
 #include "vtkSelectionConverter.h"
 #include "vtkSelection.h"
 #include "vtkSelectionNode.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
 
 vtkStandardNewMacro(vtkGeometryRepresentation);
@@ -103,6 +102,11 @@ int vtkGeometryRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type,
   vtkInformation* inInfo, vtkInformation* outInfo)
 {
+  if (!this->GetVisibility())
+    {
+    return false;
+    }
+
   if (request_type == vtkView::REQUEST_INFORMATION())
     {
     this->GenerateMetaData(inInfo, outInfo);
@@ -159,8 +163,8 @@ int vtkGeometryRepresentation::ProcessViewRequest(
 }
 
 //----------------------------------------------------------------------------
-int vtkGeometryRepresentation::RequestData(vtkInformation*,
-  vtkInformationVector** inputVector, vtkInformationVector*)
+int vtkGeometryRepresentation::RequestData(vtkInformation* request,
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
@@ -180,12 +184,7 @@ int vtkGeometryRepresentation::RequestData(vtkInformation*,
     this->LODDeliveryFilter->RemoveAllInputs();
     }
 
-  // We fire UpdateDataEvent to notify the representation proxy that the
-  // representation was updated. The representation proxty will then call
-  // PostUpdateData(). We do this since now representations are not updated at
-  // the proxy level.
-  this->InvokeEvent(vtkCommand::UpdateDataEvent);
-  return 1;
+  return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
@@ -193,22 +192,7 @@ int vtkGeometryRepresentation::RequestUpdateExtent(vtkInformation* request,
   vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
 {
-
-  this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
-
-  // ideally, extent and time information will come from the view in
-  // REQUEST_UPDATE(), include view-time.
-  vtkMultiProcessController* controller =
-    vtkMultiProcessController::GetGlobalController();
-  if (controller && inputVector[0]->GetNumberOfInformationObjects() == 1)
-    {
-    vtkStreamingDemandDrivenPipeline* sddp =
-      vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
-    sddp->SetUpdateExtent(inputVector[0]->GetInformationObject(0),
-      controller->GetLocalProcessId(),
-      controller->GetNumberOfProcesses(), 0);
-    }
-  return 1;
+  return this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
@@ -373,6 +357,13 @@ vtkSelection* vtkGeometryRepresentation::ConvertSelection(
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetVisibility(bool val)
+{
+  this->Actor->SetVisibility(val);
+  this->Superclass::SetVisibility(val);
+}
+
+//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -483,12 +474,6 @@ void vtkGeometryRepresentation::SetSpecularPower(double val)
 }
 
 //----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetVisibility(int val)
-{
-  this->Actor->SetVisibility(val);
-}
-
-//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetOrientation(double x, double y, double z)
 {
   this->Actor->SetOrientation(x, y, z);
@@ -524,3 +509,9 @@ void vtkGeometryRepresentation::SetTexture(vtkTexture* val)
   this->Actor->SetTexture(val);
 }
 
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetUseOutline(int val)
+{
+  this->GeometryFilter->SetUseOutline(val);
+  this->Modified();
+}

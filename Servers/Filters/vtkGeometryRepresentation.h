@@ -22,7 +22,7 @@
 #ifndef __vtkGeometryRepresentation_h
 #define __vtkGeometryRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 #include "vtkProperty.h" // needed for VTK_POINTS etc.
 
 class vtkOrderedCompositeDistributor;
@@ -34,11 +34,11 @@ class vtkScalarsToColors;
 class vtkTexture;
 class vtkUnstructuredDataDeliveryFilter;
 
-class VTK_EXPORT vtkGeometryRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkGeometryRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkGeometryRepresentation* New();
-  vtkTypeMacro(vtkGeometryRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkGeometryRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -54,7 +54,7 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  void MarkModified();
+  virtual void MarkModified();
 
   // This is same a vtkDataObject::FieldAssociation types so you can use those
   // as well.
@@ -63,6 +63,11 @@ public:
     POINT_DATA=0,
     CELL_DATA=1
     };
+
+  // Description:
+  // Get/Set the visibility for this representation. When the visibility of
+  // representation of false, all view passes are ignored.
+  virtual void SetVisibility(bool val);
 
   // Description:
   // Enable/Disable LOD;
@@ -107,6 +112,10 @@ public:
   vtkGetMacro(Representation, int);
 
   //***************************************************************************
+  // Forwarded to vtkPVGeometryFilter
+  void SetUseOutline(int);
+
+  //***************************************************************************
   // Forwarded to vtkProperty.
   void SetAmbientColor(double r, double g, double b);
   void SetBackfaceCulling(int val);
@@ -129,7 +138,6 @@ public:
   void SetPosition(double, double, double);
   void SetScale(double, double, double);
   void SetTexture(vtkTexture*);
-  void SetVisibility(int val);
 
   //***************************************************************************
   // Forwarded to Mapper and LODMapper.

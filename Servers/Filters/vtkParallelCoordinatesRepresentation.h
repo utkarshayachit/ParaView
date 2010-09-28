@@ -36,7 +36,7 @@ public:
 
   // Description:
   // Set visibility of the representation.
-  virtual void SetVisibility(int visible);
+  virtual void SetVisibility(bool visible);
 
   // Description:
   // Set series visibility for the series with the given name.

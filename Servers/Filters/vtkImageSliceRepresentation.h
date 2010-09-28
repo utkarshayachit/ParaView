@@ -22,7 +22,7 @@
 #ifndef __vtkImageSliceRepresentation_h
 #define __vtkImageSliceRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 #include "vtkStructuredData.h" // for VTK_*_PLANE
 
 class vtkImageData;
@@ -31,11 +31,11 @@ class vtkImageSliceMapper;
 class vtkPVLODActor;
 class vtkScalarsToColors;
 
-class VTK_EXPORT vtkImageSliceRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkImageSliceRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkImageSliceRepresentation* New();
-  vtkTypeMacro(vtkImageSliceRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkImageSliceRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // This is same a vtkDataObject::FieldAssociation types so you can use those
@@ -68,7 +68,13 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  void MarkModified();
+  virtual void MarkModified();
+
+  // Description:
+  // Get/Set the visibility for this representation. When the visibility of
+  // representation of false, all view passes are ignored.
+  // Overridden to propagate to the active representation.
+  virtual void SetVisibility(bool val);
 
   // Description:
   // Get set the slice number to extract.
@@ -96,7 +102,6 @@ public:
   void SetPickable(int val);
   void SetPosition(double, double, double);
   void SetScale(double, double, double);
-  void SetVisibility(int);
 
   //---------------------------------------------------------------------------
   // Forwarded to vtkProperty.
@@ -132,10 +137,6 @@ protected:
   // annotation port whose selections are localized for a particular input data object.
   virtual int RequestData(vtkInformation*,
     vtkInformationVector**, vtkInformationVector*);
-
-  virtual int RequestUpdateExtent(vtkInformation* request,
-    vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector);
 
   // Description:
   // Adds the representation to the view.  This is called from

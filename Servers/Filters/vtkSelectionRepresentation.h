@@ -15,22 +15,22 @@
 // .NAME vtkSelectionRepresentation
 // .SECTION Description
 // vtkSelectionRepresentation is a representation to show the extracted
-// cells. It uses vtkGeometryRepresentation and vtkDataRepresentation
+// cells. It uses vtkGeometryRepresentation and vtkPVDataRepresentation
 // internally.
 
 #ifndef __vtkSelectionRepresentation_h
 #define __vtkSelectionRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 
 class vtkGeometryRepresentation;
 class vtkDataLabelRepresentation;
 
-class VTK_EXPORT vtkSelectionRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkSelectionRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkSelectionRepresentation* New();
-  vtkTypeMacro(vtkSelectionRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkSelectionRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -40,7 +40,7 @@ public:
 
   // Description:
   // Overridden to simply pass the input to the internal representations. We
-  // won't need this if vtkDataRepresentation correctly respected in the
+  // won't need this if vtkPVDataRepresentation correctly respected in the
   // arguments passed to it during ProcessRequest() etc.
   virtual void SetInputConnection(int port, vtkAlgorithmOutput* input);
   virtual void SetInputConnection(vtkAlgorithmOutput* input);
@@ -53,7 +53,13 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  void MarkModified();
+  virtual void MarkModified();
+
+  // Description:
+  // Get/Set the visibility for this representation. When the visibility of
+  // representation of false, all view passes are ignored.
+  // Overridden to propagate to the active representation.
+  virtual void SetVisibility(bool val);
 
   // Description:
   // Forwarded to GeometryRepresentation.
@@ -62,7 +68,8 @@ public:
   void SetOpacity(double val);
   void SetPointSize(double val);
   void SetRepresentation(int val);
-  void SetVisibility(int);
+  void SetUseOutline(int);
+
 //BTX
 protected:
   vtkSelectionRepresentation();

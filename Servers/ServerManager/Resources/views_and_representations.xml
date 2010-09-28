@@ -791,21 +791,42 @@
   <ProxyGroup name="representations">
 
     <PVRepresentationProxy name="PVRepresentationBase"
-                               class="vtkPVDataRepresentation"
+                               class="vtkPVCompositeRepresentation"
                                processes="client|renderserver|dataserver">
       <Documentation>
         ParaView's default representation for showing any type of dataset in the
         render view.
       </Documentation>
 
-      <InputProperty name="Input" command="SetInputConnection">
-        <DataTypeDomain name="input_type" composite_data_supported="1">
-          <DataType value="vtkDataSet"/>
-        </DataTypeDomain>
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
         <Documentation>
-          Set the input to the representation.
+          Set the visibility for this representation.
         </Documentation>
-      </InputProperty>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="SelectionVisibility"
+        command="SetSelectionVisibility"
+        number_of_elements="1"
+        default_values="1" >
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set the visibility for the selection, if any.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="CubeAxesVisibility"
+        command="SetCubeAxesVisibility"
+        number_of_elements="1"
+        default_values="0" >
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set the visibility for the cube axes.
+        </Documentation>
+      </IntVectorProperty>
 
       <RepresentationType
         subproxy="OutlineRepresentation" text="Outline"/>
@@ -923,7 +944,6 @@
           proxygroup="representations"
           proxyname="SelectionRepresentation" />
         <ExposedProperties>
-          <Property name="CellFieldDataArrayIndex" exposed_name="SelectionCellFieldDataArrayIndex" />
           <Property name="CellFieldDataArrayName" exposed_name="SelectionCellFieldDataArrayName" />
           <Property name="CellLabelBold" exposed_name="SelectionCellLabelBold" />
           <Property name="CellLabelColor" exposed_name="SelectionCellLabelColor" />
@@ -937,7 +957,6 @@
           <Property name="Color" exposed_name="SelectionColor" />
           <Property name="LineWidth" exposed_name="SelectionLineWidth" />
           <Property name="Opacity" exposed_name="SelectionOpacity" />
-          <Property name="PointFieldDataArrayIndex" exposed_name="SelectionPointFieldDataArrayIndex"/>
           <Property name="PointFieldDataArrayName" exposed_name="SelectionPointFieldDataArrayName"/>
           <Property name="PointLabelBold" exposed_name="SelectionPointLabelBold" />
           <Property name="PointLabelColor" exposed_name="SelectionPointLabelColor" />
@@ -957,7 +976,7 @@
 
     <!-- ================================================================== -->
     <PVRepresentationProxy name="GeometryRepresentation"
-                           class="vtkPVDataRepresentation"
+                           class="vtkPVCompositeRepresentation"
                            processes="client|renderserver|dataserver"
                            base_proxygroup="representations"
                            base_proxyname="PVRepresentationBase">
@@ -980,7 +999,7 @@
 
     <!-- ================================================================== -->
     <PVRepresentationProxy name="UnstructuredGridRepresentation"
-                           class="vtkPVDataRepresentation"
+                           class="vtkPVCompositeRepresentation"
                            processes="client|renderserver|dataserver"
                            base_proxygroup="representations"
                            base_proxyname="PVRepresentationBase">
@@ -1021,7 +1040,7 @@
     </PVRepresentationProxy>
 
     <PVRepresentationProxy name="UniformGridRepresentation"
-                           class="vtkPVDataRepresentation"
+                           class="vtkPVCompositeRepresentation"
                            processes="client|renderserver|dataserver"
                            base_proxygroup="representations"
                            base_proxyname="PVRepresentationBase">
@@ -1132,6 +1151,22 @@
           </RequiredProperties>
         </ArrayListDomain>
       </StringVectorProperty>
+
+      <IntVectorProperty name="ExtractedBlockIndex"
+        command="SetExtractedBlockIndex"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          In case of multiblock datasets, choose the flat index of the dataset to
+          volume render. The flat index must point to an unstructured grid dataset.
+          If the input is not a multiblock dataset then this index is ignored.
+        </Documentation>
+        <CompositeTreeDomain name="tree" mode="leaves">
+          <RequiredProperties>
+            <Property name="Input" function="Input"/>
+          </RequiredProperties>
+       </CompositeTreeDomain>
+      </IntVectorProperty>
 
       <DoubleVectorProperty name="Position"
         command="SetPosition"
@@ -2412,30 +2447,39 @@
         </EnumerationDomain>
       </IntVectorProperty>
 
+      <IntVectorProperty name="UseOutline"
+        command="SetUseOutline"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
       <SubProxy>
         <Proxy name="LabelRepresentation"
           proxygroup="representations"
           proxyname="DataLabelRepresentation" />
         <ExposedProperties>
-          <Property name="PointLabelColor" />
-          <Property name="PointLabelOpacity" />
-          <Property name="PointLabelFontFamily" />
-          <Property name="PointLabelJustification" />
-          <Property name="PointLabelBold" />
-          <Property name="PointLabelItalic" />
-          <Property name="PointLabelShadow" />
-          <Property name="PointLabelFontSize" />
           <Property name="PointFieldDataArrayName" />
+          <Property name="PointLabelBold" />
+          <Property name="PointLabelColor" />
+          <Property name="PointLabelFontFamily" />
+          <Property name="PointLabelFontSize" />
+          <Property name="PointLabelItalic" />
+          <Property name="PointLabelJustification" />
+          <Property name="PointLabelOpacity" />
+          <Property name="PointLabelShadow" />
+          <Property name="PointLabelVisibility" />
 
-          <Property name="CellLabelColor" />
-          <Property name="CellLabelOpacity" />
-          <Property name="CellLabelFontFamily" />
-          <Property name="CellLabelJustification" />
-          <Property name="CellLabelBold" />
-          <Property name="CellLabelItalic" />
-          <Property name="CellLabelShadow" />
-          <Property name="CellLabelFontSize" />
           <Property name="CellFieldDataArrayName" />
+          <Property name="CellLabelBold" />
+          <Property name="CellLabelColor" />
+          <Property name="CellLabelFontFamily" />
+          <Property name="CellLabelFontSize" />
+          <Property name="CellLabelItalic" />
+          <Property name="CellLabelJustification" />
+          <Property name="CellLabelOpacity" />
+          <Property name="CellLabelShadow" />
+          <Property name="CellLabelVisibility" />
         </ExposedProperties>
       </SubProxy>
 

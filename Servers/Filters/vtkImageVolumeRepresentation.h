@@ -24,7 +24,7 @@
 #ifndef __vtkImageVolumeRepresentation_h
 #define __vtkImageVolumeRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 
 class vtkColorTransferFunction;
 class vtkFixedPointVolumeRayCastMapper;
@@ -37,11 +37,11 @@ class vtkUnstructuredDataDeliveryFilter;
 class vtkVolumeMapper;
 class vtkVolumeProperty;
 
-class VTK_EXPORT vtkImageVolumeRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkImageVolumeRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkImageVolumeRepresentation* New();
-  vtkTypeMacro(vtkImageVolumeRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkImageVolumeRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // This is same a vtkDataObject::FieldAssociation types so you can use those
@@ -85,7 +85,12 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  void MarkModified();
+  virtual void MarkModified();
+
+  // Description:
+  // Get/Set the visibility for this representation. When the visibility of
+  // representation of false, all view passes are ignored.
+  virtual void SetVisibility(bool val);
 
   //***************************************************************************
   // Forwarded to Actor.
@@ -94,7 +99,6 @@ public:
   void SetPickable(int val);
   void SetPosition(double, double, double);
   void SetScale(double, double, double);
-  void SetVisibility(int val);
 
   //***************************************************************************
   // Forwarded to vtkVolumeProperty.
@@ -115,10 +119,6 @@ protected:
   // Description:
   virtual int RequestData(vtkInformation*,
     vtkInformationVector**, vtkInformationVector*);
-
-  virtual int RequestUpdateExtent(vtkInformation* request,
-    vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector);
 
   // Description:
   // Produce meta-data about this representation that the view may find useful.

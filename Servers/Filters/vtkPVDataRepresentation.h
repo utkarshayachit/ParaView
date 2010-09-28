@@ -12,49 +12,44 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkPVDataRepresentation - a data-representation used by ParaView.
+// .NAME vtkPVDataRepresentation
 // .SECTION Description
-// vtkPVDataRepresentation is a data-representation used by ParaView for showing
-// a type of data-set in the render view. It is a composite-representation with
-// some fixed representations for showing things like selection and cube-axes.
-// This representation has two input ports:
-// \li 0: the dataset to show
-// \li 1: the extracted selection to show
+// vtkPVDataRepresentation adds some ParaView specific API to data
+// representations.
 
 #ifndef __vtkPVDataRepresentation_h
 #define __vtkPVDataRepresentation_h
 
-#include "vtkCompositeRepresentation.h"
+#include "vtkDataRepresentation.h"
 
-class vtkSelectionRepresentation;
-class vtkCubeAxesRepresentation;
-
-class VTK_EXPORT vtkPVDataRepresentation : public vtkCompositeRepresentation
+class VTK_EXPORT vtkPVDataRepresentation : public vtkDataRepresentation
 {
 public:
-  static vtkPVDataRepresentation* New();
-  vtkTypeMacro(vtkPVDataRepresentation, vtkCompositeRepresentation);
+  vtkTypeMacro(vtkPVDataRepresentation, vtkDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
-  // These must only be set during initialization before adding the
-  // representation to any views or calling Update().
-  void SetCubeAxesRepresentation(vtkCubeAxesRepresentation*);
-  void SetSelectionRepresentation(vtkSelectionRepresentation*);
+  // vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
+  // typically called by the vtkView to request meta-data from the
+  // representations or ask them to perform certain tasks e.g.
+  // PrepareForRendering.
+  // Overridden to skip processing when visibility if off.
+  virtual int ProcessViewRequest(vtkInformationRequestKey* request_type,
+    vtkInformation* inInfo, vtkInformation* outInfo);
 
   // Description:
-  // Overridden to simply pass the input to the internal representations. We
-  // won't need this if vtkDataRepresentation correctly respected in the
-  // arguments passed to it during ProcessRequest() etc.
-  virtual void SetInputConnection(int port, vtkAlgorithmOutput* input);
-  virtual void SetInputConnection(vtkAlgorithmOutput* input);
-  virtual void AddInputConnection(int port, vtkAlgorithmOutput* input);
-  virtual void AddInputConnection(vtkAlgorithmOutput* input);
-  virtual void RemoveInputConnection(int port, vtkAlgorithmOutput* input);
+  // This needs to be called on all instances of vtkGeometryRepresentation when
+  // the input is modified. This is essential since the geometry filter does not
+  // have any real-input on the client side which messes with the Update
+  // requests.
+  virtual void MarkModified() = 0;
 
   // Description:
-  // Propagate the modification to all internal representations.
-  virtual void MarkModified();
+  // Get/Set the visibility for this representation. When the visibility of
+  // representation of false, all view passes are ignored.
+  virtual void SetVisibility(bool val)
+    { this->Visibility = val; }
+  vtkGetMacro(Visibility, bool);
 
 //BTX
 protected:
@@ -62,23 +57,19 @@ protected:
   ~vtkPVDataRepresentation();
 
   // Description:
-  // Adds the representation to the view.  This is called from
-  // vtkView::AddRepresentation().  Subclasses should override this method.
-  // Returns true if the addition succeeds.
-  virtual bool AddToView(vtkView* view);
+  // Overridden to invoke vtkCommand::UpdateDataEvent.
+  virtual int RequestData(vtkInformation*,
+    vtkInformationVector**, vtkInformationVector*);
 
-  // Description:
-  // Removes the representation to the view.  This is called from
-  // vtkView::RemoveRepresentation().  Subclasses should override this method.
-  // Returns true if the removal succeeds.
-  virtual bool RemoveFromView(vtkView* view);
-
-  vtkCubeAxesRepresentation* CubeAxesRepresentation;
-  vtkSelectionRepresentation* SelectionRepresentation;
+  virtual int RequestUpdateExtent(vtkInformation* request,
+    vtkInformationVector** inputVector,
+    vtkInformationVector* outputVector);
 
 private:
   vtkPVDataRepresentation(const vtkPVDataRepresentation&); // Not implemented
   void operator=(const vtkPVDataRepresentation&); // Not implemented
+
+  bool Visibility;
 //ETX
 };
 

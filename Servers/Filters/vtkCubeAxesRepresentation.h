@@ -20,17 +20,17 @@
 #ifndef __vtkCubeAxesRepresentation_h
 #define __vtkCubeAxesRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 #include "vtkWeakPointer.h" // needed for vtkWeakPointer.
 
 class vtkCubeAxesActor;
 class vtkPVRenderView;
 
-class VTK_EXPORT vtkCubeAxesRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkCubeAxesRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkCubeAxesRepresentation* New();
-  vtkTypeMacro(vtkCubeAxesRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkCubeAxesRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -69,7 +69,7 @@ public:
   // Description:
   // This needs to be called on all instances of vtkCubeAxesRepresentation when
   // the input is modified.
-  void MarkModified()
+  virtual void MarkModified()
     { this->Modified(); }
 
   // Description:
@@ -79,6 +79,10 @@ public:
   // PrepareForRendering.
   virtual int ProcessViewRequest(vtkInformationRequestKey* request_type,
     vtkInformation* inInfo, vtkInformation* outInfo);
+
+  // Description:
+  // Set visibility of the representation.
+  virtual void SetVisibility(bool visible);
 
 //BTX
 protected:

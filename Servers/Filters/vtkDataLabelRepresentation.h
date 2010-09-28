@@ -25,7 +25,7 @@
 #ifndef __vtkDataLabelRepresentation_h
 #define __vtkDataLabelRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 
 class vtkActor2D;
 class vtkCellCenters;
@@ -34,11 +34,11 @@ class vtkCompositeDataToUnstructuredGridFilter;
 class vtkUnstructuredDataDeliveryFilter;
 class vtkTextProperty;
 
-class VTK_EXPORT vtkDataLabelRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkDataLabelRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkDataLabelRepresentation* New();
-  vtkTypeMacro(vtkDataLabelRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkDataLabelRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -54,7 +54,13 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  void MarkModified();
+  virtual void MarkModified();
+
+  // Description:
+  // Get/Set the visibility for this representation. When the visibility of
+  // representation of false, all view passes are ignored.
+  virtual void SetVisibility(bool val);
+  virtual bool GetVisibility();
 
   //***************************************************************************
   // Methods to change various parameters on internal objects
@@ -119,12 +125,6 @@ protected:
   virtual int RequestData(vtkInformation*,
     vtkInformationVector**, vtkInformationVector*);
 
-  // Description:
-  // Make appropriate time/piece request.
-  virtual int RequestUpdateExtent(vtkInformation* request,
-    vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector);
-
   vtkCompositeDataToUnstructuredGridFilter* MergeBlocks;
   vtkUnstructuredDataDeliveryFilter* DataCollector;
 
@@ -136,6 +136,9 @@ protected:
   vtkLabeledDataMapper* CellLabelMapper;
   vtkTextProperty* CellLabelProperty;
   vtkActor2D* CellLabelActor;
+
+  int PointLabelVisibility;
+  int CellLabelVisibility;
 private:
   vtkDataLabelRepresentation(const vtkDataLabelRepresentation&); // Not implemented
   void operator=(const vtkDataLabelRepresentation&); // Not implemented

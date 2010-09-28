@@ -163,9 +163,17 @@ void vtkSelectionRepresentation::SetPointSize(double val)
 }
 
 //----------------------------------------------------------------------------
-void vtkSelectionRepresentation::SetVisibility(int val)
+void vtkSelectionRepresentation::SetVisibility(bool val)
 {
   this->GeometryRepresentation->SetVisibility(val);
+  this->LabelRepresentation->SetVisibility(val);
+  this->Superclass::SetVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetUseOutline(int val)
+{
+  this->GeometryRepresentation->SetUseOutline(val);
 }
 
 //----------------------------------------------------------------------------

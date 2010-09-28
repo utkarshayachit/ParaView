@@ -19,7 +19,7 @@
 #ifndef __vtkChartRepresentation_h
 #define __vtkChartRepresentation_h
 
-#include "vtkDataRepresentation.h"
+#include "vtkPVDataRepresentation.h"
 #include "vtkWeakPointer.h"
 
 class vtkPVContextView;
@@ -29,11 +29,11 @@ class vtkClientServerMoveData;
 class vtkReductionFilter;
 class vtkBlockDeliveryPreprocessor;
 
-class VTK_EXPORT vtkChartRepresentation : public vtkDataRepresentation
+class VTK_EXPORT vtkChartRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkChartRepresentation* New();
-  vtkTypeMacro(vtkChartRepresentation, vtkDataRepresentation);
+  vtkTypeMacro(vtkChartRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -43,7 +43,7 @@ public:
 
   // Description:
   // Set visibility of the representation.
-  virtual void SetVisibility(int visible);
+  virtual void SetVisibility(bool visible);
 
   // Description:
   // Get the number of series in this representation
@@ -68,7 +68,7 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  void MarkModified();
+  virtual void MarkModified();
 
   // *************************************************************************
   // Forwarded to vtkBlockDeliveryPreprocessor.
@@ -117,7 +117,6 @@ protected:
   vtkClientServerMoveData* DeliveryFilter;
   vtkWeakPointer<vtkPVContextView> ContextView;
   vtkContextNamedOptions* Options;
-  int Visibility;
 
   vtkAnnotationLink* AnnLink;
 private:
