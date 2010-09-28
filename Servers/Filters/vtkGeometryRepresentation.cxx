@@ -56,6 +56,7 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->Distributor = vtkOrderedCompositeDistributor::New();
   this->Distributor->SetController(vtkMultiProcessController::GetGlobalController());
   this->Distributor->SetInputConnection(0, this->DeliveryFilter->GetOutputPort());
+  this->Distributor->SetPassThrough(1);
 
   this->Decimator->SetInputConnection(this->GeometryFilter->GetOutputPort());
   this->Mapper->SetInputConnection(this->Distributor->GetOutputPort());
