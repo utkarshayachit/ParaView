@@ -39,6 +39,7 @@
 
 class vtkBSPCutsGenerator;
 class vtkCamera;
+class vtkCameraManipulator;
 class vtkInformationDoubleKey;
 class vtkInformationIntegerKey;
 class vtkInformationObjectBaseKey;
@@ -332,6 +333,10 @@ public:
   void SetAlphaBitPlanes(int val);
   void SetStencilCapable(int val);
 
+  //*****************************************************************
+  // Forwarded to vtkPVInteractorStyle if present on local processes.
+  void AddManipulator(vtkCameraManipulator* val);
+  void RemoveAllManipulators();
 
 //BTX
 protected:

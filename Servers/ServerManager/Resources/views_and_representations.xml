@@ -194,8 +194,7 @@
           default_values="1 1 1">
       </DoubleVectorProperty>
 
-      <DoubleVectorProperty
-        name="CenterOfRotation"
+      <DoubleVectorProperty name="CenterOfRotation"
         command="SetCenterOfRotation"
         number_of_elements="3"
         default_values="0 0 0">
@@ -203,6 +202,20 @@
           Center of rotation for the interactor.
         </Documentation>
       </DoubleVectorProperty>
+
+      <ProxyProperty name="CameraManipulators"
+        command="AddManipulator"
+        clean_command="RemoveAllManipulators"
+        is_internal="1"
+        repeatable="1">
+        <!-- For now, we are marking this property is_internal so that it won't
+        get saved in state files.
+        Eventually, we need to take out all the interaction related code from
+        the server manager -->
+        <ProxyGroupDomain name="groups">
+          <Group name="cameramanipulators" />
+        </ProxyGroupDomain>
+      </ProxyProperty>
 
       <!-- Key Light -->
       <DoubleVectorProperty name="KeyLightWarmth"

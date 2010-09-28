@@ -43,6 +43,8 @@
 #include "vtkPVOptions.h"
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkPVSynchronizedRenderWindows.h"
+#include "vtkPVTrackballRotate.h"
+#include "vtkPVTrackballZoom.h"
 #include "vtkRenderer.h"
 #include "vtkRenderViewBase.h"
 #include "vtkRenderWindow.h"
@@ -52,8 +54,6 @@
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkWeakPointer.h"
-
-#include "vtkPVTrackballRotate.h"
 
 #include <assert.h>
 #include <vtkstd/vector>
@@ -160,10 +160,18 @@ vtkPVRenderView::vtkPVRenderView()
     this->Interactor->SetRenderer(this->GetRenderer());
     this->Interactor->SetRenderWindow(this->GetRenderWindow());
     this->Interactor->SetInteractorStyle(this->InteractorStyle);
+
+    // Add some default manipulators. Applications can override them without
+    // much ado.
     vtkPVTrackballRotate* manip = vtkPVTrackballRotate::New();
     manip->SetButton(1);
     this->InteractorStyle->AddManipulator(manip);
     manip->Delete();
+
+    vtkPVTrackballZoom* manip2 = vtkPVTrackballZoom::New();
+    manip2->SetButton(3);
+    this->InteractorStyle->AddManipulator(manip2);
+    manip2->Delete();
 
     this->RubberBandStyle = vtkInteractorStyleRubberBand3D::New();
     this->RubberBandStyle->RenderOnMouseMoveOff();
@@ -1073,4 +1081,25 @@ void vtkPVRenderView::SetAlphaBitPlanes(int val)
 void vtkPVRenderView::SetStencilCapable(int val)
 {
   this->GetRenderWindow()->SetStencilCapable(val);
+}
+
+
+//*****************************************************************
+// Forwarded to vtkPVInteractorStyle if present on local processes.
+//----------------------------------------------------------------------------
+void vtkPVRenderView::AddManipulator(vtkCameraManipulator* val)
+{
+  if (this->InteractorStyle)
+    {
+    this->InteractorStyle->AddManipulator(val);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::RemoveAllManipulators()
+{
+  if (this->InteractorStyle)
+    {
+    this->InteractorStyle->RemoveAllManipulators();
+    }
 }
