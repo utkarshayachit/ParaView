@@ -95,27 +95,27 @@
         </Documentation>
       </IntVectorProperty>
 
-      <IntVectorProperty name="RemoteRenderThreshold"
+      <DoubleVectorProperty name="RemoteRenderThreshold"
         command="SetRemoteRenderingThreshold"
         number_of_elements="1"
-        default_values="20480">
-        <IntRangeDomain name="range" min="0" />
+        default_values="20.0">
+        <DoubleRangeDomain name="range" min="0" />
         <Documentation>
            The threshold used to determine if the compositing should be used
-           for rendering. The value is in KBs.
+           for rendering. The value is rendering-geometry size in MBs.
         </Documentation>
-      </IntVectorProperty>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty name="LODThreshold"
+      <DoubleVectorProperty name="LODThreshold"
         command="SetLODRenderingThreshold"
         number_of_elements="1"
         default_values="0">
-        <IntRangeDomain name="range" min="0" />
         <Documentation>
           Set the memory size threshold above which LOD will be used while
-          rendering interactively. The value is in KBs.
+          rendering interactively. The value is rendering-geometry size in MBs.
         </Documentation>
-      </IntVectorProperty>
+        <DoubleRangeDomain name="range" min="0" />
+      </DoubleVectorProperty>
 
       <IntVectorProperty name="SelectCells"
         command="SelectCells"

@@ -175,18 +175,18 @@ public:
   vtkGetMacro(InteractiveRenderImageReductionFactor, int);
 
   // Description:
-  // Get/Set the data-size in kilobytes above which remote-rendering should be
+  // Get/Set the data-size in megabytes above which remote-rendering should be
   // used, if possible.
   // @CallOnAllProcessess
-  vtkSetMacro(RemoteRenderingThreshold, unsigned long);
-  vtkGetMacro(RemoteRenderingThreshold, unsigned long);
+  vtkSetMacro(RemoteRenderingThreshold, double);
+  vtkGetMacro(RemoteRenderingThreshold, double);
 
   // Description:
-  // Get/Set the data-size in kilobytes above which LOD rendering should be
+  // Get/Set the data-size in megabytes above which LOD rendering should be
   // used, if possible.
   // @CallOnAllProcessess
-  vtkSetMacro(LODRenderingThreshold, unsigned long);
-  vtkGetMacro(LODRenderingThreshold, unsigned long);
+  vtkSetMacro(LODRenderingThreshold, double);
+  vtkGetMacro(LODRenderingThreshold, double);
 
   // Description:
   // Get/Set the LOD resolution. This affects the size of the grid used for
@@ -413,8 +413,8 @@ protected:
 
   unsigned long LocalGeometrySize;
   unsigned long GeometrySize;
-  unsigned long RemoteRenderingThreshold;
-  unsigned long LODRenderingThreshold;
+  double RemoteRenderingThreshold;
+  double LODRenderingThreshold;
   unsigned long ClientOutlineThreshold;
   double LastComputedBounds[6];
 

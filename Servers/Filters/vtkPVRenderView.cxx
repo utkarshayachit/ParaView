@@ -697,14 +697,14 @@ bool vtkPVRenderView::GetUseDistributedRendering()
     return true;
     }
 
-  return this->RemoteRenderingThreshold <= this->GeometrySize;
+  return (this->RemoteRenderingThreshold*1024) <= this->GeometrySize;
 }
 
 //----------------------------------------------------------------------------
 bool vtkPVRenderView::GetUseLODRendering()
 {
   // return false;
-  return this->LODRenderingThreshold <= this->GeometrySize;
+  return (this->LODRenderingThreshold*1024) <= this->GeometrySize;
 }
 
 //----------------------------------------------------------------------------
