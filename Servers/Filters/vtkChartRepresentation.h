@@ -14,7 +14,14 @@
 =========================================================================*/
 // .NAME vtkChartRepresentation
 // .SECTION Description
-//
+// vtkChartRepresentation is the base representation for charting
+// representations. Currently, ParaView's charting views are client-side only
+// views that render only on the client side. That being the case, when running
+// in client-server mode or in parallel, the data-delivery mode is fixed. Hence,
+// unlike representations for 3D views, this representation delivers the data in
+// RequestData() itself. This makes it possible for client code to call
+// UpdatePipeline() on the representation proxy and then access the delivered
+// vtkTable on the client.
 
 #ifndef __vtkChartRepresentation_h
 #define __vtkChartRepresentation_h
@@ -54,14 +61,6 @@ public:
   // is out of range.  The returned pointer is only valid until the next call
   // to GetSeriesName.
   const char* GetSeriesName(int series);
-
-  // Description:
-  // vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
-  // typically called by the vtkView to request meta-data from the
-  // representations or ask them to perform certain tasks e.g.
-  // PrepareForRendering.
-  virtual int ProcessViewRequest(vtkInformationRequestKey* request_type,
-    vtkInformation* inInfo, vtkInformation* outInfo);
 
   // Description:
   // This needs to be called on all instances of vtkGeometryRepresentation when

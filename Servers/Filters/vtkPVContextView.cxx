@@ -37,6 +37,13 @@ vtkPVContextView::~vtkPVContextView()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVContextView::Initialize(unsigned int id)
+{
+  this->SynchronizedWindows->AddRenderWindow(id, this->RenderWindow);
+  this->Superclass::Initialize(id);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVContextView::StillRender()
 {
   vtkTimerLog::MarkStartEvent("Still Render");

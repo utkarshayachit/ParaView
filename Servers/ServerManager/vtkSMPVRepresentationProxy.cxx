@@ -82,21 +82,6 @@ vtkSMPVRepresentationProxy::~vtkSMPVRepresentationProxy()
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPVRepresentationProxy::MarkDirty(vtkSMProxy* modifiedProxy)
-{
-  this->Superclass::MarkDirty(modifiedProxy);
-  if (modifiedProxy != this && this->ObjectsCreated && !this->NeedsUpdate)
-    {
-    vtkInternals::RepresentationProxiesMap::iterator iter =
-      this->Internals->RepresentationProxies.begin();
-    for (; iter != this->Internals->RepresentationProxies.end(); ++iter)
-      {
-      iter->second.Representation->MarkDirty(modifiedProxy);
-      }
-    }
-}
-
-//----------------------------------------------------------------------------
 void vtkSMPVRepresentationProxy::CreateVTKObjects()
 {
   if (this->ObjectsCreated)

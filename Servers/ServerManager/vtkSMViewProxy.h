@@ -66,6 +66,10 @@ protected:
   ~vtkSMViewProxy();
 
   // Description:
+  // Called at the end of CreateVTKObjects().
+  virtual void CreateVTKObjects();
+
+  // Description:
   // Read attributes from an XML element.
   virtual int ReadXMLAttributes(vtkSMProxyManager* pm, vtkPVXMLElement* element);
 

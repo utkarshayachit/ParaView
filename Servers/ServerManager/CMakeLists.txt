@@ -231,7 +231,6 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkSMAnimationCueManipulatorProxy.cxx
   vtkSMAnimationSceneWriter.cxx
   vtkSMClientServerRenderSyncManagerHelper.cxx
-  vtkSMContextViewProxy.cxx
   vtkSMDomain.cxx
   vtkSMInformationHelper.cxx
   vtkSMLink.cxx

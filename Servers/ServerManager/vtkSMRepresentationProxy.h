@@ -37,10 +37,22 @@ public:
   // representation.
   virtual vtkPVDataInformation* GetRepresentedDataInformation();
 
+  // Description:
+  // Calls Update() on all sources. It also creates output ports if
+  // they are not already created.
+  virtual void UpdatePipeline();
+
+  // Description:
+  // Calls Update() on all sources with the given time request.
+  // It also creates output ports if they are not already created.
+  virtual void UpdatePipeline(double time);
+
 //BTX
 protected:
   vtkSMRepresentationProxy();
   ~vtkSMRepresentationProxy();
+
+  virtual void UpdatePipelineInternal(double time, bool doTime);
 
   virtual void CreateVTKObjects();
 
@@ -56,6 +68,8 @@ private:
 
   bool RepresentedDataInformationValid;
   vtkPVDataInformation* RepresentedDataInformation;
+
+  bool MarkedModified;
 //ETX
 };
 

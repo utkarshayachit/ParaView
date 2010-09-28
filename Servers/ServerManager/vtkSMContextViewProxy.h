@@ -30,6 +30,7 @@ class vtkRenderWindow;
 class VTK_EXPORT vtkSMContextViewProxy : public vtkSMViewProxy
 {
 public:
+  static vtkSMContextViewProxy* New();
   vtkTypeMacro(vtkSMContextViewProxy, vtkSMViewProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -61,10 +62,6 @@ public:
 protected:
   vtkSMContextViewProxy();
   ~vtkSMContextViewProxy();
-
-  // Description:
-  // Called once in CreateVTKObjects() to create a new chart view.
-  virtual vtkContextView* NewChartView()=0;
 
   // Description:
   virtual void CreateVTKObjects();

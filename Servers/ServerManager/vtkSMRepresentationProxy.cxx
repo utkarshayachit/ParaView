@@ -27,6 +27,7 @@ vtkSMRepresentationProxy::vtkSMRepresentationProxy()
 {
   this->RepresentedDataInformationValid = false;
   this->RepresentedDataInformation = vtkPVRepresentedDataInformation::New();
+  this->MarkedModified = false;
 }
 
 //----------------------------------------------------------------------------
@@ -54,19 +55,77 @@ void vtkSMRepresentationProxy::CreateVTKObjects()
 }
 
 //----------------------------------------------------------------------------
+void vtkSMRepresentationProxy::UpdatePipeline()
+{
+  if (!this->NeedsUpdate)
+    {
+    return;
+    }
+
+  this->UpdatePipelineInternal(0, false);
+  this->Superclass::UpdatePipeline();
+}
+
+//----------------------------------------------------------------------------
+void vtkSMRepresentationProxy::UpdatePipeline(double time)
+{
+  this->UpdatePipelineInternal(time, true);
+  this->Superclass::UpdatePipeline();
+}
+
+//----------------------------------------------------------------------------
+void vtkSMRepresentationProxy::UpdatePipelineInternal(
+  double time, bool doTime)
+{
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkClientServerStream stream;
+#ifdef FIXME
+  stream << vtkClientServerStream::Invoke
+         << this->GetProducerID() << "UpdateInformation"
+         << vtkClientServerStream::End;
+
+  stream << vtkClientServerStream::Invoke
+         << pm->GetProcessModuleID() << "GetPartitionId"
+         << vtkClientServerStream::End
+         << vtkClientServerStream::Invoke
+         << this->GetExecutiveID() << "SetUpdateExtent" << this->PortIndex
+         << vtkClientServerStream::LastResult
+         << pm->GetNumberOfPartitions(this->ConnectionID) << 0
+         << vtkClientServerStream::End;
+  if (doTime)
+    {
+    stream << vtkClientServerStream::Invoke
+           << this->GetExecutiveID() << "SetUpdateTimeStep"
+           << this->PortIndex << time
+           << vtkClientServerStream::End;
+    }
+#endif
+  stream << vtkClientServerStream::Invoke
+         << this->GetID() << "Update"
+         << vtkClientServerStream::End;
+  pm->SendPrepareProgress(this->ConnectionID);
+  pm->SendStream(this->ConnectionID, this->Servers, stream);
+  pm->SendCleanupPendingProgress(this->ConnectionID);
+}
+
+//----------------------------------------------------------------------------
 void vtkSMRepresentationProxy::MarkDirty(vtkSMProxy* modifiedProxy)
 {
-  cout << "MarkModified" << endl;
-  if (modifiedProxy != this && this->ObjectsCreated && !this->NeedsUpdate)
+  if ((modifiedProxy != this) && this->ObjectsCreated)
     {
-    vtkClientServerStream stream;
-    stream << vtkClientServerStream::Invoke
-      << this->GetID()
-      << "MarkModified"
-      << vtkClientServerStream::End;
-    vtkProcessModule::GetProcessModule()->SendStream(
-      this->ConnectionID,
-      this->Servers, stream);
+    if (!this->MarkedModified)
+      {
+      cout << "MarkModified" << endl;
+      this->MarkedModified = true;
+      vtkClientServerStream stream;
+      stream << vtkClientServerStream::Invoke
+        << this->GetID()
+        << "MarkModified"
+        << vtkClientServerStream::End;
+      vtkProcessModule::GetProcessModule()->SendStream(
+        this->ConnectionID,
+        this->Servers, stream);
+      }
     }
   this->Superclass::MarkModified(modifiedProxy);
 }
@@ -75,6 +134,7 @@ void vtkSMRepresentationProxy::MarkDirty(vtkSMProxy* modifiedProxy)
 void vtkSMRepresentationProxy::RepresentationUpdated()
 {
   cout << "RepresentationUpdated" << endl;
+  this->MarkedModified = false;
   this->PostUpdateData();
   // PostUpdateData will call InvalidateDataInformation() which will mark
   // RepresentedDataInformationValid as false;

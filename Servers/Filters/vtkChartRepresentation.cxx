@@ -53,6 +53,7 @@ vtkChartRepresentation::vtkChartRepresentation()
 
   post_gather_algo->FastDelete();
   this->DeliveryFilter = vtkClientServerMoveData::New();
+  this->DeliveryFilter->SetOutputDataType(VTK_TABLE);
 }
 
 //----------------------------------------------------------------------------
@@ -113,37 +114,6 @@ int vtkChartRepresentation::FillInputPortInformation(
 }
 
 //----------------------------------------------------------------------------
-int vtkChartRepresentation::ProcessViewRequest(
-  vtkInformationRequestKey* request_type,
-  vtkInformation* inInfo, vtkInformation* outInfo)
-{
-  if (request_type == vtkView::REQUEST_INFORMATION())
-    {
-    // nothing to do.
-    }
-  else if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
-    {
-    // In REQUEST_PREPARE_FOR_RENDER, we need to ensure all our data-deliver
-    // filters have their states updated as requested by the view.
-
-    // this is where we will look to see on what nodes are we going to render and
-    // render set that up.
-    this->ReductionFilter->Update();
-    this->DeliveryFilter->Update();
-    }
-  else if (request_type == vtkView::REQUEST_RENDER())
-    {
-    // typically, representations don't do anything special in this pass.
-    // However, when we are doing ordered compositing, we need to ensure that
-    // the redistribution of data happens in this pass.
-    this->Options->SetTable(vtkTable::SafeDownCast(
-        this->DeliveryFilter->GetOutputDataObject(0)));
-    }
-
-  return this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
-}
-
-//----------------------------------------------------------------------------
 int vtkChartRepresentation::RequestUpdateExtent(vtkInformation* request,
   vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
@@ -170,6 +140,10 @@ int vtkChartRepresentation::RequestData(vtkInformation* request,
     this->DeliveryFilter->RemoveAllInputs();
     }
 
+  this->ReductionFilter->Update();
+  this->DeliveryFilter->Update();
+  this->Options->SetTable(vtkTable::SafeDownCast(
+      this->DeliveryFilter->GetOutputDataObject(0)));
   return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 

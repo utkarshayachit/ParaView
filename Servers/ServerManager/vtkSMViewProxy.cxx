@@ -40,6 +40,35 @@ vtkSMViewProxy::~vtkSMViewProxy()
 }
 
 //----------------------------------------------------------------------------
+void vtkSMViewProxy::CreateVTKObjects()
+{
+  if (this->ObjectsCreated)
+    {
+    return;
+    }
+
+  this->Superclass::CreateVTKObjects();
+
+  if (!this->ObjectsCreated)
+    {
+    return;
+    }
+
+  if (!this->GetID().IsNull())
+    {
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke
+      << this->GetID()
+      << "Initialize"
+      << static_cast<unsigned int>(this->GetSelfID().ID)
+      << vtkClientServerStream::End;
+    vtkProcessModule::GetProcessModule()->SendStream(
+      this->ConnectionID,
+      this->Servers, stream);
+    }
+}
+
+//----------------------------------------------------------------------------
 void vtkSMViewProxy::StillRender()
 {
   int interactive = 0;

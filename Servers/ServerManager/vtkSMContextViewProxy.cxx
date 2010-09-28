@@ -34,7 +34,7 @@ public:
   }
 };
 
-
+vtkStandardNewMacro(vtkSMContextViewProxy);
 //----------------------------------------------------------------------------
 vtkSMContextViewProxy::vtkSMContextViewProxy()
 {
@@ -67,7 +67,6 @@ void vtkSMContextViewProxy::CreateVTKObjects()
 
   this->Storage = new Private;
   this->ChartView = pvview->GetContextView();
-  this->NewChartView();
 }
 
 //----------------------------------------------------------------------------

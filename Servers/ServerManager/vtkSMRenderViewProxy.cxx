@@ -149,15 +149,9 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke
          << this->GetID()
-         << "Initialize"
-         << static_cast<unsigned int>(this->GetSelfID().ID)
-         << vtkClientServerStream::End;
-  stream << vtkClientServerStream::Invoke
-         << this->GetID()
          << "SetActiveCamera"
          << this->GetSubProxy("ActiveCamera")->GetID()
          << vtkClientServerStream::End;
-
   vtkProcessModule::GetProcessModule()->SendStream(
     this->ConnectionID,
     this->Servers, stream);

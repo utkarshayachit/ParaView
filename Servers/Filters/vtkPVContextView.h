@@ -54,6 +54,12 @@ public:
   // Description:
   vtkGetObjectMacro(RenderWindow, vtkRenderWindow);
 
+  // Description:
+  // Initialize the view with an identifier. Unless noted otherwise, this method
+  // must be called before calling any other methods on this class.
+  // @CallOnAllProcessess
+  virtual void Initialize(unsigned int id);
+
 //BTX
 protected:
   vtkPVContextView();

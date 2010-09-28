@@ -57,7 +57,7 @@ void vtkSMChartRepresentationProxy::CreateVTKObjects()
     return;
     }
 
-  vtkSMProxy* optionsProxy = this->GetSubProxy("OptionsProxy");
+  vtkSMProxy* optionsProxy = this->GetSubProxy("PlotOptions");
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke
     << this->GetID()

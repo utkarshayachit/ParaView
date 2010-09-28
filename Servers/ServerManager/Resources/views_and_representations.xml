@@ -516,7 +516,9 @@
     <!-- ================================================================== -->
     <ContextViewProxy name="XYChartViewBase"
                       class="vtkPVXYChartView"
-                      processes="client|renderserver|dataserver">
+                      processes="client|renderserver|dataserver"
+                      base_proxygroup="views"
+                      base_proxyname="ViewBase" >
       <Documentation>
         This is the base proxy for XY chart views.
       </Documentation>
@@ -791,7 +793,6 @@
       <StringVectorProperty
         name="ChartType"
         command="SetChartType"
-        update_self="1"
         number_of_elements="1"
         default_values="ParallelCoordinates" >
       </StringVectorProperty>
@@ -2527,7 +2528,7 @@
         </Documentation>
       </IntVectorProperty>
 
-      <IntVectorProperty name="FieldAssociation"
+      <IntVectorProperty name="AttributeType"
         command="SetFieldAssociation"
         number_of_elements="1"
         default_values="0">
@@ -2828,7 +2829,6 @@
       <StringVectorProperty
         name="ChartType"
         command="SetChartType"
-        update_self="1"
         number_of_elements="1"
         default_values="Line" >
       </StringVectorProperty>
@@ -2848,7 +2848,6 @@
       <StringVectorProperty
         name="ChartType"
         command="SetChartType"
-        update_self="1"
         number_of_elements="1"
         default_values="Bar" >
       </StringVectorProperty>

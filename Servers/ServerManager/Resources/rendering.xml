@@ -4253,7 +4253,6 @@
 
       <StringVectorProperty name="Visibility"
         command="SetVisibility"
-        update_self="1"
         number_of_elements_per_command="2"
         element_types="2 0"
         repeat_command="1"
@@ -4275,7 +4274,6 @@
 
       <StringVectorProperty name="LineThickness"
         command="SetLineThickness"
-        update_self="1"
         number_of_elements_per_command="2"
         element_types="2 0"
         repeat_command="1"
@@ -4297,7 +4295,6 @@
 
       <StringVectorProperty name="LineStyle"
         command="SetLineStyle"
-        update_self="1"
         number_of_elements_per_command="2"
         element_types="2 0"
         repeat_command="1"
@@ -4319,7 +4316,6 @@
 
       <StringVectorProperty name="Label"
         command="SetLabel"
-        update_self="1"
         number_of_elements_per_command="2"
         element_types="2 2"
         repeat_command="1"
@@ -4340,7 +4336,6 @@
 
       <StringVectorProperty name="Color"
         command="SetColor"
-        update_self="1"
         number_of_elements_per_command="4"
         element_types="2 1 1 1"
         repeat_command="1"
@@ -4362,7 +4357,6 @@
 
       <StringVectorProperty name="MarkerStyle"
         command="SetMarkerStyle"
-        update_self="1"
         number_of_elements_per_command="2"
         element_types="2 0"
         repeat_command="1"
@@ -4384,7 +4378,6 @@
 
       <StringVectorProperty name="PlotCorner"
         command="SetAxisCorner"
-        update_self="1"
         number_of_elements_per_command="2"
         element_types="2 0"
         repeat_command="1"
