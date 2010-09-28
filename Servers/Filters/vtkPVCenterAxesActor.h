@@ -20,16 +20,16 @@
 #ifndef __vtkPVCenterAxesActor_h
 #define __vtkPVCenterAxesActor_h
 
-#include "vtkActor.h"
+#include "vtkOpenGLActor.h"
 
 class vtkAxes;
 class vtkPolyDataMapper;
 
-class VTK_EXPORT vtkPVCenterAxesActor : public vtkActor
+class VTK_EXPORT vtkPVCenterAxesActor : public vtkOpenGLActor
 {
 public:
   static vtkPVCenterAxesActor* New();
-  vtkTypeMacro(vtkPVCenterAxesActor, vtkActor);
+  vtkTypeMacro(vtkPVCenterAxesActor, vtkOpenGLActor);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -47,6 +47,7 @@ protected:
 
   vtkAxes* Axes;
   vtkPolyDataMapper* Mapper;
+
 
 private:
   vtkPVCenterAxesActor(const vtkPVCenterAxesActor&); // Not implemented

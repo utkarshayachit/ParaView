@@ -23,6 +23,7 @@ vtkStandardNewMacro(vtkPVCenterAxesActor);
 vtkPVCenterAxesActor::vtkPVCenterAxesActor()
 {
   this->Axes = vtkAxes::New();
+  this->Axes->SetSymmetric(1);
   this->Mapper = vtkPolyDataMapper::New();
   this->Mapper->SetInputConnection(this->Axes->GetOutputPort());
   this->SetMapper(this->Mapper);

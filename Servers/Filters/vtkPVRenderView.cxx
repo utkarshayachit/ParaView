@@ -123,7 +123,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->NonCompositedRenderer->SetLayer(2);
   this->NonCompositedRenderer->SetActiveCamera(
     this->RenderView->GetRenderer()->GetActiveCamera());
-  window->AddRenderer(this->NonCompositedRenderer);
+//  window->AddRenderer(this->NonCompositedRenderer);
   window->SetNumberOfLayers(3);
   this->RenderView->GetRenderer()->GetActiveCamera()->ParallelProjectionOff();
 
@@ -428,10 +428,17 @@ void vtkPVRenderView::ResetCameraClippingRange()
 //----------------------------------------------------------------------------
 void vtkPVRenderView::GatherBoundsInformation()
 {
+  // When computing bounds information, we don't want the center-axes to
+  // contaminate the result. So we hide the center axes temporarily.
+  int visible = this->CenterAxes->GetVisibility();
+  this->CenterAxes->SetVisibility(0);
+
   // FIXME: when doing client-only render, we are wasting our energy computing
   // universal bounds. How can we fix that?
   this->GetRenderer()->ComputeVisiblePropBounds(this->LastComputedBounds);
   this->SynchronizedWindows->SynchronizeBounds(this->LastComputedBounds);
+
+  this->CenterAxes->SetVisibility(visible);
 }
 
 //----------------------------------------------------------------------------
@@ -773,7 +780,8 @@ void vtkPVRenderView::UpdateCenterAxes(double bounds[6])
   bbox.GetLengths(widths);
 
   // lets make some thickness in all directions
-  double diameterOverTen = bbox.GetMaxLength() / 10.0;
+  double diameterOverTen = bbox.GetMaxLength() > 0?
+    bbox.GetMaxLength() / 10.0 : 1.0;
   widths[0] = widths[0] < diameterOverTen ? diameterOverTen : widths[0];
   widths[1] = widths[1] < diameterOverTen ? diameterOverTen : widths[1];
   widths[2] = widths[2] < diameterOverTen ? diameterOverTen : widths[2];
