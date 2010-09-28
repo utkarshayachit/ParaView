@@ -152,6 +152,21 @@ void vtkPVCompositeRepresentation::MarkModified()
 }
 
 //----------------------------------------------------------------------------
+int vtkPVCompositeRepresentation::FillInputPortInformation(
+  int port, vtkInformation* info)
+{
+  if (port==0)
+    {
+    return this->Superclass::FillInputPortInformation(port, info);
+    }
+
+  info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkUnstructuredGrid");
+  info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkCompositeDataSet");
+  info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
+  return 1;
+}
+
+//----------------------------------------------------------------------------
 void vtkPVCompositeRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

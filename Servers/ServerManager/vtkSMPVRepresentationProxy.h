@@ -65,6 +65,17 @@ public:
   // Calls MarkDirty() and invokes ModifiedEvent.
   virtual void MarkDirty(vtkSMProxy* modifiedProxy);
 
+
+  // Description:
+  // vtkPVCompositeRepresentation has two input ports one of the data, and
+  // another for the extracted selection. The data-input is exposed from the
+  // proxy, while the extracted selection input is hidden and implicitly defined
+  // based on the data input. We override this method to handle that.
+  virtual void AddInput(unsigned int inputPort,
+    vtkSMSourceProxy* input, unsigned int outputPort, const char* method);
+  virtual void AddInput(vtkSMSourceProxy* input, const char* method)
+    { this->Superclass::AddInput(input, method); }
+
 protected:
   vtkSMPVRepresentationProxy();
   ~vtkSMPVRepresentationProxy();

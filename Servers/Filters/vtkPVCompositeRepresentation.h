@@ -70,6 +70,10 @@ protected:
   ~vtkPVCompositeRepresentation();
 
   // Description:
+  // Fill input port information.
+  virtual int FillInputPortInformation(int port, vtkInformation* info);
+
+  // Description:
   // Adds the representation to the view.  This is called from
   // vtkView::AddRepresentation().  Subclasses should override this method.
   // Returns true if the addition succeeds.

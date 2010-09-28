@@ -313,6 +313,23 @@ int vtkSMPVRepresentationProxy::LoadState(
 }
 
 //----------------------------------------------------------------------------
+void vtkSMPVRepresentationProxy::AddInput(unsigned int inputPort,
+  vtkSMSourceProxy* input, unsigned int outputPort, const char* method)
+{
+  this->Superclass::AddInput(inputPort, input, outputPort, method);
+  input->CreateSelectionProxies();
+
+  vtkSMSourceProxy* esProxy = input->GetSelectionOutput(outputPort);
+  if (!esProxy)
+    {
+    vtkErrorMacro("Input proxy does not support selection extraction.");
+    return;
+    }
+
+  this->Superclass::AddInput(1, esProxy, 0, "SetInputConnection");
+}
+
+//----------------------------------------------------------------------------
 void vtkSMPVRepresentationProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
