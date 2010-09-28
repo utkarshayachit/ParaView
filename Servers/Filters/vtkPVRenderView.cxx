@@ -505,7 +505,7 @@ void vtkPVRenderView::Render(bool interactive)
 
   // Decide if we are doing remote rendering or local rendering.
   bool use_distributed_rendering = this->GetUseDistributedRendering();
-  cout << "Using remote rendering: " << use_distributed_rendering << endl;
+  // cout << "Using remote rendering: " << use_distributed_rendering << endl;
   bool in_tile_display_mode = this->InTileDisplayMode();
 
   // When in tile-display mode, we are always doing shared rendering. However

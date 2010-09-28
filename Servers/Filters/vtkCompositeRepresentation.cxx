@@ -220,6 +220,18 @@ vtkSelection* vtkCompositeRepresentation::ConvertSelection(
 }
 
 //----------------------------------------------------------------------------
+vtkDataObject* vtkCompositeRepresentation::GetRenderedDataObject(int port)
+{
+  vtkPVDataRepresentation* activeRepr = this->GetActiveRepresentation();
+  if (activeRepr)
+    {
+    return activeRepr->GetRenderedDataObject(port);
+    }
+
+  return this->Superclass::GetRenderedDataObject(port);
+}
+
+//----------------------------------------------------------------------------
 bool vtkCompositeRepresentation::AddToView(vtkView* view)
 {
   this->Internals->View = view;

@@ -812,7 +812,7 @@ void pqDisplayProxyEditor::updateEnableState()
     QVariant scalarMode = pqSMAdaptor::getEnumerationProperty(
       display->GetProperty("ColorAttributeType"));
     vtkPVDataInformation* geomInfo =
-      display->GetRepresentedDataInformation(/*update=*/false);
+      display->GetRepresentedDataInformation();
     if (!geomInfo)
       {
       return;

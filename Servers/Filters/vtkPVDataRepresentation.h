@@ -51,6 +51,11 @@ public:
     { this->Visibility = val; }
   vtkGetMacro(Visibility, bool);
 
+  // Description:
+  // Returns the data object that is rendered from the given input port.
+  virtual vtkDataObject* GetRenderedDataObject(int vtkNotUsed(port))
+    { return this->GetInputDataObject(0, 0); }
+
 //BTX
 protected:
   vtkPVDataRepresentation();

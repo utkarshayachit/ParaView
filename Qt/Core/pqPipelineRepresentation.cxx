@@ -412,7 +412,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     }
   repr->UpdateVTKObjects();
 
-  geomInfo = repr->GetRepresentedDataInformation(/*update=*/true);
+  geomInfo = repr->GetRepresentedDataInformation();
 
   // Locate input display.
   pqPipelineRepresentation* upstreamDisplay = 
@@ -917,7 +917,7 @@ QList<QString> pqPipelineRepresentation::getColorFields()
     }
 
   vtkPVDataInformation* geomInfo = NULL;
-  geomInfo = repr->GetRepresentedDataInformation(true);
+  geomInfo = repr->GetRepresentedDataInformation();
   if(!geomInfo)
     {
     return ret;

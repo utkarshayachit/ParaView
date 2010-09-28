@@ -39,6 +39,9 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
 {
   this->GeometryFilter = vtkPVGeometryFilter::New();
   this->Decimator = vtkQuadricClustering::New();
+  this->Decimator->SetUseInputPoints(1);
+  this->Decimator->SetCopyCellData(1);
+  this->Decimator->SetUseInternalTriangles(0);
   this->Decimator->SetNumberOfDivisions(10, 10, 10);
   this->Mapper = vtkPolyDataMapper::New();
   this->LODMapper = vtkPolyDataMapper::New();
@@ -194,6 +197,13 @@ int vtkGeometryRepresentation::RequestUpdateExtent(vtkInformation* request,
   vtkInformationVector* outputVector)
 {
   return this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
+}
+
+//----------------------------------------------------------------------------
+vtkDataObject* vtkGeometryRepresentation::GetRenderedDataObject(int port)
+{
+  (void) port;
+  return this->Distributor->GetOutputDataObject(0);
 }
 
 //----------------------------------------------------------------------------

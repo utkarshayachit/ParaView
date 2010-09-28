@@ -78,6 +78,10 @@ public:
   // Overridden to forward to active representation.
   virtual vtkSelection* ConvertSelection(vtkView* view, vtkSelection* selection);
 
+  // Description:
+  // Returns the data object that is rendered from the given input port.
+  virtual vtkDataObject* GetRenderedDataObject(int port);
+
 //BTX
 protected:
   vtkCompositeRepresentation();

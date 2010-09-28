@@ -149,6 +149,7 @@ SET(Filters_SRCS
   vtkPVRecoverGeometryWireframe.cxx
   vtkPVRenderView.cxx
   vtkPVRenderViewProxy.cxx
+  vtkPVRepresentedDataInformation.cxx
   vtkPVScalarBarActor.cxx
   vtkPVSelectionSource.cxx
   vtkPVServerArrayHelper.cxx

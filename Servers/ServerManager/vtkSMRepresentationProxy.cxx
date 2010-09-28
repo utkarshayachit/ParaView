@@ -15,20 +15,24 @@
 #include "vtkSMRepresentationProxy.h"
 
 #include "vtkClientServerStream.h"
+#include "vtkMemberFunctionCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
-#include "vtkMemberFunctionCommand.h"
+#include "vtkPVRepresentedDataInformation.h"
+#include "vtkTimerLog.h"
 
 vtkStandardNewMacro(vtkSMRepresentationProxy);
 //----------------------------------------------------------------------------
 vtkSMRepresentationProxy::vtkSMRepresentationProxy()
 {
-
+  this->RepresentedDataInformationValid = false;
+  this->RepresentedDataInformation = vtkPVRepresentedDataInformation::New();
 }
 
 //----------------------------------------------------------------------------
 vtkSMRepresentationProxy::~vtkSMRepresentationProxy()
 {
+  this->RepresentedDataInformation->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -72,6 +76,35 @@ void vtkSMRepresentationProxy::RepresentationUpdated()
 {
   cout << "RepresentationUpdated" << endl;
   this->PostUpdateData();
+  // PostUpdateData will call InvalidateDataInformation() which will mark
+  // RepresentedDataInformationValid as false;
+  // this->RepresentedDataInformationValid = false;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMRepresentationProxy::InvalidateDataInformation()
+{
+  this->Superclass::InvalidateDataInformation();
+  this->RepresentedDataInformationValid = false;
+}
+
+//----------------------------------------------------------------------------
+vtkPVDataInformation* vtkSMRepresentationProxy::GetRepresentedDataInformation()
+{
+  if (!this->RepresentedDataInformationValid)
+    {
+    vtkTimerLog::MarkStartEvent(
+      "vtkSMRepresentationProxy::GetRepresentedDataInformation");
+    this->RepresentedDataInformation->Initialize();
+    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+    pm->GatherInformation(this->ConnectionID, this->Servers,
+      this->RepresentedDataInformation, this->GetID());
+    vtkTimerLog::MarkEndEvent(
+      "vtkSMRepresentationProxy::GetRepresentedDataInformation");
+    this->RepresentedDataInformationValid = true;
+    }
+
+  return this->RepresentedDataInformation;
 }
 
 //----------------------------------------------------------------------------

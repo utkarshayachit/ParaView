@@ -111,6 +111,10 @@ public:
   vtkSetClampMacro(Representation, int, POINTS, SURFACE_WITH_EDGES);
   vtkGetMacro(Representation, int);
 
+  // Description:
+  // Returns the data object that is rendered from the given input port.
+  virtual vtkDataObject* GetRenderedDataObject(int port);
+
   //***************************************************************************
   // Forwarded to vtkPVGeometryFilter
   void SetUseOutline(int);

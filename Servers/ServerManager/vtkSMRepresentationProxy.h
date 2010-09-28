@@ -32,10 +32,10 @@ public:
   // Calls MarkDirty() and invokes ModifiedEvent.
   virtual void MarkDirty(vtkSMProxy* modifiedProxy);
 
-  vtkPVDataInformation* GetRepresentedDataInformation(int vtkNotUsed(update))
-    { return this->Superclass::GetDataInformation(); }
-  vtkPVDataInformation* GetRepresentedDataInformation()
-    { return this->Superclass::GetDataInformation(); }
+  // Description:
+  // Returns information about the data that is finally rendered by this
+  // representation.
+  virtual vtkPVDataInformation* GetRepresentedDataInformation();
 
 //BTX
 protected:
@@ -46,9 +46,16 @@ protected:
 
   void RepresentationUpdated();
 
+  // Description:
+  // Mark the data information as invalid.
+  virtual void InvalidateDataInformation();
+
 private:
   vtkSMRepresentationProxy(const vtkSMRepresentationProxy&); // Not implemented
   void operator=(const vtkSMRepresentationProxy&); // Not implemented
+
+  bool RepresentedDataInformationValid;
+  vtkPVDataInformation* RepresentedDataInformation;
 //ETX
 };
 
