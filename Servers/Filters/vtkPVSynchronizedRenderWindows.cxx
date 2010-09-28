@@ -344,7 +344,7 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
       // client always creates new window for each view in the multi layout
       // configuration.
       vtkRenderWindow* window = vtkRenderWindow::New();
-      window->DoubleBufferOn(); //FIXME;
+      window->DoubleBufferOn();
       window->AlphaBitPlanesOn();
       return window;
       }
@@ -355,7 +355,7 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
     if (!this->Internals->SharedRenderWindow)
       {
       vtkRenderWindow* window = vtkRenderWindow::New();
-      window->DoubleBufferOn(); //FIXME
+      window->DoubleBufferOn();
       window->AlphaBitPlanesOn();
       // SwapBuffers should be ON only on root node in BATCH mode
       // or when operating in tile-display mode.
@@ -365,7 +365,7 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
       int not_used[2];
       swap_buffers |= this->GetTileDisplayParameters(not_used);
       window->SetSwapBuffers(swap_buffers? 1 : 0);
-      window->SetSwapBuffers(1); // for debugging.
+      window->SetSwapBuffers(1); // for debugging FIXME.
       this->Internals->SharedRenderWindow.TakeReference(window);
       }
     this->Internals->SharedRenderWindow->Register(this);

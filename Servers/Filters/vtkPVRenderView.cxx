@@ -18,7 +18,7 @@
 #include "vtkBSPCutsGenerator.h"
 #include "vtkCamera.h"
 #include "vtkCommand.h"
-#include "vtkPHardwareSelector.h"
+#include "vtkDataRepresentation.h"
 #include "vtkInformationDoubleKey.h"
 #include "vtkInformation.h"
 #include "vtkInformationIntegerKey.h"
@@ -28,10 +28,12 @@
 #include "vtkInteractorStyleRubberBand3D.h"
 #include "vtkLight.h"
 #include "vtkLightKit.h"
+#include "vtkMath.h"
 #include "vtkMemberFunctionCommand.h"
 #include "vtkMPIMoveData.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
+#include "vtkPHardwareSelector.h"
 #include "vtkPKdTree.h"
 #include "vtkProcessModule.h"
 #include "vtkPVAxesWidget.h"
@@ -50,7 +52,6 @@
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkWeakPointer.h"
-#include "vtkDataRepresentation.h"
 
 #include "vtkPVTrackballRotate.h"
 
@@ -91,6 +92,11 @@ vtkPVRenderView::vtkPVRenderView()
   this->InteractionMode = INTERACTION_MODE_3D;
   this->LastSelection = NULL;
   this->Selector = vtkPHardwareSelector::New();
+
+  this->LastComputedBounds[0] = this->LastComputedBounds[2] =
+    this->LastComputedBounds[4] = -1.0;
+  this->LastComputedBounds[1] = this->LastComputedBounds[3] =
+    this->LastComputedBounds[5] = 1.0;
 
   this->SynchronizedRenderers = vtkPVSynchronizedRenderer::New();
 
@@ -437,6 +443,14 @@ void vtkPVRenderView::GatherBoundsInformation()
   // universal bounds. How can we fix that?
   this->GetRenderer()->ComputeVisiblePropBounds(this->LastComputedBounds);
   this->SynchronizedWindows->SynchronizeBounds(this->LastComputedBounds);
+
+  if (!vtkMath::AreBoundsInitialized(this->LastComputedBounds))
+    {
+    this->LastComputedBounds[0] = this->LastComputedBounds[2] =
+      this->LastComputedBounds[4] = -1.0;
+    this->LastComputedBounds[1] = this->LastComputedBounds[3] =
+      this->LastComputedBounds[5] = 1.0;
+    }
 
   this->CenterAxes->SetVisibility(visible);
 }
