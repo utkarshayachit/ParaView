@@ -310,7 +310,7 @@ vtkSMProxy* pqRenderViewBase::createCameraManipulator(
     return NULL;
     }
   manip->SetConnectionID(cid);
-  manip->SetServers(vtkProcessModule::CLIENT);
+  manip->SetServers(vtkProcessModule::CLIENT_AND_SERVERS);
   pqSMAdaptor::setElementProperty(manip->GetProperty("Button"), mouse);
   pqSMAdaptor::setElementProperty(manip->GetProperty("Shift"), shift);
   pqSMAdaptor::setElementProperty(manip->GetProperty("Control"), control);
