@@ -22,6 +22,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkSMEnumerationDomain.h"
 #include "vtkSMIntVectorProperty.h"
+#include "vtkSMPropertyHelper.h"
 
 #include <vtkstd/string>
 #include <vtkstd/map>
@@ -158,9 +159,15 @@ void vtkSMPVRepresentationProxy::SetRepresentation(int repr)
       << "SetActiveRepresentation"
       << iter->second.Text.c_str()
       << vtkClientServerStream::End;
-
     vtkProcessModule::GetProcessModule()->SendStream(
       this->ConnectionID, this->Servers, stream);
+
+    vtkSMProxy* subProxy = iter->second.Representation;
+    if (subProxy && iter->second.Value != -1)
+      {
+      vtkSMPropertyHelper(subProxy, "Representation").Set(iter->second.Value);
+      subProxy->UpdateVTKObjects();
+      }
     this->Modified();
     }
 }
