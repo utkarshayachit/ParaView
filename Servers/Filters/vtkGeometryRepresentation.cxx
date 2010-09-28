@@ -74,6 +74,8 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->Diffuse = 1.0;
   this->Specular = 0.0;
   this->Representation = SURFACE;
+
+  this->SuppressLOD = false;
 }
 
 //----------------------------------------------------------------------------
@@ -124,7 +126,7 @@ int vtkGeometryRepresentation::ProcessViewRequest(
     // render set that up.
     this->DeliveryFilter->ProcessViewRequest(inInfo);
     this->LODDeliveryFilter->ProcessViewRequest(inInfo);
-    bool lod = inInfo->Has(vtkPVRenderView::USE_LOD());
+    bool lod = this->SuppressLOD? false : inInfo->Has(vtkPVRenderView::USE_LOD());
     if (lod)
       {
       if (inInfo->Has(vtkPVRenderView::LOD_RESOLUTION()))

@@ -71,7 +71,8 @@ public:
 
   // Description:
   // Enable/Disable LOD;
-  void SetSuppressLOD(int){ } ;
+  void SetSuppressLOD(bool suppress)
+    { this->SuppressLOD = suppress; }
 
   // Description:
   // Methods to control scalar coloring. ColorAttributeType defines the
@@ -220,6 +221,7 @@ protected:
   double Specular;
   double Diffuse;
   int Representation;
+  bool SuppressLOD;
 
 private:
   vtkGeometryRepresentation(const vtkGeometryRepresentation&); // Not implemented

@@ -471,6 +471,7 @@ void vtkPVRenderView::ResetCamera()
 void vtkPVRenderView::StillRender()
 {
   vtkTimerLog::MarkStartEvent("Still Render");
+  this->GetRenderWindow()->SetDesiredUpdateRate(0.002);
   this->Render(false);
   vtkTimerLog::MarkEndEvent("Still Render");
 }
@@ -479,6 +480,7 @@ void vtkPVRenderView::StillRender()
 void vtkPVRenderView::InteractiveRender()
 {
   vtkTimerLog::MarkStartEvent("Interactive Render");
+  this->GetRenderWindow()->SetDesiredUpdateRate(5.0);
   this->Render(true);
   vtkTimerLog::MarkEndEvent("Interactive Render");
 }

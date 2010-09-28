@@ -170,6 +170,7 @@ void vtkSMPVRepresentationProxy::SetRepresentation(int repr)
       }
     this->Modified();
     }
+  this->InvalidateDataInformation();
 }
 
 //----------------------------------------------------------------------------

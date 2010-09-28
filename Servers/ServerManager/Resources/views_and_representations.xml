@@ -1054,8 +1054,8 @@
       <RepresentationType subproxy="SliceRepresentation" text="Slice"/>
 
       <InputProperty name="Input" command="SetInputConnection">
-       <DataTypeDomain name="input_type" composite_data_supported="1">
-         <DataType value="vtkUnstructuredGrid"/>
+       <DataTypeDomain name="input_type" composite_data_supported="0">
+         <DataType value="vtkImageData"/>
        </DataTypeDomain>
         <Documentation>
           Set the input to the representation.
