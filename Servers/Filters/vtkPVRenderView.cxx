@@ -123,7 +123,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->NonCompositedRenderer->SetLayer(2);
   this->NonCompositedRenderer->SetActiveCamera(
     this->RenderView->GetRenderer()->GetActiveCamera());
-//  window->AddRenderer(this->NonCompositedRenderer);
+  window->AddRenderer(this->NonCompositedRenderer);
   window->SetNumberOfLayers(3);
   this->RenderView->GetRenderer()->GetActiveCamera()->ParallelProjectionOff();
 
