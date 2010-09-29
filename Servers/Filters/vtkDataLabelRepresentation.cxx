@@ -290,21 +290,6 @@ bool vtkDataLabelRepresentation::RemoveFromView(vtkView* view)
 }
 
 //----------------------------------------------------------------------------
-int vtkDataLabelRepresentation::ProcessViewRequest(
-  vtkInformationRequestKey* request_type,
-  vtkInformation* inInfo, vtkInformation* outInfo)
-{
-  if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
-    {
-    // In REQUEST_PREPARE_FOR_RENDER, we need to ensure all our data-deliver
-    // filters have their states updated as requested by the view.
-    this->DataCollector->Update();
-    }
-
-  return this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
-}
-
-//----------------------------------------------------------------------------
 int vtkDataLabelRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
@@ -320,6 +305,10 @@ int vtkDataLabelRepresentation::RequestData(vtkInformation* request,
     this->MergeBlocks->RemoveAllInputs();
     this->DataCollector->RemoveAllInputs();
     }
+
+  // Since data-deliver mode never changes for this representation, we simply do
+  // the data-delivery in RequestData itself to keep things simple.
+  this->DataCollector->Update();
 
   return this->Superclass::RequestData(request, inputVector, outputVector);
 }

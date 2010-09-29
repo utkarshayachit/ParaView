@@ -102,7 +102,7 @@ int vtkSelectionRepresentation::FillInputPortInformation(
 bool vtkSelectionRepresentation::AddToView(vtkView* view)
 {
   view->AddRepresentation(this->GeometryRepresentation);
-  //view->AddRepresentation(this->LabelRepresentation);
+  view->AddRepresentation(this->LabelRepresentation);
   return true;
 }
 
@@ -110,7 +110,7 @@ bool vtkSelectionRepresentation::AddToView(vtkView* view)
 bool vtkSelectionRepresentation::RemoveFromView(vtkView* view)
 {
   view->RemoveRepresentation(this->GeometryRepresentation);
-  //view->RemoveRepresentation(this->LabelRepresentation);
+  view->RemoveRepresentation(this->LabelRepresentation);
   return true;
 }
 

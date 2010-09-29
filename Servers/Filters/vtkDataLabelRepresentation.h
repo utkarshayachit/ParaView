@@ -44,14 +44,6 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
-  // vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
-  // typically called by the vtkView to request meta-data from the
-  // representations or ask them to perform certain tasks e.g.
-  // PrepareForRendering.
-  virtual int ProcessViewRequest(vtkInformationRequestKey* request_type,
-    vtkInformation* inInfo, vtkInformation* outInfo);
-
-  // Description:
   // This needs to be called on all instances of vtkGeometryRepresentation when
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
