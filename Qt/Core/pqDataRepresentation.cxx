@@ -198,18 +198,16 @@ pqScalarsToColors* pqDataRepresentation::getLookupTable()
 
   return (lut? smmodel->findItem<pqScalarsToColors*>(lut): 0);
 }
-  
+
 //-----------------------------------------------------------------------------
 unsigned long pqDataRepresentation::getFullResMemorySize()
 {
-  vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(
-    this->getProxy());
-  if (repr)
+  vtkPVDataInformation* info = this->getRepresentedDataInformation(true);
+  if (!info)
     {
-    abort();
+    return 0;
     }
-
-  return 0;
+  return static_cast<unsigned long>(info->GetMemorySize());
 }
 
 //-----------------------------------------------------------------------------
