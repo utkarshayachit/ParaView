@@ -340,11 +340,9 @@ void vtkPVXYChartView::Render(bool interactive)
     if (pos != vtkstd::string::npos)
       {
       // The string was found - replace it and set the chart title.
-#ifdef FIXME
-      timeStream << this->GetViewUpdateTime();
+      timeStream << this->GetViewTime();
       title.replace(pos, pos+6, timeStream.str());
       this->Chart->SetTitle(title.c_str());
-#endif
       }
     }
 
