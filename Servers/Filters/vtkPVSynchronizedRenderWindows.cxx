@@ -368,6 +368,10 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
       window->SetSwapBuffers(1); // for debugging FIXME.
       this->Internals->SharedRenderWindow.TakeReference(window);
       }
+    else
+      {
+      cout << "Using shared render window" << endl;
+      }
     this->Internals->SharedRenderWindow->Register(this);
     return this->Internals->SharedRenderWindow;
 
@@ -866,6 +870,14 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
           static_cast<double>(full_size[0]);
         viewport[3] = (position[1] + actual_size[1])/
           static_cast<double>(full_size[1]);
+
+        // As far as window-positions go, (0,0) is top-left corner, while for
+        // viewport (0, 0) is bottom-left corner. So we flip the Y viewport.
+        viewport[1] = 1.0 - viewport[1];
+        viewport[3] = 1.0 - viewport[3];
+        double temp = viewport[1];
+        viewport[1] = viewport[3];
+        viewport[3] = temp;
 
         // This viewport is the viewport for the renderers treating the all the
         // tiles as one large display.

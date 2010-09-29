@@ -871,7 +871,7 @@ void pqViewManager::updateViewPositions()
     {
     // set size containing all views
     int gui_size[2] = { totalBounds.width(), totalBounds.height() };
-    vtkSMPropertyHelper(view->getProxy(), "GUISize", true).Set(gui_size, 2);
+    //vtkSMPropertyHelper(view->getProxy(), "GUISize", true).Set(gui_size, 2);
 
     if (!view->getWidget() || !view->getWidget()->isVisible())
       {
@@ -891,6 +891,7 @@ void pqViewManager::updateViewPositions()
 
     // This is causing problems with tests.
     // view->getProxy()->UpdateProperty("ViewSize");
+    view->getProxy()->UpdateVTKObjects();
     }
 
   END_UNDO_EXCLUDE();

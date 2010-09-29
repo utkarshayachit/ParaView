@@ -17,7 +17,7 @@
         </Documentation>
       </DoubleVectorProperty>
 
-      <IntVectorProperty name="Position"
+      <IntVectorProperty name="ViewPosition"
         command="SetPosition"
         number_of_elements="2"
         default_values="0 0">
@@ -26,7 +26,7 @@
         </Documentation>
       </IntVectorProperty>
 
-      <IntVectorProperty name="Size"
+      <IntVectorProperty name="ViewSize"
         command="SetSize"
         number_of_elements="2"
         default_values="400 400" >
