@@ -74,6 +74,7 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
 
   bool in_tile_display_mode = false;
   int tile_dims[2] = {0, 0};
+  int tile_mullions[2] = {0, 0};
   vtkPVServerInformation* server_info = NULL;
   if (pm->GetActiveRemoteConnection())
     {
@@ -94,6 +95,9 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
   // mode.
   tile_dims[0] = tile_dims[0] > 0 ? tile_dims[0] : 1;
   tile_dims[1] = tile_dims[1] > 0 ? tile_dims[1] : 1;
+
+  tile_mullions[0] = server_info->GetTileMullions()[0];
+  tile_mullions[1] = server_info->GetTileMullions()[1];
 
   switch (this->Mode)
     {
@@ -146,7 +150,7 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
       static_cast<vtkIceTSynchronizedRenderers*>(this->ParallelSynchronizer)->SetTileDimensions(
         tile_dims[0], tile_dims[1]);
       static_cast<vtkIceTSynchronizedRenderers*>(this->ParallelSynchronizer)->SetTileMullions(
-        20, 20);
+        tile_mullions[0], tile_mullions[1]);
 #else
       // FIXME: need to add support for compositing.
       this->ParallelSynchronizer = vtkSynchronizedRenderers::New();
