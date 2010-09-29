@@ -16,24 +16,29 @@
 
 #include "vtkClientServerStream.h"
 #include "vtkCollection.h"
+#include "vtkDoubleArray.h"
 #include "vtkEventForwarderCommand.h"
+#include "vtkExtractSelectedFrustum.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
+#include "vtkPVDataInformation.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
 #include "vtkPVLastSelectionInformation.h"
 #include "vtkPVRenderView.h"
 #include "vtkPVRenderViewProxy.h"
 #include "vtkPVXMLElement.h"
+#include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
+#include "vtkSelectionNode.h"
 #include "vtkSmartPointer.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMProperty.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMRepresentationProxy.h"
 #include "vtkSMSelectionHelper.h"
-#include "vtkSMSourceProxy.h"
 #include "vtkWeakPointer.h"
 
 namespace
@@ -102,7 +107,7 @@ const char* vtkSMRenderViewProxy::IsSelectVisibleCellsAvailable()
     return "Selection not supported due to insufficient color depth.";
     }
 
-  //yeah!
+  //cout << "yes" << endl;
   return NULL;
 }
 
@@ -380,6 +385,138 @@ bool vtkSMRenderViewProxy::FetchLastSelection(
     return (selectionSources->GetNumberOfItems() > 0);
     }
   return false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMRenderViewProxy::SelectFrustumCells(int region[4],
+  vtkCollection* selectedRepresentations,
+  vtkCollection* selectionSources,
+  bool multiple_selections)
+{
+  return this->SelectFrustumInternal(region, selectedRepresentations,
+    selectionSources, multiple_selections, vtkSelectionNode::CELL);
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMRenderViewProxy::SelectFrustumPoints(int region[4],
+  vtkCollection* selectedRepresentations,
+  vtkCollection* selectionSources,
+  bool multiple_selections)
+{
+  return this->SelectFrustumInternal(region, selectedRepresentations,
+    selectionSources, multiple_selections, vtkSelectionNode::POINT);
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMRenderViewProxy::SelectFrustumInternal(int region[4],
+  vtkCollection* selectedRepresentations,
+  vtkCollection* selectionSources,
+  bool multiple_selections,
+  int fieldAssociation)
+{
+  // Simply stealing old code for now. This code have many coding style
+  // violations and seems too long for what it does. At some point we'll check
+  // it out.
+
+  int displayRectangle[4] = {region[0], region[1], region[2], region[3]};
+  if (displayRectangle[0] == displayRectangle[2])
+    {
+    displayRectangle[2] += 1;
+    }
+  if (displayRectangle[1] == displayRectangle[3])
+    {
+    displayRectangle[3] += 1;
+    }
+
+  // 1) Create frustum selection
+  //convert screen rectangle to world frustum
+  vtkRenderer *renderer = this->GetRenderer();
+  double frustum[32];
+  int index=0;
+  renderer->SetDisplayPoint(displayRectangle[0], displayRectangle[1], 0);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(&frustum[index*4]);
+  index++;
+  renderer->SetDisplayPoint(displayRectangle[0], displayRectangle[1], 1);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(&frustum[index*4]);
+  index++;
+  renderer->SetDisplayPoint(displayRectangle[0], displayRectangle[3], 0);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(&frustum[index*4]);
+  index++;
+  renderer->SetDisplayPoint(displayRectangle[0], displayRectangle[3], 1);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(&frustum[index*4]);
+  index++;
+  renderer->SetDisplayPoint(displayRectangle[2], displayRectangle[1], 0);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(&frustum[index*4]);
+  index++;
+  renderer->SetDisplayPoint(displayRectangle[2], displayRectangle[1], 1);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(&frustum[index*4]);
+  index++;
+  renderer->SetDisplayPoint(displayRectangle[2], displayRectangle[3], 0);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(&frustum[index*4]);
+  index++;
+  renderer->SetDisplayPoint(displayRectangle[2], displayRectangle[3], 1);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(&frustum[index*4]);
+
+  vtkSMProxy* selectionSource = this->GetProxyManager()->NewProxy("sources",
+    "FrustumSelectionSource");
+  selectionSource->SetConnectionID(this->ConnectionID);
+  vtkSMPropertyHelper(selectionSource, "FieldType").Set(fieldAssociation);
+  vtkSMPropertyHelper(selectionSource, "Frustum").Set(frustum, 32);
+  selectionSource->UpdateVTKObjects();
+
+  // 2) Figure out which representation is "selected".
+  vtkExtractSelectedFrustum* extractor =
+    vtkExtractSelectedFrustum::New();
+  extractor->CreateFrustum(frustum);
+
+  // Now we just use the first selected representation,
+  // until we have other mechanisms to select one.
+  vtkSMPropertyHelper reprsHelper(this, "Representations");
+
+  for (unsigned int cc=0;  cc < reprsHelper.GetNumberOfElements(); cc++)
+    {
+    vtkSMRepresentationProxy* repr =
+      vtkSMRepresentationProxy::SafeDownCast(reprsHelper.GetAsProxy(cc));
+    if (!repr || vtkSMPropertyHelper(repr, "Visibility", true).GetAsInt() == 0)
+      {
+      continue;
+      }
+    if (vtkSMPropertyHelper(repr, "Pickable", true).GetAsInt() == 0)
+      {
+      // skip non-pickable representations.
+      continue;
+      }
+    vtkPVDataInformation* datainfo = repr->GetRepresentedDataInformation();
+    if (!datainfo)
+      {
+      continue;
+      }
+
+    double bounds[6];
+    datainfo->GetBounds(bounds);
+
+    if (extractor->OverallBoundsTest(bounds))
+      {
+      selectionSources->AddItem(selectionSource);
+      selectedRepresentations->AddItem(repr);
+      if (!multiple_selections)
+        {
+        break;
+        }
+      }
+    }
+
+  extractor->Delete();
+  selectionSource->Delete();
+  return true;
 }
 
 //----------------------------------------------------------------------------

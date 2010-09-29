@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ParaView includes.
 #include "vtkPVRenderView.h"
 #include "vtkInteractorStyleRubberBandZoom.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
 #include "vtkMemberFunctionCommand.h"
 #include "vtkSmartPointer.h"
 #include "vtkSMPropertyHelper.h"
@@ -126,10 +127,8 @@ void pqRubberBandHelper::emitEnabledSignals()
     {
     vtkSMRenderViewProxy* proxy =
       this->Internal->RenderView->getRenderViewProxy();
-    emit this->enableSurfaceSelection(
-      proxy->IsSelectVisibleCellsAvailable() == NULL);
-    emit this->enableSurfacePointsSelection(
-      proxy->IsSelectVisiblePointsAvailable() == NULL);
+    emit this->enableSurfaceSelection(proxy->IsSelectionAvailable());
+    emit this->enableSurfacePointsSelection(proxy->IsSelectionAvailable());
     emit this->enableFrustumSelection(true);
     emit this->enableFrustumPointSelection(true);
     emit this->enableZoom(true);
@@ -179,19 +178,22 @@ int pqRubberBandHelper::setRubberBandOn(int selectionMode)
     return 0;
     }
 
-  vtkSMPropertyHelper(rmp, "InteractionMode").Set(
-    vtkPVRenderView::INTERACTION_MODE_SELECTION);
-  rmp->AddObserver(vtkCommand::SelectionChangedEvent, this->Internal->Observer);
-  rmp->UpdateVTKObjects();
+  if (selectionMode != PICK_ON_CLICK)
+    {
+    vtkSMPropertyHelper(rmp, "InteractionMode").Set(
+      vtkPVRenderView::INTERACTION_MODE_SELECTION);
+    rmp->AddObserver(vtkCommand::SelectionChangedEvent, this->Internal->Observer);
+    rmp->UpdateVTKObjects();
 
-  if (selectionMode == ZOOM)
-    {
-    this->Internal->RenderView->getWidget()->setCursor(
-      this->Internal->ZoomCursor);
-    }
-  else if (selectionMode != PICK_ON_CLICK)
-    {
-    this->Internal->RenderView->getWidget()->setCursor(Qt::CrossCursor);
+    if (selectionMode == ZOOM)
+      {
+      this->Internal->RenderView->getWidget()->setCursor(
+        this->Internal->ZoomCursor);
+      }
+    else if (selectionMode != PICK_ON_CLICK)
+      {
+      this->Internal->RenderView->getWidget()->setCursor(Qt::CrossCursor);
+      }
     }
 
   this->Mode = selectionMode;
@@ -310,7 +312,7 @@ void pqRubberBandHelper::onSelectionChanged(vtkObject*, unsigned long,
     return;
     }
 
-  bool ctrl = false;
+  bool ctrl = (rmp->GetInteractor()->GetControlKey() == 1);
   int* region = reinterpret_cast<int*>(vregion);
   switch (this->Mode)
     {

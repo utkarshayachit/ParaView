@@ -312,6 +312,10 @@ void vtkSMPVRepresentationProxy::AddInput(unsigned int inputPort,
     return;
     }
 
+  vtkSMPropertyHelper(
+    this->GetSubProxy("SelectionRepresentation"),"Input").Set(esProxy);
+  this->GetSubProxy("SelectionRepresentation")->UpdateVTKObjects();
+
   this->Superclass::AddInput(1, esProxy, 0, "SetInputConnection");
 }
 

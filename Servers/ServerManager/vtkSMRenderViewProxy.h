@@ -46,6 +46,14 @@ public:
     vtkCollection* selectedRepresentations,
     vtkCollection* selectionSources,
     bool multiple_selections=false);
+  bool SelectFrustumCells(int region[4],
+    vtkCollection* selectedRepresentations,
+    vtkCollection* selectionSources,
+    bool multiple_selections=false);
+  bool SelectFrustumPoints(int region[4],
+    vtkCollection* selectedRepresentations,
+    vtkCollection* selectionSources,
+    bool multiple_selections=false);
 
   // Description:
   // Checks if color depth is sufficient to support selection.
@@ -76,9 +84,6 @@ public:
   // Returns the client-side camera object.
   vtkCamera* GetActiveCamera();
 
-//  vtkSMProxy* SelectFrustumCells(int region[4]);
-//  vtkSMProxy* SelectFrustumPoints(int region[4]);
-
   // Description:
   // Create a default representation for the given source proxy.
   // Returns a new proxy.
@@ -98,6 +103,12 @@ public:
 protected:
   vtkSMRenderViewProxy();
   ~vtkSMRenderViewProxy();
+
+  bool SelectFrustumInternal(int region[4],
+    vtkCollection* selectedRepresentations,
+    vtkCollection* selectionSources,
+    bool multiple_selections,
+    int fieldAssociation);
 
   virtual void PostRender(bool interactive);
 

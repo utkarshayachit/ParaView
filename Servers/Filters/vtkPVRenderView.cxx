@@ -338,8 +338,11 @@ void vtkPVRenderView::Select(int fieldAssociation, int region[4])
     }
   this->Selector->SetArea(region[0], region[1], region[2], region[3]);
   this->Selector->SetFieldAssociation(fieldAssociation);
+  // for now, we always do the process pass. In future, we can be smart about
+  // disabling process pass when not needed.
   this->Selector->SetProcessID(
-    vtkMultiProcessController::GetGlobalController()->GetLocalProcessId());
+    vtkMultiProcessController::GetGlobalController()?
+    vtkMultiProcessController::GetGlobalController()->GetLocalProcessId() : 0);
   vtkSelection* sel = this->Selector->Select();
   if (sel)
     {

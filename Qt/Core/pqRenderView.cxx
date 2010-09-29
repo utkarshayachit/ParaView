@@ -810,63 +810,54 @@ void pqRenderView::selectPointsOnSurface(int rect[4], bool expand)
 //-----------------------------------------------------------------------------
 void pqRenderView::selectFrustum(int rect[4])
 {
-#ifdef FIXME
   vtkSMRenderViewProxy* renderModuleP = this->getRenderViewProxy();
 
-  vtkSmartPointer<vtkCollection> selectedRepresentations = 
+  vtkSmartPointer<vtkCollection> selectedRepresentations =
     vtkSmartPointer<vtkCollection>::New();
-  vtkSmartPointer<vtkCollection> frustumSelections = 
+  vtkSmartPointer<vtkCollection> selectionSources =
     vtkSmartPointer<vtkCollection>::New();
-  vtkSmartPointer<vtkCollection> selectionSources = 
-    vtkSmartPointer<vtkCollection>::New();
-  
   QList<pqOutputPort*> output_ports;
-  if (!renderModuleP->SelectFrustum(rect[0], rect[1], rect[2], rect[3], 
-    selectedRepresentations, selectionSources, frustumSelections, 
+  if (!renderModuleP->SelectFrustumCells(rect,
+    selectedRepresentations, selectionSources,
     this->UseMultipleRepresentationSelection))
     {
     this->emitSelectionSignal(output_ports);
     return;
     }
 
-  this->collectSelectionPorts(selectedRepresentations, 
+  this->collectSelectionPorts(selectedRepresentations,
     selectionSources, output_ports, false, false);
 
   // Fire selection event to let the world know that this view selected
   // something.
   this->emitSelectionSignal(output_ports);
-#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqRenderView::selectFrustumPoints(int rect[4])
 {
-#ifdef FIXME
   vtkSMRenderViewProxy* renderModuleP = this->getRenderViewProxy();
 
-  vtkSmartPointer<vtkCollection> selectedRepresentations = 
+  vtkSmartPointer<vtkCollection> selectedRepresentations =
     vtkSmartPointer<vtkCollection>::New();
-  vtkSmartPointer<vtkCollection> frustumSelections = 
-    vtkSmartPointer<vtkCollection>::New();
-  vtkSmartPointer<vtkCollection> selectionSources = 
+  vtkSmartPointer<vtkCollection> selectionSources =
     vtkSmartPointer<vtkCollection>::New();
 
   QList<pqOutputPort*> output_ports;
-  if (!renderModuleP->SelectFrustum(rect[0], rect[1], rect[2], rect[3], 
-    selectedRepresentations, selectionSources, frustumSelections, 
-    this->UseMultipleRepresentationSelection, true))
+  if (!renderModuleP->SelectFrustumPoints(rect,
+    selectedRepresentations, selectionSources,
+    this->UseMultipleRepresentationSelection))
     {
     this->emitSelectionSignal(output_ports);
     return;
     }
 
-  this->collectSelectionPorts(selectedRepresentations, 
+  this->collectSelectionPorts(selectedRepresentations,
     selectionSources, output_ports, false, false);
 
   // Fire selection event to let the world know that this view selected
   // something.
   this->emitSelectionSignal(output_ports);
-#endif
 }
 
 //-----------------------------------------------------------------------------
