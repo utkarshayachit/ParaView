@@ -278,8 +278,7 @@ void vtkPVRenderView::SetInteractionMode(int mode)
       this->Interactor->SetInteractorStyle(this->InteractorStyle);
       break;
 
-    case INTERACTION_MODE_FRUSTUM_SELECTION:
-    case INTERACTION_MODE_SURFACE_SELECTION:
+    case INTERACTION_MODE_SELECTION:
       this->Interactor->SetInteractorStyle(this->RubberBandStyle);
       break;
 
@@ -300,8 +299,6 @@ void vtkPVRenderView::OnSelectionChangedEvent()
   // NOTE: This gets called on the driver i.e. client or root-node in batch mode.
   // That's not necessarily the node on which the selection can be made, since
   // data may not be on this process.
-
-  //vtkSelection* selection = this->SynchronizedRenderers->HardwareSelect(region, false);
 
   // selection is a data-selection (not geometry selection).
   int ordered_region[4];
@@ -701,7 +698,7 @@ void vtkPVRenderView::GatherGeometrySizeInformation()
 //----------------------------------------------------------------------------
 bool vtkPVRenderView::GetUseDistributedRendering()
 {
-  if (this->InteractionMode == INTERACTION_MODE_SURFACE_SELECTION)
+  if (this->InteractionMode == INTERACTION_MODE_SELECTION)
     {
     // force remote rendering when doing a surface selection.
     return true;

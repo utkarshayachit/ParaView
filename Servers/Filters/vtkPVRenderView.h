@@ -72,16 +72,15 @@ public:
     {
     INTERACTION_MODE_3D=0,
     INTERACTION_MODE_2D, // not implemented yet.
-    INTERACTION_MODE_FRUSTUM_SELECTION,
-    INTERACTION_MODE_SURFACE_SELECTION
+    INTERACTION_MODE_SELECTION
     };
 
   // Description:
   // Get/Set the interaction mode. Default is INTERACTION_MODE_3D. If
-  // INTERACTION_MODE_FRUSTUM_SELECTION or INTERACTION_MODE_SURFACE_SELECTION is
-  // selected, then whenever the user drags and creates a selection-region, an
-  // appropriate selection will be created and vtkCommand::SelectionChangedEvent
-  // will be fired.
+  // INTERACTION_MODE_SELECTION is
+  // selected, then whenever the user drags and creates a selection region, this
+  // class will fire a vtkCommand::SelectionChangedEvent event with the
+  // selection region as the argument.
   // @CallOnAllProcessess - this must be called on all processes, however it will
   // have any effect only the driver processes i.e. the process with the
   // interactor.

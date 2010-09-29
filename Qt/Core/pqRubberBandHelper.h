@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class pqRenderView;
 class pqView;
+class vtkObject;
 
 /*! \brief Utility to switch interactor styles in 3D views.
  *
@@ -52,12 +53,6 @@ class PQCORE_EXPORT pqRubberBandHelper : public QObject
 public:
   pqRubberBandHelper(QObject* parent=NULL);
   virtual ~pqRubberBandHelper();
-
-  static void ReorderBoundingBox(int src[4], int dest[4]);
-
-  //for internal use only, this is how mouse press and release events
-  //are processed internally
-  void processEvents(unsigned long event);
 
   /// Returns the currently selected render view.
   pqRenderView* getRenderView() const;
@@ -147,9 +142,11 @@ protected:
   int Xs, Ys, Xe, Ye;
   int DisableCount;
 
+  // Called whenever a selection is made in the view.
+  void onSelectionChanged(vtkObject*, unsigned long, void*);
+
 private:
   class pqInternal;
-  class vtkPQSelectionObserver;
 
   pqInternal* Internal;
 };

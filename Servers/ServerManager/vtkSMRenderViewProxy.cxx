@@ -24,6 +24,7 @@
 #include "vtkPVRenderView.h"
 #include "vtkPVRenderViewProxy.h"
 #include "vtkPVXMLElement.h"
+#include "vtkRenderWindow.h"
 #include "vtkSmartPointer.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMProperty.h"
@@ -68,6 +69,47 @@ vtkSMRenderViewProxy::vtkSMRenderViewProxy()
 //----------------------------------------------------------------------------
 vtkSMRenderViewProxy::~vtkSMRenderViewProxy()
 {
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSMRenderViewProxy::IsSelectionAvailable()
+{
+  const char* msg = this->IsSelectVisibleCellsAvailable();
+  if (msg)
+    {
+    vtkErrorMacro(<< msg);
+    return false;
+    }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+const char* vtkSMRenderViewProxy::IsSelectVisibleCellsAvailable()
+{
+  //check if we don't have enough color depth to do color buffer selection
+  //if we don't then disallow selection
+  int rgba[4];
+  vtkRenderWindow *rwin = this->GetRenderWindow();
+  if (!rwin)
+    {
+    return "No render window available";
+    }
+
+  rwin->GetColorBufferSizes(rgba);
+  if (rgba[0] < 8 || rgba[1] < 8 || rgba[2] < 8)
+    {
+    return "Selection not supported due to insufficient color depth.";
+    }
+
+  //yeah!
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+const char* vtkSMRenderViewProxy::IsSelectVisiblePointsAvailable()
+{
+  return this->IsSelectVisibleCellsAvailable();
 }
 
 //-----------------------------------------------------------------------------
@@ -272,6 +314,11 @@ bool vtkSMRenderViewProxy::SelectSurfaceCells(int region[4],
   vtkCollection* selectionSources,
   bool vtkNotUsed(multiple_selections))
 {
+  if (!this->IsSelectionAvailable())
+    {
+    return false;
+    }
+
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke
@@ -290,6 +337,11 @@ bool vtkSMRenderViewProxy::SelectSurfacePoints(int region[4],
   vtkCollection* selectionSources,
   bool vtkNotUsed(multiple_selections))
 {
+  if (!this->IsSelectionAvailable())
+    {
+    return false;
+    }
+
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke
@@ -325,8 +377,8 @@ bool vtkSMRenderViewProxy::FetchLastSelection(
 //----------------------------------------------------------------------------
 void vtkSMRenderViewProxy::OnSelect(vtkObject*, unsigned long, void* vregion)
 {
-  int *region = reinterpret_cast<int*>(vregion);
-  this->SelectSurfaceCells(region, NULL, NULL);
+  this->InvokeEvent(vtkCommand::SelectionChangedEvent, vregion);
+  //this->SelectSurfaceCells(region, NULL, NULL);
 }
 
 //----------------------------------------------------------------------------

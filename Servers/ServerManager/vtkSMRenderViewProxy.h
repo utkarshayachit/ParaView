@@ -48,12 +48,17 @@ public:
     bool multiple_selections=false);
 
   // Description:
-  // Returns true if it's possible to do GPU-based cell selection.
-  bool IsSelectVisibleCellsAvailable() { return true; }
+  // Checks if color depth is sufficient to support selection.
+  // If not, will return 0 and any calls to SelectVisibleCells will
+  // quietly return an empty selection.
+  virtual bool IsSelectionAvailable();
 
+  //BTX
   // Description:
-  // Returns true if it's possible to do GPU-based cell selection.
-  bool IsSelectVisiblePointsAvailable() { return true; }
+  // Similar to IsSelectionAvailable(), however, on failure returns the
+  // error message otherwise 0.
+  virtual const char* IsSelectVisibleCellsAvailable();
+  virtual const char* IsSelectVisiblePointsAvailable();
 
   // Description:
   // Returns the interactor.
