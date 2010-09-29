@@ -57,13 +57,19 @@ public:
 
   // Description:
   // Captures a image from this view. Default implementation returns NULL.
-  virtual vtkImageData* CaptureWindow(int vtkNotUsed(magnification))
-    { return NULL; }
+  // Subclasses should override CaptureWindowInternal() to do the actual image
+  // capture.
+  vtkImageData* CaptureWindow(int magnification);
 
 //BTX
 protected:
   vtkSMViewProxy();
   ~vtkSMViewProxy();
+
+  // Description:
+  // Subclasses should override this method to do the actual image capture.
+  virtual vtkImageData* CaptureWindowInternal(int vtkNotUsed(magnification))
+    { return NULL; }
 
   virtual void PostRender(bool vtkNotUsed(interactive)) {}
 

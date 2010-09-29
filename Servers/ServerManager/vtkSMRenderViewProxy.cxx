@@ -16,9 +16,9 @@
 
 #include "vtkClientServerStream.h"
 #include "vtkCollection.h"
-#include "vtkDoubleArray.h"
 #include "vtkEventForwarderCommand.h"
 #include "vtkExtractSelectedFrustum.h"
+#include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
 #include "vtkPVDataInformation.h"
@@ -40,6 +40,7 @@
 #include "vtkSMRepresentationProxy.h"
 #include "vtkSMSelectionHelper.h"
 #include "vtkWeakPointer.h"
+#include "vtkWindowToImageFilter.h"
 
 namespace
 {
@@ -69,6 +70,7 @@ vtkCxxRevisionMacro(vtkSMRenderViewProxy, "$Revision$");
 //----------------------------------------------------------------------------
 vtkSMRenderViewProxy::vtkSMRenderViewProxy()
 {
+  this->UseInteractiveRenderingForSceenshots = false;
 }
 
 //----------------------------------------------------------------------------
@@ -520,7 +522,48 @@ bool vtkSMRenderViewProxy::SelectFrustumInternal(int region[4],
 }
 
 //----------------------------------------------------------------------------
+vtkImageData* vtkSMRenderViewProxy::CaptureWindowInternal(int magnification)
+{
+  //this->GetRenderWindow()->SwapBuffersOff();
+
+  if (this->UseInteractiveRenderingForSceenshots)
+    {
+    this->InteractiveRender();
+    }
+  else
+    {
+    this->StillRender();
+    }
+
+  vtkWindowToImageFilter* w2i = vtkWindowToImageFilter::New();
+  w2i->SetInput(this->GetRenderWindow());
+  w2i->SetMagnification(magnification);
+  w2i->ReadFrontBufferOff();
+  w2i->ReadFrontBufferOn(); // FIXME
+  w2i->ShouldRerenderOff();
+
+  // BUG #8715: We go through this indirection since the active connection needs
+  // to be set during update since it may request re-renders if magnification >1.
+  vtkClientServerStream stream;
+  stream << vtkClientServerStream::Invoke
+         << w2i << "Update"
+         << vtkClientServerStream::End;
+  vtkProcessModule::GetProcessModule()->SendStream(
+    this->ConnectionID, vtkProcessModule::CLIENT, stream);
+
+  vtkImageData* capture = vtkImageData::New();
+  capture->ShallowCopy(w2i->GetOutput());
+  w2i->Delete();
+
+  //this->GetRenderWindow()->SwapBuffersOn();
+  //this->GetRenderWindow()->Frame();
+  return capture;
+}
+
+//----------------------------------------------------------------------------
 void vtkSMRenderViewProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+  os << indent << "UseInteractiveRenderingForSceenshots: " <<
+    this->UseInteractiveRenderingForSceenshots << endl;
 }

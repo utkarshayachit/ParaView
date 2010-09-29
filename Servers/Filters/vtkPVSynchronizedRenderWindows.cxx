@@ -157,6 +157,7 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
   this->Observer->Target = this;
   this->Enabled = true;
   this->RenderEventPropagation = true;
+  this->RenderOneViewAtATime = false;
 
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   if (!pm)
@@ -595,11 +596,13 @@ void vtkPVSynchronizedRenderWindows::ClientStartRender(vtkRenderWindow* renWin)
 {
   // In client-server mode, the client needs to collect the window layouts and
   // then the active window specific parameters.
+
+  this->Internals->ActiveId = this->Internals->GetKey(renWin);
   if (this->RenderEventPropagation)
     {
     // Tell the server-root to start rendering.
     vtkMultiProcessStream stream;
-    stream << this->Internals->GetKey(renWin);
+    stream << this->Internals->ActiveId;
     vtkstd::vector<unsigned char> data;
     stream.GetRawData(data);
     this->ClientServerController->TriggerRMIOnAllChildren(
@@ -619,6 +622,8 @@ void vtkPVSynchronizedRenderWindows::ClientStartRender(vtkRenderWindow* renWin)
   this->ClientServerController->Broadcast(stream, 0);
 
   this->UpdateWindowLayout();
+
+  this->Internals->ActiveId = -1;
 }
 
 //----------------------------------------------------------------------------
@@ -785,6 +790,18 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
   int full_size[2] = {0, 0};
   vtkInternals::RenderWindowsMap::iterator iter;
 
+  if (this->RenderOneViewAtATime)
+    {
+    iter = this->Internals->RenderWindows.find(this->Internals->ActiveId);
+    if (iter != this->Internals->RenderWindows.end())
+      {
+      iter->second.RenderWindow->SetSize(iter->second.Size);
+      double viewport[4] = {0, 0, 1, 1};
+      this->Internals->UpdateViewports(
+        iter->second.Renderers, viewport);
+      }
+    return;
+    }
 
   // Compute full_size.
   for (iter = this->Internals->RenderWindows.begin();

@@ -114,3 +114,20 @@ void vtkPVView::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
+//----------------------------------------------------------------------------
+void vtkPVView::PrepareForScreenshot()
+{
+  if (!this->InTileDisplayMode())
+    {
+    this->SynchronizedWindows->RenderOneViewAtATimeOn();
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::CleanupAfterScreenshot()
+{
+  if (!this->InTileDisplayMode())
+    {
+    this->SynchronizedWindows->RenderOneViewAtATimeOff();
+    }
+}

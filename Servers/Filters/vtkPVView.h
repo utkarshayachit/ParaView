@@ -79,6 +79,10 @@ public:
   vtkSetMacro(ViewTime, double);
   vtkGetMacro(ViewTime, double);
 
+  // Description:
+  // These methods are used to setup the view for capturing screen shots.
+  virtual void PrepareForScreenshot();
+  virtual void CleanupAfterScreenshot();
 //BTX
 protected:
   vtkPVView();

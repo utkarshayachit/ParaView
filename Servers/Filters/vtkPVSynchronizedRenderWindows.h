@@ -121,6 +121,16 @@ public:
   vtkGetObjectMacro(ParallelController, vtkMultiProcessController);
   vtkGetObjectMacro(ClientServerController, vtkMultiProcessController);
 
+  // Description:
+  // By default, this class uses the same render window for all views on the
+  // server processes and then arranges the renderers by adjusting their
+  // viewports. However, this does not work well when doing image capture with
+  // magnification. In those cases, you can force this class to simply render
+  // the active view as the sole view in the window on the server side by
+  // setting this flag to true.
+  vtkSetMacro(RenderOneViewAtATime, bool);
+  vtkGetMacro(RenderOneViewAtATime, bool);
+  vtkBooleanMacro(RenderOneViewAtATime, bool);
 protected:
   vtkPVSynchronizedRenderWindows();
   ~vtkPVSynchronizedRenderWindows();
@@ -182,6 +192,7 @@ protected:
   unsigned long ParallelRMITag;
   bool Enabled;
   bool RenderEventPropagation;
+  bool RenderOneViewAtATime;
 
 private:
   vtkPVSynchronizedRenderWindows(const vtkPVSynchronizedRenderWindows&); // Not implemented

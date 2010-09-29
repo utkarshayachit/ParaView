@@ -16,14 +16,14 @@
 
 #include "vtkClientServerStream.h"
 #include "vtkCommand.h"
+#include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSmartPointer.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMRepresentationProxy.h"
-
-#include <vtkstd/vector>
 
 vtkStandardNewMacro(vtkSMViewProxy);
 //----------------------------------------------------------------------------
@@ -134,6 +134,42 @@ int vtkSMViewProxy::ReadXMLAttributes(
     this->SetDefaultRepresentationName(repr_name);
     }
   return 1;
+}
+
+//----------------------------------------------------------------------------
+vtkImageData* vtkSMViewProxy::CaptureWindow(int magnification)
+{
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkClientServerStream stream;
+  stream << vtkClientServerStream::Invoke
+    << this->GetID()
+    << "PrepareForScreenshot"
+    << vtkClientServerStream::End;
+  pm->SendStream(this->ConnectionID, this->Servers, stream);
+
+  vtkImageData* capture = this->CaptureWindowInternal(magnification);
+
+  stream << vtkClientServerStream::Invoke
+    << this->GetID()
+    << "CleanupAfterScreenshot"
+    << vtkClientServerStream::End;
+  pm->SendStream(this->ConnectionID, this->Servers, stream);
+
+  if (capture)
+    {
+    int position[2];
+    vtkSMPropertyHelper(this, "ViewPosition").Get(position, 2);
+
+    // Update image extents based on ViewPosition
+    int extents[6];
+    capture->GetExtent(extents);
+    for (int cc=0; cc < 4; cc++)
+      {
+      extents[cc] += position[cc/2]*magnification;
+      }
+    capture->SetExtent(extents);
+    }
+  return capture;
 }
 
 //----------------------------------------------------------------------------

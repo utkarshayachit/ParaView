@@ -99,10 +99,21 @@ public:
   // way as other properties.
   void SynchronizeCameraProperties();
 
+  // Description:
+  // Set or get whether capture should be done as
+  // StillRender or InteractiveRender inside CaptureWindow calls.
+  vtkSetMacro(UseInteractiveRenderingForSceenshots, bool);
+  vtkBooleanMacro(UseInteractiveRenderingForSceenshots, bool);
+  vtkGetMacro(UseInteractiveRenderingForSceenshots, bool);
+
 //BTX
 protected:
   vtkSMRenderViewProxy();
   ~vtkSMRenderViewProxy();
+
+  // Description:
+  // Subclasses should override this method to do the actual image capture.
+  virtual vtkImageData* CaptureWindowInternal(int magnification);
 
   bool SelectFrustumInternal(int region[4],
     vtkCollection* selectedRepresentations,
@@ -122,6 +133,7 @@ protected:
   // Called at the end of CreateVTKObjects().
   virtual void CreateVTKObjects();
 
+  bool UseInteractiveRenderingForSceenshots;
 private:
   vtkSMRenderViewProxy(const vtkSMRenderViewProxy&); // Not implemented
   void operator=(const vtkSMRenderViewProxy&); // Not implemented
