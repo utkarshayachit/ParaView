@@ -179,6 +179,7 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
     {
     this->CSSynchronizer->SetCaptureDelegate(
       this->ParallelSynchronizer);
+    this->ParallelSynchronizer->AutomaticEventHandlingOff();
     }
 }
 
