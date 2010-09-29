@@ -1043,7 +1043,10 @@ void vtkPVRenderView::SetLightType(int val)
 //----------------------------------------------------------------------------
 void vtkPVRenderView::SetStereoCapableWindow(int val)
 {
-  this->GetRenderWindow()->SetStereoCapableWindow(val);
+  if (this->GetRenderWindow()->GetStereoCapableWindow() != val)
+    {
+    this->GetRenderWindow()->SetStereoCapableWindow(val);
+    }
 }
 
 //----------------------------------------------------------------------------
