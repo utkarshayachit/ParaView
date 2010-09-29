@@ -61,7 +61,7 @@ vtkSMProxy* addWavelet(vtkSMProxy* view, vtkSMProxy* wavelet=NULL)
   vtkSMPropertyHelper(opacity, "Points").Set(opacity_points, 8);
   opacity->UpdateVTKObjects();
 
-  vtkSMProxy* repr = pxm->NewProxy("new_representations",
+  vtkSMProxy* repr = pxm->NewProxy("representations",
     "UnstructuredGridVolumeRepresentation");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(wavelet);
@@ -100,7 +100,7 @@ vtkSMProxy* addSphere(vtkSMProxy* view, vtkSMProxy* sphere = NULL)
     sphere->Register(NULL);
     }
 
-  vtkSMProxy* repr = pxm->NewProxy("new_representations",
+  vtkSMProxy* repr = pxm->NewProxy("representations",
     "GeometryRepresentation");
   repr->SetConnectionID(view->GetConnectionID());
   vtkSMPropertyHelper(repr, "Input").Set(sphere);
@@ -119,7 +119,7 @@ vtkSMProxy* createScalarBar(vtkSMProxy* view)
 {
   return NULL;
   vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-  vtkSMProxy* sb = pxm->NewProxy("new_representations",
+  vtkSMProxy* sb = pxm->NewProxy("representations",
     "ScalarBarWidgetRepresentation");
   sb->SetConnectionID(view->GetConnectionID());
 
@@ -168,8 +168,8 @@ int main(int argc, char** argv)
 # endif
 #endif
 
-  vtkSMProxy* viewProxy = vtkSMProxyManager::GetProxyManager()->NewProxy("new_views",
-    "RenderView2");
+  vtkSMProxy* viewProxy = vtkSMProxyManager::GetProxyManager()->NewProxy("views",
+    "RenderView");
   viewProxy->SetConnectionID(connectionID);
   vtkSMPropertyHelper(viewProxy,"Size").Set(0, 400);
   vtkSMPropertyHelper(viewProxy,"Size").Set(1, 400);
@@ -220,8 +220,8 @@ int main(int argc, char** argv)
 
 #ifdef SECOND_WINDOW
 
-  vtkSMProxy* view2Proxy = vtkSMProxyManager::GetProxyManager()->NewProxy("new_views",
-    "RenderView2");
+  vtkSMProxy* view2Proxy = vtkSMProxyManager::GetProxyManager()->NewProxy("views",
+    "RenderView");
   view2Proxy->SetConnectionID(connectionID);
   vtkSMPropertyHelper(view2Proxy, "Size").Set(0, 400);
   vtkSMPropertyHelper(view2Proxy, "Size").Set(1, 400);
