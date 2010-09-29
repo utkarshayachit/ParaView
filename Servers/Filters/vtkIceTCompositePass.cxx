@@ -537,6 +537,15 @@ void vtkIceTCompositePass::GetLastRenderedTile(
 {
   tile.MarkInValid();
 
+  // get the dimension of the buffer
+  GLint id;
+  icetGetIntegerv(ICET_TILE_DISPLAYED,&id);
+  if (id < 0)
+    {
+    // current processes is not displaying any tile.
+    return;
+    }
+
   GLint color_format;
   icetGetIntegerv(ICET_COLOR_FORMAT, &color_format);
   int width  = this->LastTileViewport[2] - this->LastTileViewport[0] +1;
