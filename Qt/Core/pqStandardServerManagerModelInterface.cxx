@@ -128,18 +128,19 @@ pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
           xml_type, "representations", name, proxy, server, 0);
         }
       }
-    //if (proxy->IsA("vtkSMPropRepresentationProxy"))
-    //  {
-    //  return new pqPipelineRepresentation(group, name,
-    //    vtkSMPropRepresentationProxy::SafeDownCast(proxy), server, 0);
-    //  }
 //    if (proxy->IsA("vtkSMScatterPlotRepresentationProxy"))
 //      {
 //      return new pqScatterPlotRepresentation(group, name,
 //        vtkSMScatterPlotRepresentationProxy::SafeDownCast(proxy), server, 0);
 //      }
-    if (proxy->IsA("vtkSMDataRepresentationProxy"))
+    if (proxy->IsA("vtkSMRepresentationProxy") && proxy->GetProperty("Input"))
       {
+      if (proxy->GetProperty("Representation"))
+        {
+        // pqPipelineRepresentation is a design flaw! We need to get rid of it
+        // and have helper code that manages the crap in that class
+        return new pqPipelineRepresentation(group, name, proxy, server, 0);
+        }
       // If everything fails, simply create a pqDataRepresentation object.
       return new pqDataRepresentation(group, name, proxy, server, 0);
       }
