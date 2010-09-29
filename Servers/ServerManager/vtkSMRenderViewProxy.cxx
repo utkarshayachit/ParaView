@@ -16,7 +16,7 @@
 
 #include "vtkClientServerStream.h"
 #include "vtkCollection.h"
-#include "vtkMemberFunctionCommand.h"
+#include "vtkEventForwarderCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
@@ -113,6 +113,14 @@ const char* vtkSMRenderViewProxy::IsSelectVisiblePointsAvailable()
 }
 
 //-----------------------------------------------------------------------------
+void vtkSMRenderViewProxy::PostRender(bool interactive)
+{
+  vtkSMProxy* cameraProxy = this->GetSubProxy("ActiveCamera");
+  cameraProxy->UpdatePropertyInformation();
+  this->Superclass::PostRender(interactive);
+}
+
+//-----------------------------------------------------------------------------
 void vtkSMRenderViewProxy::SynchronizeCameraProperties()
 {
   if (!this->ObjectsCreated)
@@ -206,13 +214,13 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
     helper->Proxy = this;
     rv->GetInteractor()->SetPVRenderView(helper);
     helper->Delete();
-
-    vtkCommand *obs = vtkMakeMemberFunctionCommand(*this,
-      &vtkSMRenderViewProxy::OnSelect);
-    rv->AddObserver(vtkCommand::SelectionChangedEvent,
-      obs);
-    obs->Delete();
     }
+
+  vtkEventForwarderCommand* forwarder = vtkEventForwarderCommand::New();
+  forwarder->SetTarget(this);
+  rv->AddObserver(vtkCommand::SelectionChangedEvent, forwarder);
+  rv->AddObserver(vtkCommand::ResetCameraEvent, forwarder);
+  forwarder->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -372,13 +380,6 @@ bool vtkSMRenderViewProxy::FetchLastSelection(
     return (selectionSources->GetNumberOfItems() > 0);
     }
   return false;
-}
-
-//----------------------------------------------------------------------------
-void vtkSMRenderViewProxy::OnSelect(vtkObject*, unsigned long, void* vregion)
-{
-  this->InvokeEvent(vtkCommand::SelectionChangedEvent, vregion);
-  //this->SelectSurfaceCells(region, NULL, NULL);
 }
 
 //----------------------------------------------------------------------------

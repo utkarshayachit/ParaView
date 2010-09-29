@@ -65,6 +65,8 @@ protected:
   vtkSMViewProxy();
   ~vtkSMViewProxy();
 
+  virtual void PostRender(bool vtkNotUsed(interactive)) {}
+
   // Description:
   // Called at the end of CreateVTKObjects().
   virtual void CreateVTKObjects();

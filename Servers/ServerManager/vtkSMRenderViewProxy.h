@@ -99,13 +99,13 @@ protected:
   vtkSMRenderViewProxy();
   ~vtkSMRenderViewProxy();
 
+  virtual void PostRender(bool interactive);
+
   // Description:
   // Fetches the LastSelection from the data-server and then converts it to a
   // selection source proxy and returns that.
   bool FetchLastSelection(vtkCollection* selectedRepresentations,
     vtkCollection* selectionSources);
-
-  void OnSelect(vtkObject*, unsigned long, void* vregion);
 
   // Description:
   // Called at the end of CreateVTKObjects().

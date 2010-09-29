@@ -80,6 +80,7 @@ void vtkSMViewProxy::StillRender()
     << vtkClientServerStream::End;
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   pm->SendStream(this->ConnectionID, this->Servers, stream);
+  this->PostRender(interactive==1);
   this->InvokeEvent(vtkCommand::EndEvent, &interactive);
 }
 
@@ -95,6 +96,7 @@ void vtkSMViewProxy::InteractiveRender()
     << vtkClientServerStream::End;
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   pm->SendStream(this->ConnectionID, this->Servers, stream);
+  this->PostRender(interactive==1);
   this->InvokeEvent(vtkCommand::EndEvent, &interactive);
 }
 
