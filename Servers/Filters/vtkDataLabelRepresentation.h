@@ -29,10 +29,12 @@
 
 class vtkActor2D;
 class vtkCellCenters;
-class vtkLabeledDataMapper;
 class vtkCompositeDataToUnstructuredGridFilter;
-class vtkUnstructuredDataDeliveryFilter;
+class vtkLabeledDataMapper;
+class vtkProp3D;
 class vtkTextProperty;
+class vtkTransform;
+class vtkUnstructuredDataDeliveryFilter;
 
 class VTK_EXPORT vtkDataLabelRepresentation : public vtkPVDataRepresentation
 {
@@ -88,6 +90,13 @@ public:
   void SetCellLabelJustification(int);
   void SetCellLabelFontSize(int);
 
+  // Description:
+  // Used to build the internal transform.
+  void SetOrientation(double, double, double);
+  void SetOrigin(double, double, double);
+  void SetPosition(double, double, double);
+  void SetScale(double, double, double);
+
 //BTX
 protected:
   vtkDataLabelRepresentation();
@@ -125,6 +134,8 @@ protected:
   virtual int RequestData(vtkInformation*,
     vtkInformationVector**, vtkInformationVector*);
 
+  void UpdateTransform();
+
   vtkCompositeDataToUnstructuredGridFilter* MergeBlocks;
   vtkUnstructuredDataDeliveryFilter* DataCollector;
 
@@ -136,6 +147,9 @@ protected:
   vtkLabeledDataMapper* CellLabelMapper;
   vtkTextProperty* CellLabelProperty;
   vtkActor2D* CellLabelActor;
+
+  vtkProp3D* TransformHelperProp;
+  vtkTransform* Transform;
 
   int PointLabelVisibility;
   int CellLabelVisibility;

@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkDataLabelRepresentation.h"
 
+#include "vtkActor.h"
 #include "vtkActor2D.h"
 #include "vtkCellCenters.h"
 #include "vtkCompositeDataToUnstructuredGridFilter.h"
@@ -25,6 +26,7 @@
 #include "vtkPVRenderView.h"
 #include "vtkRenderer.h"
 #include "vtkTextProperty.h"
+#include "vtkTransform.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
 
 vtkStandardNewMacro(vtkDataLabelRepresentation);
@@ -40,6 +42,9 @@ vtkDataLabelRepresentation::vtkDataLabelRepresentation()
   this->PointLabelMapper = vtkLabeledDataMapper::New();
   this->PointLabelActor = vtkActor2D::New();
   this->PointLabelProperty = vtkTextProperty::New();
+
+  this->Transform = vtkTransform::New();
+  this->Transform->Identity();
 
   this->CellCenters = vtkCellCenters::New();
   this->CellLabelMapper = vtkLabeledDataMapper::New();
@@ -58,9 +63,13 @@ vtkDataLabelRepresentation::vtkDataLabelRepresentation()
   this->PointLabelMapper->SetLabelTextProperty(this->PointLabelProperty);
   this->CellLabelMapper->SetLabelTextProperty(this->CellLabelProperty);
 
+  this->PointLabelMapper->SetTransform(this->Transform);
+  this->CellLabelMapper->SetTransform(this->Transform);
+
   this->PointLabelActor->SetVisibility(0);
   this->CellLabelActor->SetVisibility(0);
 
+  this->TransformHelperProp = vtkActor::New();
   this->InitializeForCommunication();
 }
 
@@ -76,6 +85,8 @@ vtkDataLabelRepresentation::~vtkDataLabelRepresentation()
   this->CellLabelMapper->Delete();
   this->CellLabelActor->Delete();
   this->CellLabelProperty->Delete();
+  this->Transform->Delete();
+  this->TransformHelperProp->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -317,4 +328,41 @@ int vtkDataLabelRepresentation::RequestData(vtkInformation* request,
 void vtkDataLabelRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+}
+
+//----------------------------------------------------------------------------
+void vtkDataLabelRepresentation::UpdateTransform()
+{
+  // From vtkProp3D::ComputeMatrix
+  double elements[16];
+  this->TransformHelperProp->GetMatrix(elements);
+  this->Transform->SetMatrix(elements);
+}
+
+//----------------------------------------------------------------------------
+void vtkDataLabelRepresentation::SetOrientation(double x, double y, double z)
+{
+  this->TransformHelperProp->SetOrientation(x, y, z);
+  this->UpdateTransform();
+}
+
+//----------------------------------------------------------------------------
+void vtkDataLabelRepresentation::SetOrigin(double x, double y, double z)
+{
+  this->TransformHelperProp->SetOrigin(x, y, z);
+  this->UpdateTransform();
+}
+
+//----------------------------------------------------------------------------
+void vtkDataLabelRepresentation::SetPosition(double x, double y, double z)
+{
+  this->TransformHelperProp->SetPosition(x, y, z);
+  this->UpdateTransform();
+}
+
+//----------------------------------------------------------------------------
+void vtkDataLabelRepresentation::SetScale(double x, double y, double z)
+{
+  this->TransformHelperProp->SetScale(x, y, z);
+  this->UpdateTransform();
 }

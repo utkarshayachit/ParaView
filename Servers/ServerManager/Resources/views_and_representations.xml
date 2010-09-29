@@ -956,6 +956,15 @@
         <Proxy name="SelectionRepresentation"
           proxygroup="representations"
           proxyname="SelectionRepresentation" />
+        <ShareProperties subproxy="SurfaceRepresentation">
+          <Exception name="Input" />
+          <Exception name="Visibility" />
+          <Exception name="Representation" />
+          <Exception name="Color" />
+          <Exception name="LineWidth" />
+          <Exception name="Opacity" />
+          <Exception name="PointSize" />
+        </ShareProperties>
         <ExposedProperties>
           <Property name="CellFieldDataArrayName" exposed_name="SelectionCellFieldDataArrayName" />
           <Property name="CellLabelBold" exposed_name="SelectionCellLabelBold" />
@@ -2466,6 +2475,34 @@
         default_values="0">
         <BooleanDomain name="bool" />
       </IntVectorProperty>
+
+      <DoubleVectorProperty name="Position"
+        command="SetPosition"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Scale"
+        command="SetScale"
+        number_of_elements="3"
+        default_values="1 1 1">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Orientation"
+        command="SetOrientation"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="Origin"
+        command="SetOrigin"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
 
       <SubProxy>
         <Proxy name="LabelRepresentation"

@@ -181,3 +181,31 @@ void vtkSelectionRepresentation::SetRepresentation(int val)
 {
   this->GeometryRepresentation->SetRepresentation(val);
 }
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetOrientation(double x, double y, double z)
+{
+  this->GeometryRepresentation->SetOrientation(x, y, z);
+  this->LabelRepresentation->SetOrientation(x, y, z);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetOrigin(double x, double y, double z)
+{
+  this->GeometryRepresentation->SetOrigin(x, y, z);
+  this->LabelRepresentation->SetOrigin(x, y, z);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetPosition(double x, double y, double z)
+{
+  this->GeometryRepresentation->SetPosition(x, y, z);
+  this->LabelRepresentation->SetPosition(x, y, z);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetScale(double x, double y, double z)
+{
+  this->GeometryRepresentation->SetScale(x, y, z);
+  this->LabelRepresentation->SetScale(x, y, z);
+}

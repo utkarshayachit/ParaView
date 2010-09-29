@@ -70,6 +70,13 @@ public:
   void SetRepresentation(int val);
   void SetUseOutline(int);
 
+  // Description:
+  // Forwarded to GeometryRepresentation and LabelRepresentation
+  void SetOrientation(double, double, double);
+  void SetOrigin(double, double, double);
+  void SetPosition(double, double, double);
+  void SetScale(double, double, double);
+
 //BTX
 protected:
   vtkSelectionRepresentation();
