@@ -73,12 +73,19 @@ void vtkSMViewProxy::StillRender()
 {
   int interactive = 0;
   this->InvokeEvent(vtkCommand::StartEvent, &interactive);
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkClientServerStream stream;
+
+  stream << vtkClientServerStream::Invoke
+    << this->GetID()
+    << "Update"
+    << vtkClientServerStream::End;
+  pm->SendStream(this->ConnectionID, this->Servers, stream);
+
   stream << vtkClientServerStream::Invoke
     << this->GetID()
     << "StillRender"
     << vtkClientServerStream::End;
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   pm->SendStream(this->ConnectionID, this->Servers, stream);
   this->PostRender(interactive==1);
   this->InvokeEvent(vtkCommand::EndEvent, &interactive);
@@ -90,12 +97,20 @@ void vtkSMViewProxy::InteractiveRender()
   int interactive = 1;
   this->InvokeEvent(vtkCommand::StartEvent, &interactive);
   vtkClientServerStream stream;
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+
+  stream << vtkClientServerStream::Invoke
+    << this->GetID()
+    << "Update"
+    << vtkClientServerStream::End;
+  pm->SendStream(this->ConnectionID, this->Servers, stream);
+
   stream << vtkClientServerStream::Invoke
     << this->GetID()
     << "InteractiveRender"
     << vtkClientServerStream::End;
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   pm->SendStream(this->ConnectionID, this->Servers, stream);
+
   this->PostRender(interactive==1);
   this->InvokeEvent(vtkCommand::EndEvent, &interactive);
 }
