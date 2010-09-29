@@ -153,27 +153,31 @@ ENDMACRO(build_paraview_client_cpack_config)
 FUNCTION(install_qt_libs qtliblist componentname)
   IF (NOT APPLE)
     FOREACH(qtlib ${qtliblist})
-      IF (NOT WIN32)
-        IF (QT_${qtlib}_LIBRARY_RELEASE)
+      IF (QT_${qtlib}_LIBRARY_RELEASE)
+        IF (NOT WIN32)
+          #GET_FILENAME_COMPONENT(QT_LIB_DIR_tmp ${QT_${qtlib}_LIBRARY_RELEASE} PATH)
+          #GET_FILENAME_COMPONENT(QT_LIB_NAME_tmp ${QT_${qtlib}_LIBRARY_RELEASE} NAME)
+          #FILE(GLOB QT_LIB_LIST RELATIVE "${QT_LIB_DIR_tmp}" "${QT_${qtlib}_LIBRARY_RELEASE}*")
+          #IF(NOT ${QT_LIB_NAME_tmp} MATCHES "\\.debug$")
+          #  INSTALL(CODE "
+          #    MESSAGE(STATUS \"!!!!Installing \${CMAKE_INSTALL_PREFIX}/${PV_INSTALL_LIB_DIR}/${QT_LIB_NAME_tmp}\")
+          #    EXECUTE_PROCESS (WORKING_DIRECTORY ${QT_LIB_DIR_tmp}
+          #         COMMAND tar c ${QT_LIB_LIST}
+          #         COMMAND tar -xC \${CMAKE_INSTALL_PREFIX}/${PV_INSTALL_LIB_DIR})
+          #         " COMPONENT ${componentname})
+          # ENDIF(NOT ${QT_LIB_NAME_tmp} MATCHES "\\.debug$")
+          # Install .so and versioned .so.x.y
           GET_FILENAME_COMPONENT(QT_LIB_DIR_tmp ${QT_${qtlib}_LIBRARY_RELEASE} PATH)
           GET_FILENAME_COMPONENT(QT_LIB_NAME_tmp ${QT_${qtlib}_LIBRARY_RELEASE} NAME)
-          FILE(GLOB QT_LIB_LIST RELATIVE "${QT_LIB_DIR_tmp}" "${QT_${qtlib}_LIBRARY_RELEASE}*")
-          IF(NOT ${QT_LIB_DIR_tmp} MATCHES "\\.debug$")
-            INSTALL(CODE "
-              MESSAGE(STATUS \"Installing \${CMAKE_INSTALL_PREFIX}/${PV_INSTALL_LIB_DIR}/${QT_LIB_NAME_tmp}\")
-              EXECUTE_PROCESS (WORKING_DIRECTORY ${QT_LIB_DIR_tmp}
-                   COMMAND tar c ${QT_LIB_LIST}
-                   COMMAND tar -xC \${CMAKE_INSTALL_PREFIX}/${PV_INSTALL_LIB_DIR})
-                   " COMPONENT ${componentname})
-           ENDIF(NOT ${QT_LIB_DIR_tmp} MATCHES "\\.debug$")
-        ENDIF (QT_${qtlib}_LIBRARY_RELEASE)
-      ELSE (NOT WIN32)
-        GET_FILENAME_COMPONENT(QT_DLL_PATH_tmp ${QT_QMAKE_EXECUTABLE} PATH)
-        #GET_FILENAME_COMPONENT(QT_DLL_tmp "${QT_${qtlib}_LIBRARY_RELEASE" NAME_WE)
-        INSTALL(FILES ${QT_DLL_PATH_tmp}/${qtlib}4.dll 
-                DESTINATION ${PV_INSTALL_BIN_DIR} 
-                COMPONENT ${componentname})
-      ENDIF (NOT WIN32)
+          INSTALL(DIRECTORY ${QT_LIB_DIR_tmp}/ DESTINATION ${PV_INSTALL_LIB_DIR} COMPONENT Runtime
+                FILES_MATCHING PATTERN "${QT_LIB_NAME_tmp}*"
+                PATTERN "${QT_LIB_NAME_tmp}*.debug" EXCLUDE)
+        ELSE (NOT WIN32)
+          GET_FILENAME_COMPONENT(QT_DLL_PATH_tmp ${QT_QMAKE_EXECUTABLE} PATH)
+          GET_FILENAME_COMPONENT(QT_LIB_NAME_tmp ${QT_${qtlib}_LIBRARY_RELEASE} NAME_WE)
+          INSTALL(FILES ${QT_DLL_PATH_tmp}/${QT_LIB_NAME_tmp}.dll DESTINATION ${PV_INSTALL_BIN_DIR} COMPONENT Runtime)
+        ENDIF (NOT WIN32)
+      ENDIF (QT_${qtlib}_LIBRARY_RELEASE)
     ENDFOREACH(qtlib)
   ENDIF (NOT APPLE)
 ENDFUNCTION(install_qt_libs)

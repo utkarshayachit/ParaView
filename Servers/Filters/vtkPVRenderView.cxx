@@ -437,6 +437,7 @@ void vtkPVRenderView::FinishSelection(vtkSelection* sel)
 void vtkPVRenderView::ResetCameraClippingRange()
 {
   this->GetRenderer()->ResetCameraClippingRange(this->LastComputedBounds);
+  this->GetNonCompositedRenderer()->ResetCameraClippingRange(this->LastComputedBounds);
 }
 
 //----------------------------------------------------------------------------

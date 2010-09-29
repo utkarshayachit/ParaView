@@ -454,41 +454,70 @@ int vtkPrismFilter::RequestGeometryData(
               newPoints->GetPoint(pointId,coords);
 
 
-              if(this->GetSESAMEXLogScaling())
-              {
-                if(coords[0]>0)
+              int tID=this->GetTable();
+              if(tID==502 ||
+                tID==503 ||
+                tID==504 ||
+                tID==505 ||
+                tID==601 ||
+                tID==602 ||
+                tID==603 ||
+                tID==604 ||
+                tID==605)
                 {
-                  coords[0]=log(coords[0]);
-                }
-                else
-                {
-                  coords[0]=0.0;
-                }
-              }
+                if(!this->GetSESAMEXLogScaling())
+                  {
+                  coords[0]=pow(10,coords[0]);
+                  }
 
-              if(this->GetSESAMEYLogScaling())
-              {
-                if(coords[1]>0)
-                {
-                  coords[1]=log(coords[1]);
-                }
-                else
-                {
-                  coords[1]=0.0;
-                }
-              }
+                if(!this->GetSESAMEYLogScaling())
+                  {
+                  coords[1]=pow(10,coords[1]);
+                  }
 
-              if(this->GetSESAMEZLogScaling())
-              {
-                if(coords[2]>0)
-                {
-                  coords[2]=log(coords[2]);
+                if(!this->GetSESAMEZLogScaling())
+                  {
+                  coords[2]=pow(10,coords[2]);
+                  }
                 }
-                else
+              else
                 {
-                  coords[2]=0.0;
+                if(this->GetSESAMEXLogScaling())
+                  {
+                  if(coords[0]>0)
+                    {
+                    coords[0]=log(coords[0]);
+                    }
+                  else
+                    {
+                    coords[0]=0.0;
+                    }
+                  }
+
+                if(this->GetSESAMEYLogScaling())
+                  {
+                  if(coords[1]>0)
+                    {
+                    coords[1]=log(coords[1]);
+                    }
+                  else
+                    {
+                    coords[1]=0.0;
+                    }
+                  }
+
+                if(this->GetSESAMEZLogScaling())
+                  {
+                  if(coords[2]>0)
+                    {
+                    coords[2]=log(coords[2]);
+                    }
+                  else
+                    {
+                    coords[2]=0.0;
+                    }
+                  }
                 }
-              }
 
               newPoints->InsertPoint(pointId,coords);
 
@@ -675,25 +704,33 @@ bool vtkPrismFilter::GetSESAMEZLogScaling()
     return this->Internal->Reader->GetZLogScaling();
 }
 
-
-void vtkPrismFilter::SetSESAMEConversions(double d,double t,double p,double e)
+void vtkPrismFilter::SetSESAMEVariableConversionValues(int i, double value)
 {
-    this->Internal->Reader->SetConversions(d,t,p,e);
+  this->Internal->Reader->SetVariableConversionValues(i,value);
+    this->Modified();
+}
+void vtkPrismFilter::SetNumberOfSESAMEVariableConversionValues(int v)
+{
+  this->Internal->Reader->SetNumberOfVariableConversionValues(v);
+}
+double vtkPrismFilter::GetSESAMEVariableConversionValue(int i)
+{
+  return this->Internal->Reader->GetVariableConversionValue(i);
 }
 
-double* vtkPrismFilter::GetSESAMEConversions()
+void vtkPrismFilter::AddSESAMEVariableConversionNames(char*  value)
 {
-    return this->Internal->Reader->GetConversions();
+  this->Internal->Reader->AddVariableConversionNames(value);
+    this->Modified();
 }
-
-void vtkPrismFilter::GetSESAMEConversions (double &_arg1, double &_arg2,double &_arg3,double &_arg4)
+void vtkPrismFilter::RemoveAllSESAMEVariableConversionNames()
 {
-    return this->Internal->Reader->GetConversions(_arg1,_arg2,_arg3,_arg4);
+  this->Internal->Reader->RemoveAllVariableConversionNames();
+    this->Modified();
 }
-
-void vtkPrismFilter::GetSESAMEConversions (double _arg[4])
+const char * vtkPrismFilter::GetSESAMEVariableConversionName(int i)
 {
-    this->Internal->Reader->GetConversions(_arg);
+  return this->Internal->Reader->GetVariableConversionName(i);
 }
 
 vtkDoubleArray* vtkPrismFilter:: GetSESAMEXRange()

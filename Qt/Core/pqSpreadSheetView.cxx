@@ -71,6 +71,9 @@ public:
   this->Table->setSelectionModel(&this->SelectionModel);
   this->Table->horizontalHeader()->setMovable(true);
   this->SingleColumnMode = false;
+
+  // Do not show the sorting arrow as default
+  this->Table->setSortingEnabled(false);
   }
 
   ~pqInternal()
@@ -231,6 +234,9 @@ bool pqSpreadSheetView::canDisplay(pqOutputPort* opPort) const
 //-----------------------------------------------------------------------------
 void pqSpreadSheetView::onCreateSelection(vtkSMSourceProxy* selSource)
 {
+  if(this->Internal->Table->selectionMode() == QAbstractItemView::NoSelection)
+    return;
+
   pqDataRepresentation* repr = this->Internal->Model.getRepresentation();
   if (repr)
     {

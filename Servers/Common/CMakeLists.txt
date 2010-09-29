@@ -33,6 +33,7 @@ SET(Kit_SRCS
   vtkCellIntegrator.cxx
   vtkClientConnection.cxx
   vtkConnectionIterator.cxx
+  vtkFileSequenceParser.cxx
   vtkMPISelfConnection.cxx
   vtkMultiProcessControllerHelper.cxx
   vtkPriorityHelper.cxx
@@ -75,7 +76,6 @@ SET(Kit_SRCS
   vtkPVTestUtilities.cxx
   vtkPVTimerInformation.cxx
   vtkRemoteConnection.cxx
-  vtkSelectionConverter.cxx
   vtkSelectionSerializer.cxx
   vtkSelfConnection.cxx
   vtkServerConnection.cxx

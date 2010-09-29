@@ -213,6 +213,7 @@ QWidget* pqContextView::getWidget()
     this->Internal->Viewport->setContextMenuPolicy(Qt::NoContextMenu);
     this->Internal->Viewport->installEventFilter(this);
     this->Internal->Viewport->setObjectName("Viewport");
+    this->initializeInteractors();
     }
   return this->Internal->Viewport;
 }

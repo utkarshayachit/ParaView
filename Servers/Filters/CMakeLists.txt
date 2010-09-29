@@ -75,9 +75,19 @@ SET(Filters_SRCS
   vtkIntegrateAttributes.cxx
   vtkIntegrateFlowThroughSurface.cxx
   vtkInteractorStyleTransferFunctionEditor.cxx
+  vtkIntersectFragments.cxx
   vtkIsoVolume.cxx
   vtkKdTreeGenerator.cxx
   vtkKdTreeManager.cxx
+  vtkMaterialInterfaceCommBuffer.cxx
+  vtkMaterialInterfaceFilter.cxx
+  vtkMaterialInterfaceIdList.cxx
+  vtkMaterialInterfacePieceLoading.cxx
+  vtkMaterialInterfacePieceTransaction.cxx
+  vtkMaterialInterfacePieceTransactionMatrix.cxx
+  vtkMaterialInterfaceProcessLoading.cxx
+  vtkMaterialInterfaceProcessRing.cxx
+  vtkMaterialInterfaceToProcMap.cxx
   vtkMergeArrays.cxx
   vtkMergeCompositeDataSet.cxx
   vtkMinMax.cxx
@@ -179,9 +189,11 @@ SET(Filters_SRCS
   vtkScatterPlotMapper.cxx
   vtkScatterPlotPainter.cxx
   vtkSciVizStatistics.cxx
+  vtkSelectionConverter.cxx
   vtkSelectionRepresentation.cxx
   vtkSelectionStreamer.cxx
   vtkSequenceAnimationPlayer.cxx
+  vtkSortedTableStreamer.cxx
   vtkSpyPlotBlock.cxx
   vtkSpyPlotBlockIterator.cxx
   vtkSpyPlotIStream.cxx
@@ -193,7 +205,6 @@ SET(Filters_SRCS
   vtkSurfaceVectors.cxx
   vtkTilesHelper.cxx
   vtkTableFFT.cxx
-  vtkTableStreamer.cxx
 #  vtkTemporalCacheFilter.cxx
 #  vtkTemporalPickFilter.cxx
 #  vtkTemporalProbeFilter.cxx
@@ -225,12 +236,20 @@ SET(Filters_SRCS
 
 SET_SOURCE_FILES_PROPERTIES(
   vtkAMRDualGridHelper.cxx
+  vtkMaterialInterfaceCommBuffer.cxx
+  vtkMaterialInterfaceIdList.cxx
+  vtkMaterialInterfacePieceLoading.cxx
+  vtkMaterialInterfacePieceTransaction.cxx
+  vtkMaterialInterfacePieceTransactionMatrix.cxx
+  vtkMaterialInterfaceProcessLoading.cxx
+  vtkMaterialInterfaceProcessRing.cxx
+  vtkMaterialInterfaceToProcMap.cxx
   vtkPVMain.cxx
   vtkSpyPlotBlock.cxx
-  vtkSpyPlotUniReader.cxx
-  vtkSpyPlotIStream.cxx
   vtkSpyPlotBlockIterator.cxx
+  vtkSpyPlotIStream.cxx
   vtkSpyPlotReaderMap.cxx
+  vtkSpyPlotUniReader.cxx
   WRAP_EXCLUDE)
 
 SET_SOURCE_FILES_PROPERTIES(
@@ -274,6 +293,7 @@ IF(VTK_USE_MPI)
   SET(Filters_SRCS ${Filters_SRCS}
     vtkBalancedRedistributePolyData.cxx
     vtkAllToNRedistributePolyData.cxx
+    vtkAllToNRedistributeCompositePolyData.cxx
     vtkRedistributePolyData.cxx
     vtkWeightedRedistributePolyData.cxx
     )

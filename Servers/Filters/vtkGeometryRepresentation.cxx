@@ -21,7 +21,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkOrderedCompositeDistributor.h"
 #include "vtkPKdTree.h"
-#include "vtkPolyDataMapper.h"
+#include "vtkCompositePolyDataMapper2.h"
 #include "vtkProperty.h"
 #include "vtkPVGeometryFilter.h"
 #include "vtkPVLODActor.h"
@@ -43,8 +43,8 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->Decimator->SetCopyCellData(1);
   this->Decimator->SetUseInternalTriangles(0);
   this->Decimator->SetNumberOfDivisions(10, 10, 10);
-  this->Mapper = vtkPolyDataMapper::New();
-  this->LODMapper = vtkPolyDataMapper::New();
+  this->Mapper = vtkCompositePolyDataMapper2::New();
+  this->LODMapper = vtkCompositePolyDataMapper2::New();
   this->Actor = vtkPVLODActor::New();
   this->Property = vtkProperty::New();
   //this->Property->SetOpacity(0.5);

@@ -91,9 +91,9 @@ void vtkSMContextNamedOptionsProxy::UpdatePropertyInformationInternal(
       vtksys_ios::ostringstream string;
       double color[3];
       options->GetColor(seriesName, color);
-      for (int i = 0; i < 3; ++i)
+      for (int j = 0; j < 3; ++j)
         {
-        string << color[i];
+        string << color[j];
         newValues->AddString(string.str().c_str());
         string.str("");
         }
