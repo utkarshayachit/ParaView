@@ -14,11 +14,12 @@
 =========================================================================*/
 #include "vtkPVDataRepresentation.h"
 
-#include "vtkObjectFactory.h"
-#include "vtkInformationVector.h"
-#include "vtkInformation.h"
 #include "vtkCommand.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
 #include "vtkMultiProcessController.h"
+#include "vtkObjectFactory.h"
+#include "vtkPVView.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 
 //----------------------------------------------------------------------------
@@ -34,15 +35,19 @@ vtkPVDataRepresentation::~vtkPVDataRepresentation()
 
 //----------------------------------------------------------------------------
 int vtkPVDataRepresentation::ProcessViewRequest(
-  vtkInformationRequestKey* request_type,
-  vtkInformation* inInfo, vtkInformation* outInfo)
+  vtkInformationRequestKey* request, vtkInformation*, vtkInformation*)
 {
   if (this->GetVisibility() == false)
     {
-    return false;
+    return 0;
     }
 
-  return this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
+  if (request == vtkPVView::REQUEST_UPDATE())
+    {
+    this->Update();
+    }
+
+  return 1;
 }
 
 //----------------------------------------------------------------------------

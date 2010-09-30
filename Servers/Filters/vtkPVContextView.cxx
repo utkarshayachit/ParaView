@@ -68,31 +68,11 @@ void vtkPVContextView::Render(bool interactive)
     // This should update mostly just the inputs to the representations, and maybe
     // the internal geometry filter.
     this->Update();
-
-    // Do the vtkView::REQUEST_INFORMATION() pass.
-    this->CallProcessViewRequest(vtkView::REQUEST_INFORMATION(),
-      this->RequestInformation, this->ReplyInformationVector);
     }
 
   // Since currently we only support client-side rendering, we disable render
   // synchronization for charts among all processes.
   this->SynchronizedWindows->SetEnabled(false);
-
-  // Build the request for REQUEST_PREPARE_FOR_RENDER().
-  // Move all data to client.
-  //this->RequestInformation->Set(DATA_DISTRIBUTION_MODE(),
-  //  vtkMPIMoveData::COLLECT);
-
-  // In REQUEST_PREPARE_FOR_RENDER, this view expects all representations to
-  // know the data-delivery mode.
-  this->CallProcessViewRequest(
-    vtkView::REQUEST_PREPARE_FOR_RENDER(),
-    this->RequestInformation, this->ReplyInformationVector);
-
-  // This pass is typically used for post-delivery updates.
-  this->CallProcessViewRequest(
-    vtkView::REQUEST_RENDER(),
-    this->RequestInformation, this->ReplyInformationVector);
 
   // Call Render() on local render window only on the client (or root node in
   // batch mode).

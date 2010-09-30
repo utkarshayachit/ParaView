@@ -188,7 +188,7 @@ int vtkUnstructuredGridVolumeRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type,
   vtkInformation* inInfo, vtkInformation* outInfo)
 {
-  if (request_type == vtkView::REQUEST_INFORMATION())
+  if (request_type == vtkPVView::REQUEST_INFORMATION())
     {
     vtkDataObject* geom = this->Preprocessor->GetOutputDataObject(0);
     if (geom)
@@ -200,7 +200,7 @@ int vtkUnstructuredGridVolumeRepresentation::ProcessViewRequest(
     outInfo->Set(vtkPVRenderView::REDISTRIBUTABLE_DATA_PRODUCER(),
       this->DeliveryFilter);
     }
-  else if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
+  else if (request_type == vtkPVView::REQUEST_PREPARE_FOR_RENDER())
     {
     // // In REQUEST_PREPARE_FOR_RENDER, we need to ensure all our data-deliver
     // // filters have their states updated as requested by the view.
@@ -221,7 +221,7 @@ int vtkUnstructuredGridVolumeRepresentation::ProcessViewRequest(
       this->Actor->SetEnableLOD(0);
       }
     }
-  else if (request_type == vtkView::REQUEST_RENDER())
+  else if (request_type == vtkPVView::REQUEST_RENDER())
     {
     // typically, representations don't do anything special in this pass.
     // However, when we are doing ordered compositing, we need to ensure that

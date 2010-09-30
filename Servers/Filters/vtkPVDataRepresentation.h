@@ -22,6 +22,8 @@
 
 #include "vtkDataRepresentation.h"
 
+class vtkInformationRequestKey;
+
 class VTK_EXPORT vtkPVDataRepresentation : public vtkDataRepresentation
 {
 public:

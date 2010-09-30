@@ -26,7 +26,11 @@
 #include "vtkView.h"
 #include "vtkWeakPointer.h"
 
+class vtkInformation;
+class vtkInformationRequestKey;
+class vtkInformationVector;
 class vtkPVSynchronizedRenderWindows;
+
 class VTK_EXPORT vtkPVView : public vtkView
 {
 public:
@@ -83,6 +87,35 @@ public:
   // These methods are used to setup the view for capturing screen shots.
   virtual void PrepareForScreenshot();
   virtual void CleanupAfterScreenshot();
+
+  // Description:
+  // This is a Update-Data pass. All representations are expected to update
+  // their inputs and prepare geometries for rendering. All heavy work that has
+  // to happen only when input-data changes can be done in this pass.
+  // This is the first pass.
+  static vtkInformationRequestKey* REQUEST_UPDATE();
+
+  // Description:
+  // This is a Request-MetaData pass. This happens only after REQUEST_UPDATE()
+  // has happened. In this pass representations typically publish information
+  // that may be useful for rendering optimizations such as geometry sizes, etc.
+  static vtkInformationRequestKey* REQUEST_INFORMATION();
+
+  // Description:
+  // This is a Prepare-for-rendering pass. This happens only after
+  // REQUEST_UPDATE() has happened. This is called for every render.
+  static vtkInformationRequestKey* REQUEST_PREPARE_FOR_RENDER();
+
+  // Description:
+  // This is a render pass. This happens only after
+  // REQUEST_PREPARE_FOR_RENDER() has happened. This is called for every render.
+  static vtkInformationRequestKey* REQUEST_RENDER();
+
+  // Description:
+  // Overridden to not call Update() directly on the input representations,
+  // instead use ProcessViewRequest() for all vtkPVDataRepresentations.
+  virtual void Update();
+
 //BTX
 protected:
   vtkPVView();
@@ -109,6 +142,18 @@ protected:
   // the SynchronizedWindows. This is set in Initialize().
   unsigned int Identifier;
 
+  // Description:
+  // These are passed as arguments to
+  // vtkDataRepresentation::ProcessViewRequest(). This avoid repeated creation
+  // and deletion of vtkInformation objects.
+  vtkInformation* RequestInformation;
+  vtkInformationVector* ReplyInformationVector;
+
+  // Description:
+  // Subclasses can use this method to trigger a pass on all representations.
+  void CallProcessViewRequest(
+    vtkInformationRequestKey* passType,
+    vtkInformation* request, vtkInformationVector* reply);
   double ViewTime;
 
 private:

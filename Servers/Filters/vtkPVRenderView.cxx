@@ -554,7 +554,7 @@ void vtkPVRenderView::Render(bool interactive)
   // In REQUEST_PREPARE_FOR_RENDER, this view expects all representations to
   // know the data-delivery mode.
   this->CallProcessViewRequest(
-    vtkView::REQUEST_PREPARE_FOR_RENDER(),
+    vtkPVView::REQUEST_PREPARE_FOR_RENDER(),
     this->RequestInformation, this->ReplyInformationVector);
 
   if (use_distributed_rendering &&
@@ -572,7 +572,7 @@ void vtkPVRenderView::Render(bool interactive)
     }
 
   this->CallProcessViewRequest(
-    vtkView::REQUEST_RENDER(),
+    vtkPVView::REQUEST_RENDER(),
     this->RequestInformation, this->ReplyInformationVector);
 
   // set the image reduction factor.
@@ -639,7 +639,7 @@ void vtkPVRenderView::SetRequestLODRendering(bool enable)
 //----------------------------------------------------------------------------
 void vtkPVRenderView::GatherRepresentationInformation()
 {
-  this->CallProcessViewRequest(vtkView::REQUEST_INFORMATION(),
+  this->CallProcessViewRequest(vtkPVView::REQUEST_INFORMATION(),
     this->RequestInformation, this->ReplyInformationVector);
 
   // REQUEST_UPDATE() pass may result in REDISTRIBUTABLE_DATA_PRODUCER() being

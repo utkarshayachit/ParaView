@@ -14,8 +14,12 @@
 =========================================================================*/
 #include "vtkPVView.h"
 
+#include "vtkInformation.h"
+#include "vtkInformationRequestKey.h"
+#include "vtkInformationVector.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
+#include "vtkPVDataRepresentation.h"
 #include "vtkPVServerInformation.h"
 #include "vtkPVSynchronizedRenderWindows.h"
 #include "vtkRemoteConnection.h"
@@ -24,6 +28,10 @@
 
 vtkWeakPointer<vtkPVSynchronizedRenderWindows> vtkPVView::SingletonSynchronizedWindows;
 
+vtkInformationKeyMacro(vtkPVView, REQUEST_UPDATE, Request);
+vtkInformationKeyMacro(vtkPVView, REQUEST_INFORMATION, Request);
+vtkInformationKeyMacro(vtkPVView, REQUEST_PREPARE_FOR_RENDER, Request);
+vtkInformationKeyMacro(vtkPVView, REQUEST_RENDER, Request);
 //----------------------------------------------------------------------------
 vtkPVView::vtkPVView()
 {
@@ -38,6 +46,9 @@ vtkPVView::vtkPVView()
     this->SynchronizedWindows->Register(this);
     }
   this->Identifier = 0;
+
+  this->RequestInformation = vtkInformation::New();
+  this->ReplyInformationVector = vtkInformationVector::New();
 }
 
 //----------------------------------------------------------------------------
@@ -47,6 +58,9 @@ vtkPVView::~vtkPVView()
   this->SynchronizedWindows->RemoveRenderWindow(this->Identifier);
   this->SynchronizedWindows->Delete();
   this->SynchronizedWindows = NULL;
+
+  this->RequestInformation->Delete();
+  this->ReplyInformationVector->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -130,4 +144,38 @@ void vtkPVView::CleanupAfterScreenshot()
     {
     this->SynchronizedWindows->RenderOneViewAtATimeOff();
     }
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::Update()
+{
+  this->CallProcessViewRequest(vtkPVView::REQUEST_UPDATE(),
+    this->RequestInformation, this->ReplyInformationVector);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::CallProcessViewRequest(
+  vtkInformationRequestKey* type, vtkInformation* inInfo, vtkInformationVector* outVec)
+{
+  int num_reprs = this->GetNumberOfRepresentations();
+  outVec->SetNumberOfInformationObjects(num_reprs);
+  for (int cc=0; cc < num_reprs; cc++)
+    {
+    vtkInformation* outInfo = outVec->GetInformationObject(cc);
+    outInfo->Clear();
+    vtkDataRepresentation* repr = this->GetRepresentation(cc);
+    vtkPVDataRepresentation* pvrepr = vtkPVDataRepresentation::SafeDownCast(repr);
+    if (pvrepr)
+      {
+      pvrepr->ProcessViewRequest(type, inInfo, outInfo);
+      }
+    else if (repr && type == REQUEST_UPDATE())
+      {
+      repr->Update();
+      }
+    }
+
+  // Clear input information since we are done with the pass. This avoids any
+  // need for garbage collection.
+  inInfo->Clear();
 }

@@ -97,7 +97,7 @@ int vtkImageSliceRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type,
   vtkInformation* inInfo, vtkInformation* outInfo)
 {
-  if (request_type == vtkView::REQUEST_INFORMATION())
+  if (request_type == vtkPVView::REQUEST_INFORMATION())
     {
     // Here we need to tell the view about the geometry size and if we need
     // ordered compositing.
@@ -111,7 +111,7 @@ int vtkImageSliceRepresentation::ProcessViewRequest(
       outInfo->Set(vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1);
       }
     }
-  else if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
+  else if (request_type == vtkPVView::REQUEST_PREPARE_FOR_RENDER())
     {
     // In REQUEST_PREPARE_FOR_RENDER, we need to ensure all our data-deliver
     // filters have their states updated as requested by the view.
@@ -135,7 +135,7 @@ int vtkImageSliceRepresentation::ProcessViewRequest(
       this->DeliveryTimeStamp.Modified();
       }
     }
-  else if (request_type == vtkView::REQUEST_RENDER())
+  else if (request_type == vtkPVView::REQUEST_RENDER())
     {
     // this->SliceMapper->Update();
     }

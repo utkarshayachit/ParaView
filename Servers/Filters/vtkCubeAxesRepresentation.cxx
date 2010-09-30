@@ -113,7 +113,7 @@ int vtkCubeAxesRepresentation::ProcessViewRequest(
     return 0;
     }
 
-  if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
+  if (request_type == vtkPVView::REQUEST_PREPARE_FOR_RENDER())
     {
     this->UpdateBounds();
     }

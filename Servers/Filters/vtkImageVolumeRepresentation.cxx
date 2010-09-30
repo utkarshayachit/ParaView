@@ -121,7 +121,7 @@ int vtkImageVolumeRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type,
   vtkInformation* inInfo, vtkInformation* outInfo)
 {
-  if (request_type == vtkView::REQUEST_INFORMATION())
+  if (request_type == vtkPVView::REQUEST_INFORMATION())
     {
     outInfo->Set(vtkPVRenderView::GEOMETRY_SIZE(),
       this->Cache->GetActualMemorySize());
@@ -132,7 +132,7 @@ int vtkImageVolumeRepresentation::ProcessViewRequest(
         this->GetInputConnection(0, 0)->GetProducer());
       }
     }
-  else if (request_type == vtkView::REQUEST_PREPARE_FOR_RENDER())
+  else if (request_type == vtkPVView::REQUEST_PREPARE_FOR_RENDER())
     {
     // // In REQUEST_PREPARE_FOR_RENDER, we need to ensure all our data-deliver
     // // filters have their states updated as requested by the view.
@@ -142,7 +142,7 @@ int vtkImageVolumeRepresentation::ProcessViewRequest(
     this->OutlineDeliveryFilter->ProcessViewRequest(inInfo);
     this->OutlineDeliveryFilter->Update();
     }
-  else if (request_type == vtkView::REQUEST_RENDER())
+  else if (request_type == vtkPVView::REQUEST_RENDER())
     {
     this->UpdateMapperParameters();
     }
