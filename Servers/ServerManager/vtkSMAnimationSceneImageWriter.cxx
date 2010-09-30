@@ -170,11 +170,11 @@ vtkImageData* vtkSMAnimationSceneImageWriter::NewFrame()
 vtkImageData* vtkSMAnimationSceneImageWriter::CaptureViewImage(
   vtkSMViewProxy* view, int magnification)
 {
-  //vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(view);
-  //if (rmview)
-  //  {
-  //  return rmview->CaptureWindow(magnification);
-  //  }
+  if (view)
+    {
+    return view->CaptureWindow(magnification);
+    }
+
   return NULL;
 }
 
