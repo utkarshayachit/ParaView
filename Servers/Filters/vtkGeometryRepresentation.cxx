@@ -262,10 +262,13 @@ vtkDataObject* vtkGeometryRepresentation::GetRenderedDataObject(int port)
 bool vtkGeometryRepresentation::GenerateMetaData(vtkInformation*,
   vtkInformation* outInfo)
 {
-  vtkDataObject* geom = this->GeometryFilter->GetOutputDataObject(0);
-  if (geom)
+  if (this->GeometryFilter->GetNumberOfInputConnections(0) > 0)
     {
-    outInfo->Set(vtkPVRenderView::GEOMETRY_SIZE(),geom->GetActualMemorySize());
+    vtkDataObject* geom = this->GeometryFilter->GetOutputDataObject(0);
+    if (geom)
+      {
+      outInfo->Set(vtkPVRenderView::GEOMETRY_SIZE(),geom->GetActualMemorySize());
+      }
     }
 
   outInfo->Set(vtkPVRenderView::REDISTRIBUTABLE_DATA_PRODUCER(),

@@ -35,7 +35,11 @@ void vtkPVRepresentedDataInformation::CopyFromObject(vtkObject* object)
   vtkPVDataRepresentation* repr = vtkPVDataRepresentation::SafeDownCast(object);
   if (repr)
     {
-    this->Superclass::CopyFromObject(repr->GetRenderedDataObject(0));
+    vtkDataObject* dobj = repr->GetRenderedDataObject(0);
+    if (dobj)
+      {
+      this->Superclass::CopyFromObject(dobj);
+      }
     }
 }
 
