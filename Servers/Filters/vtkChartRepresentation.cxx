@@ -83,8 +83,11 @@ bool vtkChartRepresentation::AddToView(vtkView* view)
     }
 
   this->ContextView = chartView;
-  this->Options->SetChart(chartView->GetChart());
-  this->Options->SetTableVisibility(this->GetVisibility());
+  if (this->Options)
+    {
+    this->Options->SetChart(chartView->GetChart());
+    this->Options->SetTableVisibility(this->GetVisibility());
+    }
   return true;
 }
 
@@ -97,8 +100,11 @@ bool vtkChartRepresentation::RemoveFromView(vtkView* view)
     return false;
     }
 
-  this->Options->RemovePlotsFromChart();
-  this->Options->SetChart(0);
+  if (this->Options)
+    {
+    this->Options->RemovePlotsFromChart();
+    this->Options->SetChart(0);
+    }
   this->ContextView = 0;
   return true;
 }
@@ -122,6 +128,12 @@ int vtkChartRepresentation::RequestUpdateExtent(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
+vtkTable* vtkChartRepresentation::GetLocalOutput()
+{
+  return vtkTable::SafeDownCast(this->DeliveryFilter->GetOutputDataObject(0));
+}
+
+//----------------------------------------------------------------------------
 int vtkChartRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
@@ -142,8 +154,10 @@ int vtkChartRepresentation::RequestData(vtkInformation* request,
 
   this->ReductionFilter->Update();
   this->DeliveryFilter->Update();
-  this->Options->SetTable(vtkTable::SafeDownCast(
-      this->DeliveryFilter->GetOutputDataObject(0)));
+  if (this->Options)
+    {
+    this->Options->SetTable(this->GetLocalOutput());
+    }
   return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
@@ -159,7 +173,10 @@ void vtkChartRepresentation::MarkModified()
 void vtkChartRepresentation::SetVisibility(bool visible)
 {
   this->Superclass::SetVisibility(visible);
-  this->Options->SetTableVisibility(visible);
+  if (this->Options)
+    {
+    this->Options->SetTableVisibility(visible);
+    }
 }
 
 #ifdef FIXME
@@ -180,7 +197,10 @@ void vtkChartRepresentation::Update(vtkSMViewProxy* view)
     }
 
   // Set the table, in case it has changed.
-  this->Options->SetTable(vtkTable::SafeDownCast(this->GetOutput()));
+  if (this->Options)
+    {
+    this->Options->SetTable(vtkTable::SafeDownCast(this->GetOutput()));
+    }
 
   this->UpdatePropertyInformation();
 }
@@ -189,29 +209,25 @@ void vtkChartRepresentation::Update(vtkSMViewProxy* view)
 //----------------------------------------------------------------------------
 int vtkChartRepresentation::GetNumberOfSeries()
 {
-  vtkTable *table = this->Options->GetTable();
+  vtkTable *table = this->GetLocalOutput();
   if (table)
     {
     return table->GetNumberOfColumns();
     }
-  else
-    {
-    return 0;
-    }
+
+  return 0;
 }
 
 //----------------------------------------------------------------------------
 const char* vtkChartRepresentation::GetSeriesName(int col)
 {
-  vtkTable *table = this->Options->GetTable();
+  vtkTable *table = this->GetLocalOutput();
   if (table)
     {
     return table->GetColumnName(col);
     }
-  else
-    {
-    return NULL;
-    }
+
+  return NULL;
 }
 
 // *************************************************************************

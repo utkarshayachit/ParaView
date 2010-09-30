@@ -29,12 +29,13 @@
 #include "vtkPVDataRepresentation.h"
 #include "vtkWeakPointer.h"
 
-class vtkPVContextView;
-class vtkContextNamedOptions;
 class vtkAnnotationLink;
-class vtkClientServerMoveData;
-class vtkReductionFilter;
 class vtkBlockDeliveryPreprocessor;
+class vtkClientServerMoveData;
+class vtkContextNamedOptions;
+class vtkPVContextView;
+class vtkReductionFilter;
+class vtkTable;
 
 class VTK_EXPORT vtkChartRepresentation : public vtkPVDataRepresentation
 {
@@ -54,13 +55,13 @@ public:
 
   // Description:
   // Get the number of series in this representation
-  int GetNumberOfSeries();
+  virtual int GetNumberOfSeries();
 
   // Description:
   // Get the name of the series with the given index.  Returns 0 if the index
   // is out of range.  The returned pointer is only valid until the next call
   // to GetSeriesName.
-  const char* GetSeriesName(int series);
+  virtual const char* GetSeriesName(int series);
 
   // Description:
   // This needs to be called on all instances of vtkGeometryRepresentation when
@@ -110,6 +111,10 @@ protected:
   // vtkView::RemoveRepresentation().  Subclasses should override this method.
   // Returns true if the removal succeeds.
   virtual bool RemoveFromView(vtkView* view);
+
+  // Description:
+  // Returns vtkTable at the local processes.
+  vtkTable* GetLocalOutput();
 
   vtkBlockDeliveryPreprocessor* Preprocessor;
   vtkReductionFilter* ReductionFilter;

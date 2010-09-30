@@ -56,6 +56,17 @@ protected:
   vtkParallelCoordinatesRepresentation();
   ~vtkParallelCoordinatesRepresentation();
 
+  virtual int RequestData(vtkInformation*,
+    vtkInformationVector**, vtkInformationVector*);
+
+  virtual bool AddToView(vtkView* view);
+
+  // Description:
+  // Removes the representation to the view.  This is called from
+  // vtkView::RemoveRepresentation().  Subclasses should override this method.
+  // Returns true if the removal succeeds.
+  virtual bool RemoveFromView(vtkView* view);
+
   //vtkChartRepresentation* SelectionRepresentation;
 
 private:

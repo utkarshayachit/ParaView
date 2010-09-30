@@ -39,6 +39,35 @@ void vtkParallelCoordinatesRepresentation::PrintSelf(ostream& os, vtkIndent inde
 }
 
 //----------------------------------------------------------------------------
+bool vtkParallelCoordinatesRepresentation::AddToView(vtkView* view)
+{
+  if (!this->Superclass::AddToView(view))
+    {
+    return false;
+    }
+
+  if (this->GetChart())
+    {
+    // Set the table, in case it has changed.
+    this->GetChart()->GetPlot(0)->SetInput(this->GetLocalOutput());
+    this->GetChart()->SetVisible(this->GetVisibility());
+    }
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkParallelCoordinatesRepresentation::RemoveFromView(vtkView* view)
+{
+  if (this->GetChart())
+    {
+    this->GetChart()->GetPlot(0)->SetInput(0);
+    this->GetChart()->SetVisible(false);
+    }
+  return this->Superclass::RemoveFromView(view);
+}
+
+//----------------------------------------------------------------------------
 vtkChartParallelCoordinates* vtkParallelCoordinatesRepresentation::GetChart()
 {
   if (this->ContextView)
@@ -112,4 +141,27 @@ void vtkParallelCoordinatesRepresentation::SetOpacity(double opacity)
     {
     this->GetChart()->GetPlot(0)->GetPen()->SetOpacityF(opacity);
     }
+}
+
+//----------------------------------------------------------------------------
+int vtkParallelCoordinatesRepresentation::RequestData(vtkInformation* request,
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  if (!this->Superclass::RequestData(request, inputVector, outputVector))
+    {
+    return 0;
+    }
+
+  if (this->GetChart())
+    {
+    //vtkSelection *sel =
+    //  vtkSelection::SafeDownCast(this->SelectionRepresentation->GetOutput());
+    //this->AnnLink->SetCurrentSelection(sel);
+    //this->GetChart()->SetAnnotationLink(AnnLink);
+
+    // Set the table, in case it has changed.
+    this->GetChart()->GetPlot(0)->SetInput(this->GetLocalOutput());
+    }
+
+  return 1;
 }
