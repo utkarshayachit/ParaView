@@ -167,6 +167,11 @@ void vtkPVView::CallProcessViewRequest(
     vtkPVDataRepresentation* pvrepr = vtkPVDataRepresentation::SafeDownCast(repr);
     if (pvrepr)
       {
+      if (type == REQUEST_UPDATE())
+        {
+        // Pass the view time information to the representation
+        pvrepr->SetUpdateTime(this->GetViewTime());
+        }
       pvrepr->ProcessViewRequest(type, inInfo, outInfo);
       }
     else if (repr && type == REQUEST_UPDATE())

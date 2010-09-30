@@ -19,18 +19,44 @@
 #include "vtkInformationVector.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVDataRepresentationPipeline.h"
 #include "vtkPVView.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
 
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::vtkPVDataRepresentation()
 {
   this->Visibility = true;
+  vtkExecutive* exec = this->CreateDefaultExecutive();
+  this->SetExecutive(exec);
+  exec->FastDelete();
+
+  this->UpdateTimeValid = false;
+  this->UpdateTime = 0.0;
 }
 
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::~vtkPVDataRepresentation()
 {
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataRepresentation::SetUpdateTime(double time)
+{
+  if (!this->UpdateTimeValid ||
+    (this->UpdateTimeValid && (this->UpdateTime != time)))
+    {
+    this->UpdateTime = time;
+    this->UpdateTimeValid = true;
+
+    // Call MarkModified() only when the timestep has indeed changed.
+    this->MarkModified();
+    }
+}
+
+//----------------------------------------------------------------------------
+vtkExecutive* vtkPVDataRepresentation::CreateDefaultExecutive()
+{
+  return vtkPVDataRepresentationPipeline::New();
 }
 
 //----------------------------------------------------------------------------
@@ -80,6 +106,12 @@ int vtkPVDataRepresentation::RequestUpdateExtent(vtkInformation* request,
     sddp->SetUpdateExtent(inputVector[0]->GetInformationObject(0),
       controller->GetLocalProcessId(),
       controller->GetNumberOfProcesses(), 0);
+    if (this->UpdateTimeValid)
+      {
+      sddp->SetUpdateTimeSteps(
+        inputVector[0]->GetInformationObject(0),
+        &this->UpdateTime, 1);
+      }
     }
 
   return 1;

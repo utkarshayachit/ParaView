@@ -58,10 +58,23 @@ public:
   virtual vtkDataObject* GetRenderedDataObject(int vtkNotUsed(port))
     { return this->GetInputDataObject(0, 0); }
 
+  // Description:
+  // Set the update time.
+  void SetUpdateTime(double time);
+  vtkGetMacro(UpdateTime, double);
+
+  // Description:
+  // Set whether the UpdateTime is valid.
+  vtkGetMacro(UpdateTimeValid, bool);
+
 //BTX
 protected:
   vtkPVDataRepresentation();
   ~vtkPVDataRepresentation();
+
+  // Description:
+  // Create a default executive.
+  virtual vtkExecutive* CreateDefaultExecutive();
 
   // Description:
   // Overridden to invoke vtkCommand::UpdateDataEvent.
@@ -72,6 +85,8 @@ protected:
     vtkInformationVector** inputVector,
     vtkInformationVector* outputVector);
 
+  double UpdateTime;
+  bool UpdateTimeValid;
 private:
   vtkPVDataRepresentation(const vtkPVDataRepresentation&); // Not implemented
   void operator=(const vtkPVDataRepresentation&); // Not implemented

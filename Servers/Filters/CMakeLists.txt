@@ -132,6 +132,7 @@ SET(Filters_SRCS
   vtkPVContourFilter.cxx
   vtkPVCompositeRepresentation.cxx
   vtkPVDataRepresentation.cxx
+  vtkPVDataRepresentationPipeline.cxx
   vtkPVDesktopDeliveryClient.cxx
   vtkPVDesktopDeliveryServer.cxx
   vtkPVDReader.cxx
