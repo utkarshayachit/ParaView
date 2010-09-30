@@ -155,7 +155,7 @@ void vtkSelectionConverter::Convert(
     return;
     }
 
-vtkAlgorithm* geomAlg = vtkAlgorithm::SafeDownCast(
+  vtkAlgorithm* geomAlg = vtkAlgorithm::SafeDownCast(
     inputProperties->Get(vtkSelectionNode::SOURCE()));
   if (!geomAlg)
     {
@@ -285,7 +285,7 @@ vtkAlgorithm* geomAlg = vtkAlgorithm::SafeDownCast(
       outputProperties->Set(vtkSelectionNode::HIERARCHICAL_INDEX(),
         amr_index[1] + piece_offset);
       }
-    else if (inputProperties->Has(vtkSelectionNode::COMPOSITE_INDEX()))
+    else if (inputProperties->Has(vtkSelectionNode::COMPOSITE_INDEX()) && cd)
       {
       outputProperties->Set(vtkSelectionNode::COMPOSITE_INDEX(),
         inputProperties->Get(vtkSelectionNode::COMPOSITE_INDEX()) + piece_offset);

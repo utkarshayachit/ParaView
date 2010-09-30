@@ -25,8 +25,9 @@
 #include "vtkPVDataRepresentation.h"
 #include "vtkProperty.h" // needed for VTK_POINTS etc.
 
-class vtkOrderedCompositeDistributor;
 class vtkCompositePolyDataMapper2;
+class vtkGeometryRepresentationMultiBlockMaker;
+class vtkOrderedCompositeDistributor;
 class vtkPVGeometryFilter;
 class vtkPVLODActor;
 class vtkQuadricClustering;
@@ -206,6 +207,7 @@ protected:
   virtual void UpdateColoringParameters();
 
   vtkPVGeometryFilter* GeometryFilter;
+  vtkGeometryRepresentationMultiBlockMaker* MultiBlockMaker;
   vtkQuadricClustering* Decimator;
   vtkCompositePolyDataMapper2* Mapper;
   vtkCompositePolyDataMapper2* LODMapper;

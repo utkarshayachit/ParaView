@@ -15,13 +15,15 @@
 #include "vtkGeometryRepresentation.h"
 
 #include "vtkCommand.h"
+#include "vtkCompositePolyDataMapper2.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMultiBlockDataSetAlgorithm.h"
+#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkOrderedCompositeDistributor.h"
 #include "vtkPKdTree.h"
-#include "vtkCompositePolyDataMapper2.h"
 #include "vtkProperty.h"
 #include "vtkPVGeometryFilter.h"
 #include "vtkPVLODActor.h"
@@ -33,11 +35,52 @@
 #include "vtkSelectionNode.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
 
+//*****************************************************************************
+class vtkGeometryRepresentationMultiBlockMaker : public vtkMultiBlockDataSetAlgorithm
+{
+public:
+  static vtkGeometryRepresentationMultiBlockMaker* New();
+  vtkTypeMacro(vtkGeometryRepresentationMultiBlockMaker, vtkMultiBlockDataSetAlgorithm);
+protected:
+  virtual int RequestData(vtkInformation *,
+    vtkInformationVector ** inputVector, vtkInformationVector *outputVector)
+    {
+    vtkMultiBlockDataSet* inputMB =
+      vtkMultiBlockDataSet::GetData(inputVector[0], 0);
+    vtkMultiBlockDataSet* outputMB =
+      vtkMultiBlockDataSet::GetData(outputVector, 0);
+    if (inputMB)
+      {
+      outputMB->ShallowCopy(inputMB);
+      return 1;
+      }
+
+    vtkDataObject* inputDO = vtkDataObject::GetData(inputVector[0], 0);
+    vtkDataObject* clone = inputDO->NewInstance();
+    clone->ShallowCopy(inputDO);
+    outputMB->SetBlock(0, clone);
+    clone->Delete();
+    return 1;
+    }
+
+  virtual int FillInputPortInformation(int, vtkInformation *info)
+    {
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
+    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
+    return 1;
+    }
+};
+vtkStandardNewMacro(vtkGeometryRepresentationMultiBlockMaker);
+
+//*****************************************************************************
+
+
 vtkStandardNewMacro(vtkGeometryRepresentation);
 //----------------------------------------------------------------------------
 vtkGeometryRepresentation::vtkGeometryRepresentation()
 {
   this->GeometryFilter = vtkPVGeometryFilter::New();
+  this->MultiBlockMaker = vtkGeometryRepresentationMultiBlockMaker::New();
   this->Decimator = vtkQuadricClustering::New();
   this->Decimator->SetUseInputPoints(1);
   this->Decimator->SetCopyCellData(1);
@@ -52,16 +95,19 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->LODDeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
 
   this->GeometryFilter->SetUseOutline(0);
+  this->GeometryFilter->SetPassThroughCellIds(1);
+  this->GeometryFilter->SetPassThroughPointIds(1);
 
-  this->DeliveryFilter->SetOutputDataType(VTK_POLY_DATA);
-  this->LODDeliveryFilter->SetOutputDataType(VTK_POLY_DATA);
+  this->DeliveryFilter->SetOutputDataType(VTK_MULTIBLOCK_DATA_SET);
+  this->LODDeliveryFilter->SetOutputDataType(VTK_MULTIBLOCK_DATA_SET);
 
   this->Distributor = vtkOrderedCompositeDistributor::New();
   this->Distributor->SetController(vtkMultiProcessController::GetGlobalController());
   this->Distributor->SetInputConnection(0, this->DeliveryFilter->GetOutputPort());
   this->Distributor->SetPassThrough(1);
 
-  this->Decimator->SetInputConnection(this->GeometryFilter->GetOutputPort());
+  this->MultiBlockMaker->SetInputConnection(this->GeometryFilter->GetOutputPort());
+  this->Decimator->SetInputConnection(this->MultiBlockMaker->GetOutputPort());
   this->Mapper->SetInputConnection(this->Distributor->GetOutputPort());
   this->LODMapper->SetInputConnection(this->LODDeliveryFilter->GetOutputPort());
   this->Actor->SetMapper(this->Mapper);
@@ -82,6 +128,7 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
 vtkGeometryRepresentation::~vtkGeometryRepresentation()
 {
   this->GeometryFilter->Delete();
+  this->MultiBlockMaker->Delete();
   this->Decimator->Delete();
   this->Mapper->Delete();
   this->LODMapper->Delete();
@@ -178,14 +225,17 @@ int vtkGeometryRepresentation::RequestData(vtkInformation* request,
       this->GetInternalOutputPort());
     cout << "Update GeometryFilter" << endl;
     this->GeometryFilter->Update();
-    this->DeliveryFilter->SetInputConnection(
+    this->MultiBlockMaker->SetInputConnection(
       this->GeometryFilter->GetOutputPort());
+    this->DeliveryFilter->SetInputConnection(
+      this->MultiBlockMaker->GetOutputPort());
     this->LODDeliveryFilter->SetInputConnection(
       this->Decimator->GetOutputPort());
     }
   else
     {
     cout << "Process has not input data" << endl;
+    this->MultiBlockMaker->RemoveAllInputs();
     this->DeliveryFilter->RemoveAllInputs();
     this->LODDeliveryFilter->RemoveAllInputs();
     }

@@ -22,6 +22,7 @@
 #include "vtkClientServerInterpreter.h"
 #include "vtkClientServerStream.h"
 #include "vtkCommand.h"
+#include "vtkCompositeDataPipeline.h"
 #include "vtkConnectionIterator.h"
 #include "vtkDataObject.h"
 #include "vtkInstantiator.h"
@@ -196,11 +197,16 @@ vtkProcessModule::vtkProcessModule()
 
   vtkMapper::SetResolveCoincidentTopologyToShiftZBuffer();
   vtkMapper::SetResolveCoincidentTopologyZShift(2.0e-3);
+
+  vtkCompositeDataPipeline* cddp = vtkCompositeDataPipeline::New();
+  vtkAlgorithm::SetDefaultExecutivePrototype(cddp);
+  cddp->Delete();
 }
 
 //-----------------------------------------------------------------------------
 vtkProcessModule::~vtkProcessModule()
 {
+  vtkAlgorithm::SetDefaultExecutivePrototype(NULL);
   this->SetActiveRemoteConnection(0);
   this->Observer->SetProcessModule(0);
   this->Observer->Delete();
