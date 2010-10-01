@@ -117,6 +117,8 @@ public:
   virtual void Update();
 
 //BTX
+  vtkGetMacro(Identifier, unsigned int);
+
 protected:
   vtkPVView();
   ~vtkPVView();

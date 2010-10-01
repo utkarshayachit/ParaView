@@ -135,6 +135,10 @@ protected:
 
   vtkIdType NumberOfRows;
 
+  enum
+    {
+    FETCH_BLOCK_TAG = 394732
+    };
 private:
   vtkSpreadSheetView(const vtkSpreadSheetView&); // Not implemented
   void operator=(const vtkSpreadSheetView&); // Not implemented
@@ -143,6 +147,8 @@ private:
   vtkInternals* Internals;
 
   bool SomethingUpdated;
+
+  unsigned long RMICallbackTag;
 //ETX
 };
 

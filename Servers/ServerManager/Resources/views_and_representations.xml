@@ -803,7 +803,7 @@
       base_proxygroup="views"
       base_proxyname="ViewBase"
       class="vtkSpreadSheetView"
-      processes="client|renderserver|dataserver"
+      processes="client|dataserver"
       representation_name="SpreadSheetRepresentation">
 
       <IntVectorProperty name="SelectionOnly"
@@ -2995,6 +2995,24 @@
            </RequiredProperties>
         </CompositeTreeDomain>
        </IntVectorProperty>
+
+      <InputProperty name="InternalInput1"
+        command="SetInputConnection"
+        port_index="1"
+        is_internal="1">
+        <Documentation>
+          Internal property. Please don't touch this.
+        </Documentation>
+      </InputProperty>
+
+      <InputProperty name="InternalInput2"
+        command="SetInputConnection"
+        port_index="2"
+        is_internal="1">
+        <Documentation>
+          Internal property. Please don't touch this.
+        </Documentation>
+      </InputProperty>
 
        <!-- end of SpreadSheetRepresentation -->
     </SpreadSheetRepresentationProxy>

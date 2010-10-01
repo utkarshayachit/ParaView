@@ -23,9 +23,11 @@
 #include "vtkMultiProcessController.h"
 #include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
+#include "vtkProcessModule.h"
 #include "vtkPVMergeTables.h"
 #include "vtkPVSynchronizedRenderWindows.h"
 #include "vtkReductionFilter.h"
+#include "vtkRemoteConnection.h"
 #include "vtkSmartPointer.h"
 #include "vtkSortedTableStreamer.h"
 #include "vtkSpreadSheetRepresentation.h"
@@ -91,6 +93,26 @@ public:
   vtkCommand* Observer;
 };
 
+namespace
+{
+  void FetchRMI(void *localArg,
+    void *remoteArg, int remoteArgLength, int)
+    {
+    vtkMultiProcessStream stream;
+    stream.SetRawData(
+      reinterpret_cast<unsigned char*>(remoteArg), remoteArgLength);
+    unsigned int id = 0;
+    int blockid = -1;
+    stream >> id >> blockid;
+    vtkSpreadSheetView* self =
+      reinterpret_cast<vtkSpreadSheetView*>(localArg);
+    if (self->GetIdentifier() == id)
+      {
+      self->FetchBlockCallback(blockid);
+      }
+    }
+}
+
 vtkStandardNewMacro(vtkSpreadSheetView);
 //----------------------------------------------------------------------------
 vtkSpreadSheetView::vtkSpreadSheetView()
@@ -109,6 +131,8 @@ vtkSpreadSheetView::vtkSpreadSheetView()
 
   this->DeliveryFilter = vtkClientServerMoveData::New();
   this->DeliveryFilter->SetOutputDataType(VTK_TABLE);
+  this->DeliveryFilter->SetProcessModuleConnection(
+    vtkProcessModule::GetProcessModule()->GetActiveRemoteConnection());
 
   this->TableSelectionMarker->SetInputConnection(
     this->TableStreamer->GetOutputPort());
@@ -122,11 +146,17 @@ vtkSpreadSheetView::vtkSpreadSheetView()
   this->Internals->Observer = vtkMakeMemberFunctionCommand(*this,
     &vtkSpreadSheetView::OnRepresentationUpdated);
   this->SomethingUpdated = false;
+
+  this->RMICallbackTag = this->SynchronizedWindows->AddRMICallback(
+    ::FetchRMI, this, FETCH_BLOCK_TAG);
 }
 
 //----------------------------------------------------------------------------
 vtkSpreadSheetView::~vtkSpreadSheetView()
 {
+  this->SynchronizedWindows->RemoveRMICallback(this->RMICallbackTag);
+  this->RMICallbackTag = 0;
+
   this->Internals->Forwarder->SetTarget(NULL);
   this->Internals->Forwarder->Delete();
   this->Internals->Observer->Delete();
@@ -243,8 +273,8 @@ vtkTable* vtkSpreadSheetView::FetchBlock(vtkIdType blockindex)
   if (!block)
     {
     vtkMultiProcessStream stream;
-    stream << this->Identifier << blockindex;
-    //this->SynchronizedWindows->TriggerRMI(stream, FETCH_BLOCK_TAG);
+    stream << this->Identifier << static_cast<int>(blockindex);
+    this->SynchronizedWindows->TriggerRMI(stream, FETCH_BLOCK_TAG);
     this->FetchBlockCallback(blockindex);
     block = vtkTable::SafeDownCast(
       this->DeliveryFilter->GetOutputDataObject(0));

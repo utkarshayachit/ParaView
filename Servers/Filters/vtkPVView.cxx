@@ -69,12 +69,6 @@ void vtkPVView::Initialize(unsigned int id)
   assert(this->Identifier == 0 && id != 0);
 
   this->Identifier = id;
-  if (this->SynchronizedWindows->GetRenderWindow(id) == NULL)
-    {
-    // if the subclass didn't add any render window, we ensure that a NULL is
-    // at least assigned so that the various size computations work correctly.
-    this->SynchronizedWindows->AddRenderWindow(id, NULL);
-    }
 }
 
 //----------------------------------------------------------------------------

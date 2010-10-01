@@ -15,6 +15,7 @@
 #include "vtkSMSpreadSheetRepresentationProxy.h"
 
 #include "vtkObjectFactory.h"
+#include "vtkSMPropertyHelper.h"
 
 vtkStandardNewMacro(vtkSMSpreadSheetRepresentationProxy);
 //----------------------------------------------------------------------------
@@ -41,10 +42,15 @@ void vtkSMSpreadSheetRepresentationProxy::AddInput(unsigned int inputPort,
     return;
     }
 
-  // FIXME: need to add consumer dependecy on this proxy so that MarkModified()
-  // is called correctly.
-  this->Superclass::AddInput(1, esProxy, 0, "SetInputConnection");
-  this->Superclass::AddInput(2, esProxy, 1, "SetInputConnection");
+  if (inputPort == 0)
+    {
+    // We use these internal properties since we need to add consumer dependecy
+    // on this proxy so that MarkModified() is called correctly.
+    vtkSMPropertyHelper(this, "InternalInput1").Set(esProxy, 0);
+    vtkSMPropertyHelper(this, "InternalInput2").Set(esProxy, 1);
+    this->UpdateProperty("InternalInput1");
+    this->UpdateProperty("InternalInput2");
+    }
 }
 
 //----------------------------------------------------------------------------
