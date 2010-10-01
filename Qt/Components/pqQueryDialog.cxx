@@ -61,7 +61,9 @@ class pqQueryDialog::pqInternals : public Ui::pqQueryDialog
 {
 public:
   QList<pqQueryClauseWidget*> Clauses;
+#ifdef FIXME
   pqSpreadSheetViewModel DataModel;
+#endif
   pqPropertyLinks Links;
   
   pqPropertyLinks LabelColorLinks;
@@ -116,10 +118,10 @@ pqQueryDialog::pqQueryDialog(
   QObject::connect(this->Internals->runQuery,
     SIGNAL(clicked()), this, SLOT(runQuery()));
 
+#ifdef FIXME
   // Setup the spreadsheet view.
   this->Internals->spreadsheet->setModel(&this->Internals->DataModel);
 
-#ifdef FIXME
   // Create representation to show the producer.
   vtkSMSpreadSheetRepresentationProxy* repr = 
     vtkSMSpreadSheetRepresentationProxy::SafeDownCast(

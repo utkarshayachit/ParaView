@@ -798,6 +798,57 @@
 
     </ContextViewProxy>
 
+    <!-- ================================================================== -->
+    <ViewProxy name="SpreadSheetView"
+      base_proxygroup="views"
+      base_proxyname="ViewBase"
+      class="vtkSpreadSheetView"
+      processes="client|renderserver|dataserver"
+      representation_name="SpreadSheetRepresentation">
+
+      <IntVectorProperty name="SelectionOnly"
+        command="SetShowExtractedSelection"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          When set to 1, this representations shows only the selected cells (or
+          points). The change will effect only after calling Update().
+          Note that changing this will clean all cache.
+        </Documentation>
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <StringVectorProperty name="ColumnToSort"
+        command="SetColumnNameToSort">
+      </StringVectorProperty>
+
+       <IntVectorProperty name="SelectedComponent"
+         command="SetComponentToSort"
+         number_of_elements="1"
+         default_values="-1">
+         <IntRangeDomain name="range" />
+       </IntVectorProperty>
+
+       <IntVectorProperty name="InvertOrder"
+         command="SetInvertSortOrder"
+         number_of_elements="1"
+         default_values="0">
+         <BooleanDomain name="bool"/>
+       </IntVectorProperty>
+
+       <IdTypeVectorProperty name="BlockSize"
+         command="SetBlockSize"
+         number_of_elements="1"
+         default_values="20">
+         <Documentation>
+           Get/Set the number of rows that fit within one block. The output of
+           this filter will have at most BlockSize rows.
+         </Documentation>
+       </IdTypeVectorProperty>
+
+      <!-- End of SpreadSheetView -->
+    </ViewProxy>
+
   </ProxyGroup>
 
   <!-- ==================================================================== -->
@@ -2888,6 +2939,65 @@
         default_values="Bar" >
       </StringVectorProperty>
     </ChartRepresentationProxy>
+
+    <!-- =================================================================== -->
+    <RepresentationProxy name="SpreadSheetRepresentation"
+      class="vtkSpreadSheetRepresentation"
+      processes="client|dataserver" >
+
+      <InputProperty name="Input" command="SetInputConnection" >
+        <Documentation>
+          Data input for the representation.
+        </Documentation>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject"/>
+        </DataTypeDomain>
+      </InputProperty>
+
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1" >
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Visibility of the representation.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="FieldAssociation"
+         command="SetFieldAssociation"
+         number_of_elements="1"
+         default_values="0">
+         <Documentation>
+           Select the attribute data to pass.
+         </Documentation>
+         <FieldDataDomain name="enum"
+            enable_field_data="1" force_point_cell_data="1">
+           <RequiredProperties>
+              <Property name="Input" function="Input"/>
+           </RequiredProperties>
+         </FieldDataDomain>
+       </IntVectorProperty>
+
+       <IntVectorProperty name="CompositeDataSetIndex"
+         command="SetCompositeDataSetIndex"
+         number_of_elements="1"
+         default_values="0">
+         <Documentation>
+           In case of Composite datasets, set the flat index of the dataset to
+           pass. The flat index must point to a non-empty, non-composite dataset
+           for anything to be passed through. If the input is not a composite
+           dataset, then this index is ignored.
+         </Documentation>
+         <CompositeTreeDomain name="tree" mode="leaves">
+           <RequiredProperties>
+              <Property name="Input" function="Input"/>
+           </RequiredProperties>
+        </CompositeTreeDomain>
+       </IntVectorProperty>
+
+       <!-- end of SpreadSheetRepresentation -->
+    </RepresentationProxy>
 
   </ProxyGroup>
 

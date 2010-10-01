@@ -2981,14 +2981,6 @@
   </ProxyGroup>
 
   <ProxyGroup name="views">
-    <ViewProxy name="SpreadSheetView"
-      base_proxygroup="views"
-      base_proxyname="ViewBase"
-      representation_name="SpreadSheetRepresentation">
-
-      <!-- End of SpreadSheetView -->
-    </ViewProxy>
-
     <Proxy name="ComparativeViewBase"
       base_proxygroup="views" base_proxyname="ViewBase">
       <Documentation>

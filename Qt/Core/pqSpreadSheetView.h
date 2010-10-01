@@ -84,7 +84,6 @@ signals:
 public slots:
   /// Called when a new repr is added.
   void onAddRepresentation(pqRepresentation*);
-  void onRemoveRepresentation(pqRepresentation*);
 
 protected slots:
   /// Called to ensure that at most 1 repr is visible at a time.

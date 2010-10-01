@@ -195,6 +195,8 @@ SET(Filters_SRCS
   vtkSelectionStreamer.cxx
   vtkSequenceAnimationPlayer.cxx
   vtkSortedTableStreamer.cxx
+  vtkSpreadSheetView.cxx
+  vtkSpreadSheetRepresentation.cxx
   vtkSpyPlotBlock.cxx
   vtkSpyPlotBlockIterator.cxx
   vtkSpyPlotIStream.cxx

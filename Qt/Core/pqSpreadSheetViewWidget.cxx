@@ -239,7 +239,7 @@ void pqSpreadSheetViewWidget::paintEvent(QPaintEvent* pevent)
   if (del && smodel)
     {
     del->endPaint();
-    smodel->setActiveBlock(del->Top, del->Bottom);
+    smodel->setActiveRegion(del->Top.row(), del->Bottom.row());
     }
 }
 
