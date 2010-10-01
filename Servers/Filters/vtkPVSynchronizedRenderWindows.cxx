@@ -58,6 +58,21 @@ public:
       }
     };
 
+  struct CallbackInfo
+    {
+    unsigned long ParallelHandle;
+    unsigned long ClientServerHandle;
+    unsigned long ClientDataServerHandle;
+    CallbackInfo()
+      {
+      this->ParallelHandle = 0;
+      this->ClientServerHandle = 0;
+      this->ClientDataServerHandle = 0;
+      }
+    };
+
+  vtkstd::vector<CallbackInfo> RMICallbacks;
+
   typedef vtkstd::map<unsigned int, RenderWindowInfo> RenderWindowsMap;
   RenderWindowsMap RenderWindows;
 
@@ -143,12 +158,14 @@ namespace
 };
 
 vtkStandardNewMacro(vtkPVSynchronizedRenderWindows);
-vtkCxxRevisionMacro(vtkPVSynchronizedRenderWindows, "$Revision$");
+vtkCxxSetObjectMacro(vtkPVSynchronizedRenderWindows, ClientDataServerController,
+  vtkMultiProcessController);
 //----------------------------------------------------------------------------
 vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
 {
   this->Mode = INVALID;
   this->ClientServerController = 0;
+  this->ClientDataServerController = 0;
   this->ParallelController = 0;
   this->ClientServerRMITag = 0;
   this->ParallelRMITag = 0;
@@ -206,8 +223,11 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
   switch (this->Mode)
     {
   case BUILTIN:
-  case DATA_SERVER:
     // nothing to do.
+    break;
+
+  case DATA_SERVER:
+    this->SetClientDataServerController(pm->GetActiveSocketController());
     break;
 
   case BATCH:
@@ -222,6 +242,11 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
 
   case CLIENT:
     this->SetClientServerController(pm->GetActiveRenderServerSocketController());
+    this->SetClientDataServerController(pm->GetActiveSocketController());
+    if (this->ClientDataServerController == this->ClientServerController)
+      {
+      this->SetClientDataServerController(0);
+      }
     break;
 
   default:
@@ -234,6 +259,7 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
 vtkPVSynchronizedRenderWindows::~vtkPVSynchronizedRenderWindows()
 {
   this->SetClientServerController(0);
+  this->SetClientDataServerController(0);
   this->SetParallelController(0);
 
   delete this->Internals;
@@ -936,27 +962,16 @@ bool vtkPVSynchronizedRenderWindows::SynchronizeSize(unsigned long& size)
     return true;
     }
 
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-
   vtkMultiProcessController* parallelController =
     this->GetParallelController();
   vtkMultiProcessController* c_rs_controller =
     this->GetClientServerController();
-  vtkMultiProcessController* c_ds_controller = NULL;
 
-  if (this->Mode == CLIENT)
-    {
-    vtkMultiProcessController* cs = pm->GetActiveSocketController();
-    // if both are same, then we are not connected to a separate data server
-    if (cs != c_rs_controller)
-      {
-      c_ds_controller = cs;
-      }
-    }
-  else if (this->Mode == DATA_SERVER)
-    {
-    c_ds_controller = pm->GetActiveSocketController();
-    }
+  // c_ds_controller is non-null only in client-dataserver-renderserver
+  // configuratrions.
+  vtkMultiProcessController* c_ds_controller =
+    this->GetClientDataServerController();
+  assert(c_ds_controller == NULL || c_ds_controller != c_rs_controller);
 
   // The strategy is reduce the value to client then broadcast it out to
   // render-server and data-server.
@@ -1033,27 +1048,16 @@ bool vtkPVSynchronizedRenderWindows::SynchronizeBounds(double bounds[6])
     return true;
     }
 
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-
   vtkMultiProcessController* parallelController =
     this->GetParallelController();
   vtkMultiProcessController* c_rs_controller =
     this->GetClientServerController();
-  vtkMultiProcessController* c_ds_controller = NULL;
 
-  if (this->Mode == CLIENT)
-    {
-    vtkMultiProcessController* cs = pm->GetActiveSocketController();
-    // if both are same, then we are not connected to a separate data server
-    if (cs != c_rs_controller)
-      {
-      c_ds_controller = cs;
-      }
-    }
-  else if (this->Mode == DATA_SERVER)
-    {
-    c_ds_controller = pm->GetActiveSocketController();
-    }
+  // c_ds_controller is non-null only in client-dataserver-renderserver
+  // configuratrions.
+  vtkMultiProcessController* c_ds_controller =
+    this->GetClientDataServerController();
+  assert(c_ds_controller == NULL || c_ds_controller != c_rs_controller);
 
   // The strategy is reduce the value to client then broadcast it out to
   // render-server and data-server.
@@ -1142,26 +1146,28 @@ bool vtkPVSynchronizedRenderWindows::BroadcastToDataServer(vtkSelection* selecti
     return true;
     }
 
- vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  if (pm->GetOptions()->GetProcessType() == vtkPVOptions::PVRENDER_SERVER)
+    {
+    return false;
+    }
 
   vtkMultiProcessController* parallelController =
     this->GetParallelController();
-  vtkMultiProcessController* c_ds_controller =
+  vtkMultiProcessController* c_rs_controller =
     this->GetClientServerController();
-  if (this->Mode == CLIENT)
+
+  // c_ds_controller is non-null only in client-dataserver-renderserver
+  // configuratrions.
+  vtkMultiProcessController* c_ds_controller =
+    this->GetClientDataServerController();
+  assert(c_ds_controller == NULL || c_ds_controller != c_rs_controller);
+  if (!c_ds_controller)
     {
-    c_ds_controller = pm->GetActiveSocketController();
+    c_ds_controller = c_rs_controller;
     }
-  else if (this->Mode == RENDER_SERVER)
-    {
-    // FIXME: we need to ascertain that this a RENDER_SERVER processes and not
-    // a pvserver process. if it's a render-server processes, simply return.
-    }
-  else if (this->Mode == DATA_SERVER)
-    {
-    c_ds_controller = pm->GetActiveSocketController();
-    }
-  else if (this->Mode == BATCH &&
+
+  if (this->Mode == BATCH &&
     parallelController->GetNumberOfProcesses() <= 1)
     {
     return true;
@@ -1191,6 +1197,112 @@ bool vtkPVSynchronizedRenderWindows::BroadcastToDataServer(vtkSelection* selecti
   stream >> xml;
   vtkSelectionSerializer::Parse(xml.c_str(), selection);
   return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSynchronizedRenderWindows::TriggerRMI(
+  vtkMultiProcessStream& stream, int tag)
+{
+  if (this->Mode == BUILTIN)
+    {
+    return;
+    }
+
+  vtkMultiProcessController* parallelController =
+    this->GetParallelController();
+  vtkMultiProcessController* c_rs_controller =
+    this->GetClientServerController();
+  // c_ds_controller is non-null only in client-dataserver-renderserver
+  // configuratrions.
+  vtkMultiProcessController* c_ds_controller =
+    this->GetClientDataServerController();
+
+  assert(c_ds_controller == NULL || c_ds_controller != c_rs_controller);
+
+  vtkstd::vector<unsigned char> data;
+  stream.GetRawData(data);
+
+  if (this->Mode == CLIENT)
+    {
+    if (c_ds_controller)
+      {
+      c_ds_controller->TriggerRMIOnAllChildren(
+        &data[0], static_cast<int>(data.size()), tag);
+      }
+    if (c_rs_controller)
+      {
+      c_rs_controller->TriggerRMIOnAllChildren(
+        &data[0], static_cast<int>(data.size()), tag);
+      }
+    }
+
+  if (parallelController && parallelController->GetNumberOfProcesses() > 1)
+    {
+    parallelController->TriggerRMIOnAllChildren(
+      &data[0], static_cast<int>(data.size()), tag);
+    }
+}
+
+//----------------------------------------------------------------------------
+unsigned long vtkPVSynchronizedRenderWindows::AddRMICallback(
+  vtkRMIFunctionType callback, void* localArg, int tag)
+{
+  vtkMultiProcessController* parallelController =
+    this->GetParallelController();
+  vtkMultiProcessController* c_rs_controller =
+    this->GetClientServerController();
+  // c_ds_controller is non-null only in client-dataserver-renderserver
+  // configuratrions.
+  vtkMultiProcessController* c_ds_controller =
+    this->GetClientDataServerController();
+  assert(c_ds_controller == NULL || c_ds_controller != c_rs_controller);
+
+  vtkInternals::CallbackInfo info;
+  info.ParallelHandle = parallelController?
+    parallelController->AddRMICallback(callback, localArg, tag) : 0;
+  info.ClientServerHandle = c_rs_controller?
+    c_rs_controller->AddRMICallback(callback, localArg, tag) : 0;
+  info.ClientDataServerHandle = c_ds_controller?
+    c_ds_controller->AddRMICallback(callback, localArg, tag) : 0;
+
+  unsigned long handle = static_cast<unsigned long>(
+    this->Internals->RMICallbacks.size());
+  this->Internals->RMICallbacks.push_back(info);
+  return handle;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVSynchronizedRenderWindows::RemoveRMICallback(unsigned long id)
+{
+  vtkMultiProcessController* parallelController =
+    this->GetParallelController();
+  vtkMultiProcessController* c_rs_controller =
+    this->GetClientServerController();
+  // c_ds_controller is non-null only in client-dataserver-renderserver
+  // configuratrions.
+  vtkMultiProcessController* c_ds_controller =
+    this->GetClientDataServerController();
+  assert(c_ds_controller == NULL || c_ds_controller != c_rs_controller);
+
+  if (this->Internals->RMICallbacks.size() > id)
+    {
+    vtkInternals::CallbackInfo &info = this->Internals->RMICallbacks[id];
+    if (info.ParallelHandle && parallelController)
+      {
+      parallelController->RemoveRMICallback(info.ParallelHandle);
+      }
+    if (info.ClientServerHandle && c_rs_controller)
+      {
+      c_rs_controller->RemoveRMICallback(info.ClientServerHandle);
+      }
+    if (info.ClientDataServerHandle && c_ds_controller)
+      {
+      c_ds_controller->RemoveRMICallback(info.ClientDataServerHandle);
+      }
+    info = vtkInternals::CallbackInfo();
+    return true;
+    }
+  return false;
 }
 
 //----------------------------------------------------------------------------

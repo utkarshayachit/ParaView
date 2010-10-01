@@ -30,6 +30,7 @@
 #define __vtkPVSynchronizedRenderWindows_h
 
 #include "vtkObject.h"
+#include "vtkMultiProcessController.h" // for vtkRMIFunctionType
 
 class vtkRenderWindow;
 class vtkRenderer;
@@ -41,7 +42,7 @@ class VTK_EXPORT vtkPVSynchronizedRenderWindows : public vtkObject
 {
 public:
   static vtkPVSynchronizedRenderWindows* New();
-  vtkTypeRevisionMacro(vtkPVSynchronizedRenderWindows, vtkObject);
+  vtkTypeMacro(vtkPVSynchronizedRenderWindows, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -108,6 +109,12 @@ public:
   bool SynchronizeSize(unsigned long &size);
   bool BroadcastToDataServer(vtkSelection* selection);
 
+  // Description:
+  // Convenience method to trigger an RMI call from the client/root node.
+  void TriggerRMI(vtkMultiProcessStream& stream, int tag);
+  unsigned long AddRMICallback(vtkRMIFunctionType, void* localArg, int tag);
+  bool RemoveRMICallback(unsigned long id);
+
 //BTX
   enum
     {
@@ -120,6 +127,7 @@ public:
   // Description:
   vtkGetObjectMacro(ParallelController, vtkMultiProcessController);
   vtkGetObjectMacro(ClientServerController, vtkMultiProcessController);
+  vtkGetObjectMacro(ClientDataServerController, vtkMultiProcessController);
 
   // Description:
   // By default, this class uses the same render window for all views on the
@@ -142,6 +150,10 @@ protected:
   // Description:
   // Set/Get the controller used for client-server communication.
   void SetClientServerController(vtkMultiProcessController*);
+
+  // Description:
+  // Set/Get the controller used for client-data-server communication.
+  void SetClientDataServerController(vtkMultiProcessController*);
 
   // Description:
   // Saves the information about all the windows known to this class and how
@@ -188,6 +200,7 @@ protected:
   ModeEnum Mode;
   vtkMultiProcessController* ParallelController;
   vtkMultiProcessController* ClientServerController;
+  vtkMultiProcessController* ClientDataServerController;
   unsigned long ClientServerRMITag;
   unsigned long ParallelRMITag;
   bool Enabled;
