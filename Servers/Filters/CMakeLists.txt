@@ -79,6 +79,7 @@ SET(Filters_SRCS
   vtkIsoVolume.cxx
   vtkKdTreeGenerator.cxx
   vtkKdTreeManager.cxx
+  vtkMarkSelectedRows.cxx
   vtkMaterialInterfaceCommBuffer.cxx
   vtkMaterialInterfaceFilter.cxx
   vtkMaterialInterfaceIdList.cxx
@@ -192,7 +193,6 @@ SET(Filters_SRCS
   vtkSciVizStatistics.cxx
   vtkSelectionConverter.cxx
   vtkSelectionRepresentation.cxx
-  vtkSelectionStreamer.cxx
   vtkSequenceAnimationPlayer.cxx
   vtkSortedTableStreamer.cxx
   vtkSpreadSheetView.cxx

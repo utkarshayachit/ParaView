@@ -14,22 +14,23 @@
 =========================================================================*/
 #include "vtkSpreadSheetView.h"
 
+#include "vtkAlgorithmOutput.h"
+#include "vtkCharArray.h"
 #include "vtkClientServerMoveData.h"
+#include "vtkEventForwarderCommand.h"
+#include "vtkMarkSelectedRows.h"
+#include "vtkMemberFunctionCommand.h"
 #include "vtkMultiProcessController.h"
 #include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVMergeTables.h"
 #include "vtkPVSynchronizedRenderWindows.h"
 #include "vtkReductionFilter.h"
-#include "vtkSelectionStreamer.h"
 #include "vtkSmartPointer.h"
 #include "vtkSortedTableStreamer.h"
 #include "vtkSpreadSheetRepresentation.h"
 #include "vtkTable.h"
 #include "vtkVariant.h"
-#include "vtkEventForwarderCommand.h"
-#include "vtkMemberFunctionCommand.h"
-#include "vtkAlgorithmOutput.h"
 
 #include <vtkstd/map>
 
@@ -96,10 +97,11 @@ vtkSpreadSheetView::vtkSpreadSheetView()
 {
   this->ShowExtractedSelection = false;
   this->TableStreamer = vtkSortedTableStreamer::New();
-  this->SelectionStreamer = vtkSelectionStreamer::New();
+  this->TableSelectionMarker = vtkMarkSelectedRows::New();
 
   this->ReductionFilter = vtkReductionFilter::New();
-  this->ReductionFilter->SetController(vtkMultiProcessController::GetGlobalController());
+  this->ReductionFilter->SetController(
+    vtkMultiProcessController::GetGlobalController());
 
   vtkPVMergeTables* post_gather_algo = vtkPVMergeTables::New();
   this->ReductionFilter->SetPostGatherHelper(post_gather_algo);
@@ -108,8 +110,10 @@ vtkSpreadSheetView::vtkSpreadSheetView()
   this->DeliveryFilter = vtkClientServerMoveData::New();
   this->DeliveryFilter->SetOutputDataType(VTK_TABLE);
 
-  this->ReductionFilter->SetInputConnection(this->TableStreamer->GetOutputPort());
-  this->DeliveryFilter->SetInputConnection(this->ReductionFilter->GetOutputPort());
+  this->TableSelectionMarker->SetInputConnection(
+    this->TableStreamer->GetOutputPort());
+  this->ReductionFilter->SetInputConnection(
+    this->TableSelectionMarker->GetOutputPort());
 
   this->Internals = new vtkInternals();
   this->Internals->Forwarder = vtkEventForwarderCommand::New();
@@ -128,10 +132,9 @@ vtkSpreadSheetView::~vtkSpreadSheetView()
   this->Internals->Observer->Delete();
 
   this->TableStreamer->Delete();
+  this->TableSelectionMarker->Delete();
   this->ReductionFilter->Delete();
   this->DeliveryFilter->Delete();
-
-  this->SelectionStreamer->Delete();
 
   delete this->Internals;
   this->Internals = 0;
@@ -190,12 +193,32 @@ void vtkSpreadSheetView::Update()
     if (cur->GetDataProducer())
       {
       this->TableStreamer->SetInputConnection(cur->GetDataProducer());
+      this->DeliveryFilter->SetInputConnection(this->ReductionFilter->GetOutputPort());
       cur->GetDataProducer()->GetProducer()->Update();
       num_rows = vtkTable::SafeDownCast(
         cur->GetDataProducer()->GetProducer()->GetOutputDataObject(
           cur->GetDataProducer()->GetIndex()))->GetNumberOfRows();
       }
+    else
+      {
+      this->DeliveryFilter->RemoveAllInputs();
+      this->TableStreamer->RemoveAllInputs();
+      }
+    if (cur->GetSelectionProducer())
+      {
+      this->TableSelectionMarker->SetInputConnection(1,
+        cur->GetSelectionProducer());
+      }
+    else
+      {
+      this->TableSelectionMarker->SetInputConnection(1, NULL);
+      }
     this->SynchronizedWindows->SynchronizeSize(num_rows);
+    }
+  else
+    {
+    this->DeliveryFilter->RemoveAllInputs();
+    this->TableStreamer->RemoveAllInputs();
     }
 
   this->NumberOfRows = num_rows;
@@ -236,7 +259,10 @@ vtkTable* vtkSpreadSheetView::FetchBlock(vtkIdType blockindex)
 void vtkSpreadSheetView::FetchBlockCallback(vtkIdType blockindex)
 {
   this->TableStreamer->SetBlock(blockindex);
+
   this->TableStreamer->Modified();
+  this->TableSelectionMarker->SetFieldAssociation(
+    this->Internals->ActiveRepresentation->GetFieldAssociation());
   this->ReductionFilter->Modified();
   this->DeliveryFilter->Modified();
   this->DeliveryFilter->Update();
@@ -284,6 +310,22 @@ vtkVariant vtkSpreadSheetView::GetValue(vtkIdType row, vtkIdType col)
   vtkTable* block = this->FetchBlock(blockIndex);
   vtkIdType blockOffset = row - (blockIndex * blockSize);
   return block->GetValue(blockOffset, col);
+}
+
+//----------------------------------------------------------------------------
+bool vtkSpreadSheetView::IsRowSelected(vtkIdType row)
+{
+  vtkIdType blockSize = this->TableStreamer->GetBlockSize();
+  vtkIdType blockIndex = row / blockSize;
+  vtkTable* block = this->FetchBlock(blockIndex);
+  vtkIdType blockOffset = row - (blockIndex * blockSize);
+  vtkCharArray* __vtkIsSelected__ = vtkCharArray::SafeDownCast(
+    block->GetColumnByName("__vtkIsSelected__"));
+  if (__vtkIsSelected__)
+    {
+    return __vtkIsSelected__->GetValue(blockOffset) == 1;
+    }
+  return false;
 }
 
 //----------------------------------------------------------------------------

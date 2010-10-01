@@ -46,6 +46,12 @@ void vtkSpreadSheetRepresentation::SetFieldAssociation(int val)
 }
 
 //----------------------------------------------------------------------------
+int vtkSpreadSheetRepresentation::GetFieldAssociation()
+{
+  return this->DataConditioner->GetFieldAssociation();
+}
+
+//----------------------------------------------------------------------------
 void vtkSpreadSheetRepresentation::SetCompositeDataSetIndex(int val)
 {
   this->DataConditioner->SetCompositeDataSetIndex(val);
@@ -87,10 +93,15 @@ int vtkSpreadSheetRepresentation::RequestData(
     {
     this->DataConditioner->SetInputConnection(this->GetInternalOutputPort(0, 0));
     }
-  if (inputVector[1]->GetNumberOfInformationObjects() == 2)
+  if (inputVector[1]->GetNumberOfInformationObjects() == 1)
     {
     this->ExtractedDataConditioner->SetInputConnection(
       this->GetInternalOutputPort(1, 0));
+    }
+
+  if (this->GetNumberOfInputConnections(2) == 1)
+    {
+    this->GetInternalOutputPort(2, 0);
     }
 
   return this->Superclass::RequestData(request, inputVector, outputVector);
@@ -113,6 +124,10 @@ vtkAlgorithmOutput* vtkSpreadSheetRepresentation::GetExtractedDataProducer()
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput* vtkSpreadSheetRepresentation::GetSelectionProducer()
 {
+  if (this->GetNumberOfInputConnections(2) == 1)
+    {
+    return this->GetInternalOutputPort(2, 0);
+    }
   return NULL;
 }
 

@@ -175,7 +175,7 @@ SET(Kit_SRCS
   vtkSMSimpleStringInformationHelper.cxx
   vtkSMSinusoidKeyFrameProxy.cxx
   vtkSMSourceProxy.cxx
-#  vtkSMSpreadSheetRepresentationProxy.cxx
+  vtkSMSpreadSheetRepresentationProxy.cxx
   vtkSMStateLoader.cxx
   vtkSMStateVersionControllerBase.cxx
   vtkSMStateVersionController.cxx

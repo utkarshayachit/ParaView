@@ -46,6 +46,7 @@ public:
   //***************************************************************************
   // Forwarded to vtkBlockDeliveryPreprocessor.
   void SetFieldAssociation(int val);
+  int GetFieldAssociation();
   void SetCompositeDataSetIndex(int val);
 
 //BTX

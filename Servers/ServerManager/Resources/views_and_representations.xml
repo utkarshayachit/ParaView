@@ -2941,7 +2941,7 @@
     </ChartRepresentationProxy>
 
     <!-- =================================================================== -->
-    <RepresentationProxy name="SpreadSheetRepresentation"
+    <SpreadSheetRepresentationProxy name="SpreadSheetRepresentation"
       class="vtkSpreadSheetRepresentation"
       processes="client|dataserver" >
 
@@ -2997,7 +2997,7 @@
        </IntVectorProperty>
 
        <!-- end of SpreadSheetRepresentation -->
-    </RepresentationProxy>
+    </SpreadSheetRepresentationProxy>
 
   </ProxyGroup>
 

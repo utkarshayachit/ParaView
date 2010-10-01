@@ -26,10 +26,10 @@
 
 class vtkClientServerMoveData;
 class vtkReductionFilter;
-class vtkSelectionStreamer;
 class vtkSortedTableStreamer;
 class vtkTable;
 class vtkVariant;
+class vtkMarkSelectedRows;
 
 class VTK_EXPORT vtkSpreadSheetView : public vtkPVView
 {
@@ -83,6 +83,10 @@ public:
   vtkVariant GetValue(vtkIdType row, vtkIdType col);
 
   // Description:
+  // Returns true if the row is selected.
+  bool IsRowSelected(vtkIdType row);
+
+  // Description:
   // Returns true is the data for the particular row is locally available.
   bool IsAvailable(vtkIdType row);
 
@@ -125,10 +129,10 @@ protected:
 
   bool ShowExtractedSelection;
   vtkSortedTableStreamer* TableStreamer;
+  vtkMarkSelectedRows* TableSelectionMarker;
   vtkReductionFilter* ReductionFilter;
   vtkClientServerMoveData* DeliveryFilter;
 
-  vtkSelectionStreamer* SelectionStreamer;
   vtkIdType NumberOfRows;
 
 private:

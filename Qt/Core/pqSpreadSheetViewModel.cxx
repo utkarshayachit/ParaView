@@ -89,6 +89,7 @@ public:
 
   QItemSelectionModel SelectionModel;
   QTimer Timer;
+  QTimer SelectionTimer;
   int DecimalPrecision;
 
   int ActiveRegion[2];
@@ -119,6 +120,15 @@ pqSpreadSheetViewModel::pqSpreadSheetViewModel(vtkSMProxy* view,
   this->Internal->Timer.setInterval(500);//milliseconds.
   QObject::connect(&this->Internal->Timer, SIGNAL(timeout()),
     this, SLOT(delayedUpdate()));
+
+  this->Internal->SelectionTimer.setSingleShot(true);
+  this->Internal->SelectionTimer.setInterval(10);//milliseconds.
+  QObject::connect(&this->Internal->SelectionTimer, SIGNAL(timeout()),
+    this, SLOT(triggerSelectionChanged()));
+
+  QObject::connect(&this->Internal->SelectionModel,
+    SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
+    &this->Internal->SelectionTimer, SLOT(start()));
 }
 
 //-----------------------------------------------------------------------------
@@ -163,6 +173,9 @@ void pqSpreadSheetViewModel::forceUpdate()
   cout << "forceUpdate" << endl;
   this->Internal->ActiveRegion[0] = -1;
   this->Internal->ActiveRegion[1] = -1;
+  this->Internal->SelectionModel.clear();
+  this->Internal->Timer.stop();
+  this->Internal->SelectionTimer.stop();
   this->reset();
 
 #ifdef FIXME
@@ -207,6 +220,7 @@ void pqSpreadSheetViewModel::forceUpdate()
 }
 
 //-----------------------------------------------------------------------------
+#ifdef FIXME
 void pqSpreadSheetViewModel::updateSelectionForBlock(vtkIdType blockNumber)
 {
   if (this->getFieldType() == vtkDataObject::FIELD_ASSOCIATION_CELLS ||
@@ -222,7 +236,6 @@ void pqSpreadSheetViewModel::updateSelectionForBlock(vtkIdType blockNumber)
       }
     else
       {
-#ifdef FIXME
       vtkSelection* selection = repr->GetSelectionOutput(blockNumber);
       // This selection has information about ids that are currently selected.
       // We now need to create a Qt selection list of indices for the items in
@@ -231,11 +244,11 @@ void pqSpreadSheetViewModel::updateSelectionForBlock(vtkIdType blockNumber)
       this->Internal->SelectionModel.select(qtSelection,
         QItemSelectionModel::Select|QItemSelectionModel::Rows|
         QItemSelectionModel::Clear);
-#endif
       }
     emit this->selectionChanged(this->Internal->SelectionModel.selection());
     }
 }
+#endif
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::delayedUpdate()
@@ -247,22 +260,10 @@ void pqSpreadSheetViewModel::delayedUpdate()
 }
 
 //-----------------------------------------------------------------------------
-#ifdef FIXME
-void pqSpreadSheetViewModel::delayedSelectionUpdate()
+void pqSpreadSheetViewModel::triggerSelectionChanged()
 {
-  vtkSMSpreadSheetRepresentationProxy* repr = 
-    this->Internal->Representation;
-  if (repr)
-    {
-    foreach (vtkIdType blockNumber, this->Internal->PendingSelectionBlocks)
-      {
-      // we grow the current selection.
-      this->Internal->ActiveBlockNumber = blockNumber;
-      this->updateSelectionForBlock(blockNumber);
-      }
-    }
+  emit this->selectionChanged(this->Internal->SelectionModel.selection());
 }
-#endif
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::setActiveRegion(int row_top, int row_bottom)
@@ -337,6 +338,13 @@ QVariant pqSpreadSheetViewModel::data(
 #endif
 
   vtkVariant value = view->GetValue(row, column);
+  bool is_selected = view->IsRowSelected(row);
+  if (is_selected)
+    {
+    this->Internal->SelectionModel.select(this->index(row, 0),
+      QItemSelectionModel::Select|QItemSelectionModel::Rows);
+    }
+
   QString str = value.ToString().c_str();
   if (value.IsChar() || value.IsUnsignedChar() || value.IsSignedChar())
     {
@@ -518,178 +526,6 @@ QVariant pqSpreadSheetViewModel::headerData (
     }
 
   return this->Superclass::headerData(section, orientation, role);
-}
-
-//-----------------------------------------------------------------------------
-QModelIndex pqSpreadSheetViewModel::indexFor(vtkSelectionNode* node, vtkIdType vtkindex)
-{
-#ifdef FIXME
-  vtkSMSpreadSheetRepresentationProxy* repr = 
-    this->Internal->Representation;
-
-  // Find the qt index for a row with given process id and original id. 
-  vtkTable* activeBlock = vtkTable::SafeDownCast(
-    this->Internal->Representation->GetOutput(this->Internal->ActiveBlockNumber));
-
-  const char* column_name = "vtkOriginalIndices";
-  if (repr->GetSelectionOnly())
-    {
-    column_name = (this->Internal->getFieldType() == vtkDataObject::FIELD_ASSOCIATION_POINTS)?
-      "vtkOriginalPointIds" : "vtkOriginalCellIds";
-    }
-  vtkIdTypeArray* indexcolumn = vtkIdTypeArray::SafeDownCast(
-    activeBlock->GetColumnByName(column_name));
-  if (!indexcolumn)
-    {
-    qDebug() << "indexcolumn missing" ;
-    return QModelIndex();
-    }
-
-  vtkIdTypeArray* pidcolumn = vtkIdTypeArray::SafeDownCast(
-    activeBlock->GetColumnByName("vtkOriginalProcessIds"));
-
-  vtkUnsignedIntArray* compositeIndexColumn = vtkUnsignedIntArray::SafeDownCast(
-    activeBlock->GetColumnByName("vtkCompositeIndexArray"));
-
-  // Get the list of vtkOriginalIndices that match the given vtkindex.
-  vtkIdList* ids = vtkIdList::New();
-  indexcolumn->LookupValue(vtkindex, ids);
- 
-  if (node->GetProperties()->Has(vtkSelectionNode::PROCESS_ID()) && pidcolumn)
-    {
-    int pid = node->GetProperties()->Get(vtkSelectionNode::PROCESS_ID());
-    if (pid != -1)
-      {
-      // remove those ids from the "ids" list that don't have the same process ID
-      // as the selection.
-      for (vtkIdType cc=0; cc < ids->GetNumberOfIds();)
-        {
-        vtkIdType id = ids->GetId(static_cast<int>(cc));
-        if (pidcolumn->GetValue(id) != pid)
-          {
-          ids->DeleteId(id);
-          }
-        else
-          {
-          cc++;
-          }
-        }
-      }
-    }
-
-  if (node->GetProperties()->Has(vtkSelectionNode::HIERARCHICAL_LEVEL()) &&
-      node->GetProperties()->Has(vtkSelectionNode::HIERARCHICAL_INDEX()) &&
-      compositeIndexColumn && compositeIndexColumn->GetNumberOfComponents() == 2)
-    {
-    unsigned int hid = static_cast<unsigned int>(
-      node->GetProperties()->Get(vtkSelectionNode::HIERARCHICAL_INDEX()));
-    unsigned int hlevel = static_cast<unsigned int>(
-      node->GetProperties()->Get(vtkSelectionNode::HIERARCHICAL_LEVEL()));
-    // remove those ids from the "ids" list that don't have the same process ID
-    // as the selection.
-    for (vtkIdType cc=0; cc < ids->GetNumberOfIds();)
-      {
-      vtkIdType id = ids->GetId(static_cast<int>(cc));
-      unsigned int val[2];
-      compositeIndexColumn->GetTupleValue(id, val);
-      if (val[0] != hlevel || val[1] != hid)
-        {
-        ids->DeleteId(id);
-        }
-      else
-        {
-        cc++;
-        }
-      }
-    }
-  else if (node->GetProperties()->Has(vtkSelectionNode::COMPOSITE_INDEX()) && 
-    compositeIndexColumn)
-    {
-    unsigned int cid = static_cast<unsigned int>(
-      node->GetProperties()->Get(vtkSelectionNode::COMPOSITE_INDEX()));
-    // remove those ids from the "ids" list that don't have the same process ID
-    // as the selection.
-    for (vtkIdType cc=0; cc < ids->GetNumberOfIds();)
-      {
-      vtkIdType id = ids->GetId(static_cast<int>(cc));
-      if (compositeIndexColumn->GetValue(id) != cid)
-        {
-        ids->DeleteId(id);
-        }
-      else
-        {
-        cc++;
-        }
-      }
-    }
-
-  QModelIndex idx;
-  if (ids->GetNumberOfIds() > 0)
-    {
-    if (ids->GetNumberOfIds() > 1)
-      {
-      qCritical() << "Multiple ids match the same selection index. Probably a BUG.";
-      }
-    idx = this->createIndex(this->Internal->computeRowIndex(ids->GetId(0)), 0);
-    }
-
-  ids->Delete();
-
-  return idx;
-#endif
-}
-
-//-----------------------------------------------------------------------------
-QItemSelection pqSpreadSheetViewModel::convertToQtSelection(vtkSelection* vtkselection)
-{
-#ifdef FIXME
-  if (!vtkselection)
-    {
-    return QItemSelection();
-    }
-
-  QItemSelection qSel;
-  for (unsigned int cc=0; cc < vtkselection->GetNumberOfNodes(); cc++)
-    {
-    vtkSelectionNode* node = vtkselection->GetNode(cc);
-    QItemSelection qSelCur;
-    if (node->GetContentType() == vtkSelectionNode::INDICES)
-      {
-      // Iterate over all indices in the vtk selection, 
-      // Determine the qt model index for each and then add that to the
-      // qt selection.
-      vtkIdTypeArray *indices = vtkIdTypeArray::SafeDownCast(
-        node->GetSelectionList());
-      for (vtkIdType i=0; indices && i < indices->GetNumberOfTuples(); i++)
-        {
-        vtkIdType idx = indices->GetValue(i);
-        QModelIndex qtIndex = this->indexFor(node, idx);
-        if (qtIndex.isValid())
-          {
-          // cout << "Selecting: " << qtIndex.row() << endl;
-          qSelCur.select(qtIndex, qtIndex);
-          }
-        }
-      }
-    else if (node->GetContentType() == vtkSelectionNode::BLOCKS)
-      {
-      vtkUnsignedIntArray* blocks = vtkUnsignedIntArray::SafeDownCast(
-        node->GetSelectionList());
-      if (blocks && blocks->GetNumberOfTuples() > 0)
-        {
-        qSelCur.select(this->createIndex(0, 0),
-          this->createIndex(this->rowCount()-1, 0));
-        }
-      }
-    else
-      {
-      qCritical() << "Unknown selection object.";
-      }
-
-    qSel.merge(qSelCur, QItemSelectionModel::Select);
-    }
-  return qSel;
-#endif
 }
 
 //-----------------------------------------------------------------------------

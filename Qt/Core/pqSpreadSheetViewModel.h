@@ -138,20 +138,13 @@ private slots:
   /// called to fetch data for all pending blocks.
   void delayedUpdate();
 
+  void triggerSelectionChanged();
+
   /// Caleld when the vtkSpreadSheetView fetches a new block, we fire
   /// dataChanged signal.
   void onDataFetched(vtkObject*, unsigned long, void*, void* call_data);
 
 protected:
-  /// Converts a vtkSelection to a QItemSelection.
-  QItemSelection convertToQtSelection(vtkSelection*);
-
-  /// Updates the selectionModel with the vtk selection provided by the
-  /// representation for the current block. This simply adds to the current Qt
-  /// selection, since representation can never give us the complete state of
-  /// selection.
-  void updateSelectionForBlock(vtkIdType blocknumber);
-
   /// Given an index into the model, check to see that its row number is
   /// less than the length of the data array associated with its column
   bool isDataValid(const QModelIndex &idx) const;
@@ -160,8 +153,6 @@ protected:
 private:
   pqSpreadSheetViewModel(const pqSpreadSheetViewModel&); // Not implemented.
   void operator=(const pqSpreadSheetViewModel&); // Not implemented.
-
-  QModelIndex indexFor(vtkSelectionNode* node, vtkIdType index);
 
   class pqInternal;
   pqInternal* Internal;
