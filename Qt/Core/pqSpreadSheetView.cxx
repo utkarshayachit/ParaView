@@ -32,7 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSpreadSheetView.h"
 
 // Server Manager Includes.
+#include "vtkEventQtSlotConnect.h"
 #include "vtkSMProperty.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMViewProxy.h"
 
@@ -106,8 +108,11 @@ pqSpreadSheetView::pqSpreadSheetView(
     &this->Internal->SelectionModel, SIGNAL(selection(vtkSMSourceProxy*)),
     this, SLOT(onCreateSelection(vtkSMSourceProxy*)));
 
-  QObject::connect(this->Internal->Model, SIGNAL( selectionOnly(int) ),
-    this, SLOT( onSelectionOnly(int) ) );
+  this->getConnector()->Connect(
+    viewModule->GetProperty("SelectionOnly"),
+    vtkCommand::ModifiedEvent,
+    this, SLOT(onSelectionOnly()));
+  this->onSelectionOnly();
 
   foreach(pqRepresentation* rep, this->getRepresentations())
     {
@@ -120,6 +125,7 @@ pqSpreadSheetView::pqSpreadSheetView(
   layout->setSpacing(2);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(this->Internal->Table);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -144,11 +150,16 @@ void pqSpreadSheetView::onAddRepresentation(pqRepresentation* repr)
 void pqSpreadSheetView::updateRepresentationVisibility(
   pqRepresentation* repr, bool visible)
 {
-#ifdef FIXME
-  if (!visible && repr &&
-    this->Internal->Model.getRepresentationProxy() == repr->getProxy())
+  static bool __updating_visibility__ = false;
+  if (__updating_visibility__)
     {
-    this->Internal->Model.setRepresentation(0);
+    return;
+    }
+
+  if (!visible && repr &&
+    this->Internal->Model->activeRepresentation() == repr)
+    {
+    this->Internal->Model->setActiveRepresentation(NULL);
     emit this->showing(0);
     }
 
@@ -156,6 +167,8 @@ void pqSpreadSheetView::updateRepresentationVisibility(
     {
     return;
     }
+
+  __updating_visibility__ = true;
 
   // If visible, turn-off visibility of all other representations.
   QList<pqRepresentation*> reprs = this->getRepresentations();
@@ -166,36 +179,22 @@ void pqSpreadSheetView::updateRepresentationVisibility(
       cur_repr->setVisible(false);
       }
     }
+  __updating_visibility__ = false;
 
   pqDataRepresentation* dataRepr = qobject_cast<pqDataRepresentation*>(repr);
-  this->Internal->Model.setRepresentation(dataRepr);
+  this->Internal->Model->setActiveRepresentation(dataRepr);
   emit this->showing(dataRepr);
-#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetView::onBeginRender()
 {
-#ifdef FIXME
   // If in "selection-only" mode, and showing composite dataset, we want to make
   // sure that we are shown a block with non-empty cells/points (if possible).
-  vtkSMProxy* repr = this->Internal->Model.getRepresentationProxy();
-  if (repr)
+  if (vtkSMPropertyHelper(this->getProxy(),"SelectionOnly").GetAsInt() != 0)
     {
-    if (pqSMAdaptor::getElementProperty(repr->GetProperty("SelectionOnly")).toBool())
-      {
-      this->Internal->Model.resetCompositeDataSetIndex();
-      /*
-      unsigned int current_index = pqSMAdaptor::getElementProperty(
-        repr->GetProperty("CompositeDataSetIndex")).toUInt();
-
-      pqOutputPort* inputPort = repr->
-      vtkPVDataInformation* info =
-      repr->GetProperty("CompositeDataSetIndex")->ResetToDefault();
-      */
-      }
+    this->Internal->Model->resetCompositeDataSetIndex();
     }
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -243,9 +242,9 @@ void pqSpreadSheetView::onCreateSelection(vtkSMSourceProxy* selSource)
 }
 
 //-----------------------------------------------------------------------------
-void pqSpreadSheetView::onSelectionOnly(int selOnly)
+void pqSpreadSheetView::onSelectionOnly()
 {
-  if (selOnly)
+  if (vtkSMPropertyHelper(this->getProxy(), "SelectionOnly").GetAsInt() != 0)
     {
     // The user is disallowed to make further (embedded / recursive) selection
     // once checkbox "Show Only Selected Elements" is checked.

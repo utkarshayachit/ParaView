@@ -94,6 +94,7 @@ public:
 
   int ActiveRegion[2];
   vtkSmartPointer<vtkEventQtSlotConnect> VTKConnect;
+  QPointer<pqDataRepresentation> ActiveRepresentation;
   vtkSpreadSheetView *VTKView;
   bool Dirty;
 };
@@ -138,6 +139,17 @@ pqSpreadSheetViewModel::~pqSpreadSheetViewModel()
 }
 
 //-----------------------------------------------------------------------------
+pqDataRepresentation* pqSpreadSheetViewModel::activeRepresentation() const
+{
+  return this->Internal->ActiveRepresentation;
+}
+//-----------------------------------------------------------------------------
+void pqSpreadSheetViewModel::setActiveRepresentation(pqDataRepresentation* repr)
+{
+  this->Internal->ActiveRepresentation = repr;
+}
+
+//-----------------------------------------------------------------------------
 vtkSpreadSheetView* pqSpreadSheetViewModel::GetView() const
 {
   return this->Internal->VTKView;
@@ -158,12 +170,11 @@ int pqSpreadSheetViewModel::columnCount(const QModelIndex&) const
 //-----------------------------------------------------------------------------
 int pqSpreadSheetViewModel::getFieldType() const
 {
-#ifdef FIXME
-  if (this->Internal->Representation)
+  if (this->activeRepresentation())
     {
-    return this->Internal->getFieldType();
+    return vtkSMPropertyHelper(
+      this->activeRepresentation()->getProxy(), "FieldAssociation").GetAsInt();
     }
-#endif
   return -1;
 }
 
@@ -218,37 +229,6 @@ void pqSpreadSheetViewModel::forceUpdate()
   // show the data on the GUI.
 #endif
 }
-
-//-----------------------------------------------------------------------------
-#ifdef FIXME
-void pqSpreadSheetViewModel::updateSelectionForBlock(vtkIdType blockNumber)
-{
-  if (this->getFieldType() == vtkDataObject::FIELD_ASSOCIATION_CELLS ||
-    this->getFieldType() == vtkDataObject::FIELD_ASSOCIATION_POINTS ||
-    this->getFieldType() == vtkDataObject::FIELD_ASSOCIATION_ROWS)
-    {
-    // If we are showing only the selected items, then there's not point in
-    // highlighting the selected items, since all items are selected. So we
-    // don't do any selection highlighting if SelectionOnly is true.
-    if (this->GetView()->GetShowExtractedSelection())
-      {
-      this->Internal->SelectionModel.clear();
-      }
-    else
-      {
-      vtkSelection* selection = repr->GetSelectionOutput(blockNumber);
-      // This selection has information about ids that are currently selected.
-      // We now need to create a Qt selection list of indices for the items in
-      // the vtk selection.
-      QItemSelection qtSelection = this->convertToQtSelection(selection);
-      this->Internal->SelectionModel.select(qtSelection,
-        QItemSelectionModel::Select|QItemSelectionModel::Rows|
-        QItemSelectionModel::Clear);
-      }
-    emit this->selectionChanged(this->Internal->SelectionModel.selection());
-    }
-}
-#endif
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::delayedUpdate()
@@ -320,22 +300,12 @@ QVariant pqSpreadSheetViewModel::data(
     return QVariant("...");
     }
 
-#ifdef FIXME
-  // If displaying field data, check to make sure that the data is valid
-  // since its arrays can be of different lengths
-  if(this->Internal->getFieldType() == vtkDataObject::FIELD_ASSOCIATION_NONE)
+  if (!this->isDataValid(idx))
     {
-    if(!this->isDataValid(idx))
-      {
-      return QVariant("");
-      }
+    // If displaying field data, check to make sure that the data is valid
+    // since its arrays can be of different lengths
+    return QVariant("");
     }
-
-  if (!repr->IsSelectionAvailable(blockNumber))
-    {
-    this->Internal->SelectionTimer.start();
-    }
-#endif
 
   vtkVariant value = view->GetValue(row, column);
   bool is_selected = view->IsRowSelected(row);
@@ -474,8 +444,7 @@ QVariant pqSpreadSheetViewModel::headerData (
         }
       else if (title == "vtkOriginalIndices")
         {
-#ifdef FIXME
-        switch (this->Internal->getFieldType())
+        switch (this->getFieldType())
           {
         case vtkDataObject::FIELD_ASSOCIATION_POINTS:
           title  = "Point ID";
@@ -497,7 +466,6 @@ QVariant pqSpreadSheetViewModel::headerData (
           title = "Row ID";
           break;
           }
-#endif
         }
       else if (title == "vtkOriginalCellIds" &&
         view->GetShowExtractedSelection())
@@ -605,68 +573,56 @@ QSet<pqSpreadSheetViewModel::vtkIndex> pqSpreadSheetViewModel::getVTKIndices(
 //-----------------------------------------------------------------------------
 bool pqSpreadSheetViewModel::isDataValid( const QModelIndex &idx) const
 {
-#ifdef FIXME
+  if (this->getFieldType() != vtkDataObject::FIELD_ASSOCIATION_NONE)
+    {
+    return true;
+    }
+
   // First make sure the index itself is valid
-  if(!idx.isValid())
+  pqDataRepresentation* repr = this->activeRepresentation();
+  if (!idx.isValid() || repr == NULL)
     {
     return false;
     }
 
-  vtkSMSpreadSheetRepresentationProxy* repr = this->Internal->Representation;
-  if (repr)
+
+  vtkPVDataInformation* info = repr->getInputDataInformation();
+  int field_type = this->getFieldType();
+
+  // Get the appropriate attribute information object
+  vtkPVDataSetAttributesInformation *attrInfo = info?
+    info->GetAttributeInformation(field_type) : 0;
+
+  if (attrInfo)
     {
-    vtkTable* table = vtkTable::SafeDownCast(
-      repr->GetOutput(this->Internal->ActiveBlockNumber));
-
-    vtkSMInputProperty* ip = vtkSMInputProperty::SafeDownCast(
-      repr->GetProperty("Input"));
-    vtkSMSourceProxy* inputProxy = vtkSMSourceProxy::SafeDownCast(
-      ip->GetProxy(0));
-    int port = ip->GetOutputPortForConnection(0);
-
-    int field_type = this->Internal->getFieldType(); 
-
-    vtkPVDataInformation* info = inputProxy?
-      inputProxy->GetDataInformation(port) : 0;
-
-    // Get the appropriate attribute information object
-    vtkPVDataSetAttributesInformation *attrInfo = info?
-      info->GetAttributeInformation(field_type) : 0;
- 
-    if(attrInfo)
+    // Ensure that the row of this index is less than the length of the
+    // data array associated with its column
+    vtkPVArrayInformation *arrayInfo = attrInfo->GetArrayInformation(
+      this->GetView()->GetColumnName(idx.column()));
+    if (arrayInfo && idx.row() < arrayInfo->GetNumberOfTuples())
       {
-      // Ensure that the row of this index is less than the length of the 
-      // data array associated with its column
-      vtkPVArrayInformation *arrayInfo = attrInfo->GetArrayInformation(
-        table->GetColumnName(idx.column()));
-      if(arrayInfo && idx.row() < arrayInfo->GetNumberOfTuples())
-        {
-        return true;
-        }
+      return true;
       }
     }
 
   return false;
-#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::resetCompositeDataSetIndex()
 {
-#ifdef FIXME
-  if (!this->getRepresentation())
+  if (!this->activeRepresentation())
     {
     return;
     }
 
-  vtkSMProxy* reprProxy = this->getRepresentationProxy();
-  int cur_index = pqSMAdaptor::getElementProperty(
-    reprProxy->GetProperty("CompositeDataSetIndex")).toInt();
+  vtkSMProxy* reprProxy = this->activeRepresentation()->getProxy();
+  int cur_index = vtkSMPropertyHelper(reprProxy,
+    "CompositeDataSetIndex").GetAsInt();
 
-  pqOutputPort* input_port = this->getRepresentation()->getOutputPortFromInput();
+  pqOutputPort* input_port = this->activeRepresentation()->getOutputPortFromInput();
   vtkSMSourceProxy* inputProxy = vtkSMSourceProxy::SafeDownCast(
     input_port->getSource()->getProxy());
-
   vtkSMSourceProxy* extractSelection = inputProxy->GetSelectionOutput(
     input_port->getPortNumber());
   if (!extractSelection)
@@ -686,7 +642,6 @@ void pqSpreadSheetViewModel::resetCompositeDataSetIndex()
     return;
     }
 
-
   // find first index with non-empty points.
   vtkPVCompositeDataInformationIterator* iter = vtkPVCompositeDataInformationIterator::New();
   iter->SetDataInformation(mbInfo);
@@ -705,12 +660,10 @@ void pqSpreadSheetViewModel::resetCompositeDataSetIndex()
     }
   iter->Delete();
 
-  pqSMAdaptor::setElementProperty(
-    reprProxy->GetProperty("CompositeDataSetIndex"), cur_index);
+  vtkSMPropertyHelper(reprProxy, "CompositeDataSetIndex").Set(cur_index);
   reprProxy->UpdateVTKObjects();
-#endif
 }
-   
+
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::setDecimalPrecision(int dPrecision)
 {

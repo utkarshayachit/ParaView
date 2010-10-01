@@ -101,7 +101,7 @@ protected slots:
   void onCreateSelection(vtkSMSourceProxy* selSource);
 
   /// Called when checkbox "Show Only Selected Elements" is updated
-  void onSelectionOnly(int selOnly);
+  void onSelectionOnly();
   
 private:
   pqSpreadSheetView(const pqSpreadSheetView&); // Not implemented.

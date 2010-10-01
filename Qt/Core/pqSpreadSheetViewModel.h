@@ -126,9 +126,17 @@ public:
   /// QAbstractTableModel::data(..) callback).
   void setActiveRegion(int row_top, int row_bottom);
 
+  /// Returns the active representation. Active representation is the
+  /// representation being shown by the view.
+  pqDataRepresentation* activeRepresentation() const;
+
 public slots:
   /// resets the model.
   void forceUpdate();
+
+  /// Sets the active representation. Active representation is the
+  /// representation being shown by the view.
+  void setActiveRepresentation(pqDataRepresentation*);
 
 signals:
   /// Fired whenever the server side selection changes.

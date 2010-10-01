@@ -35,15 +35,15 @@ void vtkSMSpreadSheetRepresentationProxy::AddInput(unsigned int inputPort,
   this->Superclass::AddInput(inputPort, input, outputPort, method);
   input->CreateSelectionProxies();
 
-  vtkSMSourceProxy* esProxy = input->GetSelectionOutput(outputPort);
-  if (!esProxy)
-    {
-    vtkErrorMacro("Input proxy does not support selection extraction.");
-    return;
-    }
-
   if (inputPort == 0)
     {
+    vtkSMSourceProxy* esProxy = input->GetSelectionOutput(outputPort);
+    if (!esProxy)
+      {
+      vtkErrorMacro("Input proxy does not support selection extraction.");
+      return;
+      }
+
     // We use these internal properties since we need to add consumer dependecy
     // on this proxy so that MarkModified() is called correctly.
     vtkSMPropertyHelper(this, "InternalInput1").Set(esProxy, 0);

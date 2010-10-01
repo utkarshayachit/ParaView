@@ -43,6 +43,7 @@ void vtkSpreadSheetRepresentation::SetFieldAssociation(int val)
 {
   this->DataConditioner->SetFieldAssociation(val);
   this->ExtractedDataConditioner->SetFieldAssociation(val);
+  this->MarkModified();
 }
 
 //----------------------------------------------------------------------------
@@ -56,6 +57,7 @@ void vtkSpreadSheetRepresentation::SetCompositeDataSetIndex(int val)
 {
   this->DataConditioner->SetCompositeDataSetIndex(val);
   this->ExtractedDataConditioner->SetCompositeDataSetIndex(val);
+  this->MarkModified();
 }
 
 //----------------------------------------------------------------------------
