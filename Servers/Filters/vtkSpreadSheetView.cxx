@@ -19,7 +19,6 @@
 #include "vtkClientServerMoveData.h"
 #include "vtkCompositeDataIterator.h"
 #include "vtkCompositeDataSet.h"
-#include "vtkEventForwarderCommand.h"
 #include "vtkMarkSelectedRows.h"
 #include "vtkMemberFunctionCommand.h"
 #include "vtkMultiProcessController.h"
@@ -55,8 +54,13 @@ public:
   vtkTable* GetDataObject(vtkIdType blockId)
     {
     CacheType::iterator iter = this->CachedBlocks.find(blockId);
-    return (iter != this->CachedBlocks.end()?
-      iter->second.Dataobject.GetPointer() : NULL);
+    if (iter != this->CachedBlocks.end())
+      {
+      iter->second.RecentUseTime.Modified();
+      this->MostRecentlyAccessedBlock = blockId;
+      return iter->second.Dataobject.GetPointer();
+      }
+    return  NULL;
     }
 
   void AddToCache(vtkIdType blockId, vtkTable* data, vtkIdType max)
@@ -89,10 +93,24 @@ public:
     clone->FastDelete();
     info.RecentUseTime.Modified();
     this->CachedBlocks[blockId] = info;
+    this->MostRecentlyAccessedBlock = blockId;
     }
 
+  vtkIdType GetMostRecentlyAccessedBlock(vtkSpreadSheetView* self)
+    {
+    vtkIdType maxBlockId = self->GetNumberOfRows() /
+      self->TableStreamer->GetBlockSize();
+    if (this->MostRecentlyAccessedBlock >= 0 &&
+      this->MostRecentlyAccessedBlock <= maxBlockId)
+      {
+      return this->MostRecentlyAccessedBlock;
+      }
+    this->MostRecentlyAccessedBlock = 0;
+    return 0;
+    }
+
+  vtkIdType MostRecentlyAccessedBlock;
   vtkWeakPointer<vtkSpreadSheetRepresentation> ActiveRepresentation;
-  vtkEventForwarderCommand* Forwarder;
   vtkCommand* Observer;
 };
 
@@ -197,8 +215,7 @@ vtkSpreadSheetView::vtkSpreadSheetView()
     this->TableSelectionMarker->GetOutputPort());
 
   this->Internals = new vtkInternals();
-  this->Internals->Forwarder = vtkEventForwarderCommand::New();
-  this->Internals->Forwarder->SetTarget(this);
+  this->Internals->MostRecentlyAccessedBlock = -1;
 
   this->Internals->Observer = vtkMakeMemberFunctionCommand(*this,
     &vtkSpreadSheetView::OnRepresentationUpdated);
@@ -218,15 +235,12 @@ vtkSpreadSheetView::~vtkSpreadSheetView()
   this->SynchronizedWindows->RemoveRMICallback(this->RMICallbackTag);
   this->RMICallbackTag = 0;
 
-  this->Internals->Forwarder->SetTarget(NULL);
-  this->Internals->Forwarder->Delete();
-  this->Internals->Observer->Delete();
-
   this->TableStreamer->Delete();
   this->TableSelectionMarker->Delete();
   this->ReductionFilter->Delete();
   this->DeliveryFilter->Delete();
 
+  this->Internals->Observer->Delete();
   delete this->Internals;
   this->Internals = 0;
 }
@@ -313,7 +327,7 @@ void vtkSpreadSheetView::Update()
     this->SynchronizedWindows->SynchronizeSize(num_rows);
     }
 
-  if (this->NumberOfRows != num_rows)
+  if (this->NumberOfRows != static_cast<vtkIdType>(num_rows))
     {
     this->SomethingUpdated = true;
     }
@@ -368,7 +382,8 @@ vtkIdType vtkSpreadSheetView::GetNumberOfColumns()
 {
   if (this->Internals->ActiveRepresentation)
     {
-    vtkTable* block0 = this->FetchBlock(0);
+    vtkTable* block0 = this->FetchBlock(
+      this->Internals->GetMostRecentlyAccessedBlock(this));
     if (block0)
       {
       return block0->GetNumberOfColumns();
@@ -388,7 +403,8 @@ const char* vtkSpreadSheetView::GetColumnName(vtkIdType index)
 {
   if (this->Internals->ActiveRepresentation)
     {
-    vtkTable* block0 = this->FetchBlock(0);
+    vtkTable* block0 = this->FetchBlock(
+      this->Internals->GetMostRecentlyAccessedBlock(this));
     if (block0)
       {
       return block0->GetColumnName(index);
@@ -405,6 +421,17 @@ vtkVariant vtkSpreadSheetView::GetValue(vtkIdType row, vtkIdType col)
   vtkTable* block = this->FetchBlock(blockIndex);
   vtkIdType blockOffset = row - (blockIndex * blockSize);
   return block->GetValue(blockOffset, col);
+}
+
+//----------------------------------------------------------------------------
+vtkVariant vtkSpreadSheetView::GetValueByName(
+  vtkIdType row, const char* columnName)
+{
+  vtkIdType blockSize = this->TableStreamer->GetBlockSize();
+  vtkIdType blockIndex = row / blockSize;
+  vtkTable* block = this->FetchBlock(blockIndex);
+  vtkIdType blockOffset = row - (blockIndex * blockSize);
+  return block->GetValueByName(blockOffset, columnName);
 }
 
 //----------------------------------------------------------------------------

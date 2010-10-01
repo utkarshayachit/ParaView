@@ -216,11 +216,10 @@ bool pqSpreadSheetView::canDisplay(pqOutputPort* opPort) const
 //-----------------------------------------------------------------------------
 void pqSpreadSheetView::onCreateSelection(vtkSMSourceProxy* selSource)
 {
-#ifdef FIXME
   if(this->Internal->Table->selectionMode() == QAbstractItemView::NoSelection)
     return;
 
-  pqDataRepresentation* repr = this->Internal->Model.getRepresentation();
+  pqDataRepresentation* repr = this->Internal->Model->activeRepresentation();
   if (repr)
     {
     pqOutputPort* opport = repr->getOutputPortFromInput();
@@ -238,7 +237,6 @@ void pqSpreadSheetView::onCreateSelection(vtkSMSourceProxy* selSource)
     {
     emit this->selected(0);
     }
-#endif
 }
 
 //-----------------------------------------------------------------------------

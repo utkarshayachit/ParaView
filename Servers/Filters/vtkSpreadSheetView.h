@@ -82,6 +82,7 @@ public:
   // on the CLIENT process for now.
   // @CallOnClient
   vtkVariant GetValue(vtkIdType row, vtkIdType col);
+  vtkVariant GetValueByName(vtkIdType row, const char* columnName);
 
   // Description:
   // Returns true if the row is selected.
@@ -145,6 +146,7 @@ private:
   void operator=(const vtkSpreadSheetView&); // Not implemented
 
   class vtkInternals;
+  friend class vtkInternals;
   vtkInternals* Internals;
 
   bool SomethingUpdated;

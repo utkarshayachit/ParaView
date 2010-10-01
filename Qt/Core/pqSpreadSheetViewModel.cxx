@@ -85,12 +85,17 @@ public:
   this->DecimalPrecision = 6;
   this->ActiveRegion[0] = this->ActiveRegion[1] = -1;
   this->VTKView = NULL;
+
+  this->LastColumnCount = 0;
+  this->LastRowCount = 0;
   }
 
   QItemSelectionModel SelectionModel;
   QTimer Timer;
   QTimer SelectionTimer;
   int DecimalPrecision;
+  vtkIdType LastRowCount;
+  vtkIdType LastColumnCount;
 
   int ActiveRegion[2];
   vtkSmartPointer<vtkEventQtSlotConnect> VTKConnect;
@@ -187,7 +192,25 @@ void pqSpreadSheetViewModel::forceUpdate()
   this->Internal->SelectionModel.clear();
   this->Internal->Timer.stop();
   this->Internal->SelectionTimer.stop();
-  this->reset();
+
+  vtkIdType rows = this->Internal->LastRowCount;
+  vtkIdType columns = this->Internal->LastColumnCount;
+
+  if (this->rowCount() != rows || this->columnCount() != columns)
+    {
+    rows = this->rowCount();
+    columns = this->columnCount();
+    this->reset();
+    }
+  else
+    {
+    if (rows && columns)
+      {
+      // we always invalidate header data, just to be on a safe side.
+      emit this->headerDataChanged(Qt::Horizontal, 0, columns-1);
+      emit this->dataChanged(this->index(0, 0), this->index(rows-1, columns-1));
+      }
+    }
 
 #ifdef FIXME
   this->Internal->Dirty = false;
@@ -500,73 +523,54 @@ QVariant pqSpreadSheetViewModel::headerData (
 QSet<pqSpreadSheetViewModel::vtkIndex> pqSpreadSheetViewModel::getVTKIndices(
   const QModelIndexList& indexes)
 {
-#ifdef FIXME
   // each variant in the vtkindices is 3 tuple
   // - (-1, pid, id) or
   // - (cid, pid, id) or
   // - (hlevel, hindex, id)
   QSet<vtkIndex> vtkindices;
 
-  vtkSMSpreadSheetRepresentationProxy* repr =
-    this->getRepresentationProxy();
-  if (!repr)
+  if (!this->activeRepresentation())
     {
     return vtkindices;
     }
 
+  vtkSpreadSheetView* view = this->GetView();
+  Q_ASSERT(view->GetShowExtractedSelection() == 0);
+
   foreach (QModelIndex idx, indexes)
     {
-    int row = idx.row();
-    vtkIdType blockNumber = this->Internal->computeBlockNumber(row);
-    vtkIdType blockOffset = this->Internal->computeBlockOffset(row);
+    vtkIdType row = idx.row();
+    vtkIndex value;
+    vtkVariant processId = view->GetValueByName(row, "vtkOriginalProcessIds");
 
-    this->Internal->ActiveBlockNumber = blockNumber;
-    vtkTable* table = vtkTable::SafeDownCast(repr->GetOutput(blockNumber));
-    if (table)
+    int pid = processId.IsValid()? processId.ToInt() : -1;
+    value.Tuple[1] = pid;
+
+    vtkVariant cid = view->GetValueByName(row, "vtkCompositeIndexArray");
+    if (cid.IsValid())
       {
-      vtkIndex value;
-
-      vtkVariant processId = table->GetValueByName(blockOffset, "vtkOriginalProcessIds");
-
-      const char* column_name = "vtkOriginalIndices";
-      if (repr->GetSelectionOnly())
+      // cid is either a single value (as uint) or a pair of values.
+      // In the latter case the vtkVariant returns it as a vtkAbstractArray.
+      if (cid.IsArray())
         {
-        column_name = (this->Internal->getFieldType() == vtkDataObject::FIELD_ASSOCIATION_POINTS)?
-          "vtkOriginalPointIds" : "vtkOriginalCellIds";
+        vtkUnsignedIntArray* array = vtkUnsignedIntArray::SafeDownCast(
+          cid.ToArray());
+        Q_ASSERT(array->GetNumberOfTuples()*array->GetNumberOfComponents() == 2);
+        value.Tuple[0] = static_cast<vtkIdType>(array->GetValue(0));
+        value.Tuple[1] = static_cast<vtkIdType>(array->GetValue(1));
         }
-
-      int pid = processId.IsValid()? processId.ToInt() : -1;
-      value.Tuple[1] = pid;
-
-      vtkUnsignedIntArray* compositeIndexColumn = vtkUnsignedIntArray::SafeDownCast( 
-        table->GetColumnByName("vtkCompositeIndexArray"));
-      if (compositeIndexColumn)
+      else
         {
-        if (compositeIndexColumn->GetNumberOfComponents() == 2)
-          {
-          // using hierarchical indexing.
-          unsigned int val[3];
-          compositeIndexColumn->GetTupleValue(blockOffset, val);
-          value.Tuple[0] = static_cast<vtkIdType>(val[0]);
-          value.Tuple[1] = static_cast<vtkIdType>(val[1]);
-          }
-        else
-          {
-          value.Tuple[0] = compositeIndexColumn->GetValue(blockOffset);
-          }
+        value.Tuple[0] = cid.ToUnsignedInt();
         }
-
-      vtkVariant vtkindex = table->GetValueByName(blockOffset, column_name);
-      value.Tuple[2] = static_cast<vtkIdType>(vtkindex.ToLongLong());
-      vtkindices.insert(value);
       }
 
+    vtkVariant vtkindex = view->GetValueByName(row, "vtkOriginalIndices");
+    value.Tuple[2] = static_cast<vtkIdType>(vtkindex.ToLongLong());
+    vtkindices.insert(value);
     }
 
-
-
   return vtkindices;
-#endif
 }
 
 
