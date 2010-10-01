@@ -803,7 +803,7 @@
       base_proxygroup="views"
       base_proxyname="ViewBase"
       class="vtkSpreadSheetView"
-      processes="client|dataserver"
+      processes="client|dataserver|renderserver"
       representation_name="SpreadSheetRepresentation">
 
       <IntVectorProperty name="SelectionOnly"

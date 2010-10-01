@@ -59,18 +59,17 @@ int vtkMarkSelectedRows::RequestData(vtkInformation*,
   vtkTable* output = vtkTable::GetData(outputVector, 0);
   output->ShallowCopy(input);
 
-  vtkCharArray* selected = vtkCharArray::New();
-  selected->SetName("__vtkIsSelected__");
-  selected->SetNumberOfTuples(output->GetNumberOfRows());
-  selected->FillComponent(0, 0);
-  output->AddColumn(selected);
-  selected->FastDelete();
-
   if (!inputSelection)
     {
     return 1;
     }
 
+  vtkCharArray* selected = vtkCharArray::New();
+  selected->SetName("__vtkIsSelected__");
+  selected->SetNumberOfTuples(output->GetNumberOfRows());
+  selected->FillComponent(0, 0);
+
+  bool something_selected = false;
   // Locate the selection node that may be applicable to the input.
   // This is determined by using the existence of special array in the input
   // such as vtkOriginalIndices, vtkOriginalProcessIds, vtkCompositeIndexArray
@@ -132,9 +131,16 @@ int vtkMarkSelectedRows::RequestData(vtkInformation*,
       if (node->GetSelectionList()->LookupValue(vtkVariant(originalId)) != -1)
         {
         selected->SetValue(cc, 1);
+        something_selected = true;
         }
       }
     }
+
+  if (something_selected)
+    {
+    output->AddColumn(selected);
+    }
+  selected->Delete();
   return 1;
 }
 

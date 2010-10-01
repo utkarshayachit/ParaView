@@ -57,7 +57,8 @@ public:
   // Get/Set if the view shows extracted selection only or the actual data.
   // false by default.
   // @CallOnAllProcessess
-  vtkSetMacro(ShowExtractedSelection, bool);
+  void SetShowExtractedSelection(bool);
+  vtkBooleanMacro(ShowExtractedSelection, bool);
   vtkGetMacro(ShowExtractedSelection, bool);
 
   // Description:

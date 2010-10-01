@@ -17,6 +17,8 @@
 #include "vtkAlgorithmOutput.h"
 #include "vtkCharArray.h"
 #include "vtkClientServerMoveData.h"
+#include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkEventForwarderCommand.h"
 #include "vtkMarkSelectedRows.h"
 #include "vtkMemberFunctionCommand.h"
@@ -25,6 +27,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
 #include "vtkPVMergeTables.h"
+#include "vtkPVOptions.h"
 #include "vtkPVSynchronizedRenderWindows.h"
 #include "vtkReductionFilter.h"
 #include "vtkRemoteConnection.h"
@@ -111,6 +114,60 @@ namespace
       self->FetchBlockCallback(blockid);
       }
     }
+
+  unsigned long vtkCountNumberOfRows(vtkDataObject* dobj)
+    {
+    vtkTable* table = vtkTable::SafeDownCast(dobj);
+    if (table)
+      {
+      return table->GetNumberOfRows();
+      }
+    vtkCompositeDataSet* cd = vtkCompositeDataSet::SafeDownCast(dobj);
+    if (cd)
+      {
+      unsigned long count = 0;
+      vtkCompositeDataIterator* iter = cd->NewIterator();
+      for (iter->InitTraversal(); !iter->IsDoneWithTraversal();
+        iter->GoToNextItem())
+        {
+        count += vtkCountNumberOfRows(iter->GetCurrentDataObject());
+        }
+      iter->Delete();
+      return count;
+      }
+    return 0;
+    }
+
+  vtkAlgorithmOutput* vtkGetDataProducer(
+    vtkSpreadSheetView* self, vtkSpreadSheetRepresentation* repr)
+    {
+    if (repr)
+      {
+      if (self->GetShowExtractedSelection())
+        {
+        return repr->GetExtractedDataProducer();
+        }
+      else
+        {
+        return repr->GetDataProducer();
+        }
+      }
+    return NULL;
+    }
+
+  vtkAlgorithmOutput* vtkGetSelectionProducer(
+    vtkSpreadSheetView* self, vtkSpreadSheetRepresentation* repr)
+    {
+    if (repr)
+      {
+      if (self->GetShowExtractedSelection())
+        {
+        return NULL;
+        }
+      return repr->GetSelectionProducer();
+      }
+    return NULL;
+    }
 }
 
 vtkStandardNewMacro(vtkSpreadSheetView);
@@ -147,8 +204,12 @@ vtkSpreadSheetView::vtkSpreadSheetView()
     &vtkSpreadSheetView::OnRepresentationUpdated);
   this->SomethingUpdated = false;
 
-  this->RMICallbackTag = this->SynchronizedWindows->AddRMICallback(
-    ::FetchRMI, this, FETCH_BLOCK_TAG);
+  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetProcessType() !=
+    vtkPVOptions::PVRENDER_SERVER)
+    {
+    this->RMICallbackTag = this->SynchronizedWindows->AddRMICallback(
+      ::FetchRMI, this, FETCH_BLOCK_TAG);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -168,6 +229,17 @@ vtkSpreadSheetView::~vtkSpreadSheetView()
 
   delete this->Internals;
   this->Internals = 0;
+}
+
+//----------------------------------------------------------------------------
+void vtkSpreadSheetView::SetShowExtractedSelection(bool val)
+{
+  if (val != this->ShowExtractedSelection)
+    {
+    this->ShowExtractedSelection = val;
+    this->ClearCache();
+    this->Modified();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -217,42 +289,35 @@ void vtkSpreadSheetView::Update()
 
   unsigned long num_rows = 0;
 
-  // FIXME: We'll use different API to get extracted data, when needed
-  if (cur)
+  // From the active representation obtain the data/selection producers that
+  // need to be streamed to the client.
+  vtkAlgorithmOutput* dataPort = vtkGetDataProducer(this, cur);
+  vtkAlgorithmOutput* selectionPort = vtkGetSelectionProducer(this, cur);
+
+  this->TableStreamer->SetInputConnection(dataPort);
+  this->TableSelectionMarker->SetInputConnection(1, selectionPort);
+  if (dataPort)
     {
-    if (cur->GetDataProducer())
-      {
-      this->TableStreamer->SetInputConnection(cur->GetDataProducer());
-      this->DeliveryFilter->SetInputConnection(this->ReductionFilter->GetOutputPort());
-      cur->GetDataProducer()->GetProducer()->Update();
-      num_rows = vtkTable::SafeDownCast(
-        cur->GetDataProducer()->GetProducer()->GetOutputDataObject(
-          cur->GetDataProducer()->GetIndex()))->GetNumberOfRows();
-      }
-    else
-      {
-      this->DeliveryFilter->RemoveAllInputs();
-      this->TableStreamer->RemoveAllInputs();
-      }
-    if (cur->GetSelectionProducer())
-      {
-      this->TableSelectionMarker->SetInputConnection(1,
-        cur->GetSelectionProducer());
-      }
-    else
-      {
-      this->TableSelectionMarker->SetInputConnection(1, NULL);
-      }
-    this->SynchronizedWindows->SynchronizeSize(num_rows);
+    dataPort->GetProducer()->Update();
+    this->DeliveryFilter->SetInputConnection(this->ReductionFilter->GetOutputPort());
+    num_rows = vtkCountNumberOfRows(
+      dataPort->GetProducer()->GetOutputDataObject(dataPort->GetIndex()));
     }
   else
     {
     this->DeliveryFilter->RemoveAllInputs();
-    this->TableStreamer->RemoveAllInputs();
     }
 
-  this->NumberOfRows = num_rows;
+  if (cur)
+    {
+    this->SynchronizedWindows->SynchronizeSize(num_rows);
+    }
 
+  if (this->NumberOfRows != num_rows)
+    {
+    this->SomethingUpdated = true;
+    }
+  this->NumberOfRows = num_rows;
   if (this->SomethingUpdated)
     {
     this->InvokeEvent(vtkCommand::UpdateDataEvent);
