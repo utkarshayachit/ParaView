@@ -302,21 +302,44 @@ int vtkSMPVRepresentationProxy::LoadState(
 void vtkSMPVRepresentationProxy::AddInput(unsigned int inputPort,
   vtkSMSourceProxy* input, unsigned int outputPort, const char* method)
 {
-  this->Superclass::AddInput(inputPort, input, outputPort, method);
-  input->CreateSelectionProxies();
-
-  vtkSMSourceProxy* esProxy = input->GetSelectionOutput(outputPort);
-  if (!esProxy)
+  if (inputPort == 0)
     {
-    vtkErrorMacro("Input proxy does not support selection extraction.");
-    return;
+    input->CreateSelectionProxies();
+
+    vtkSMSourceProxy* esProxy = input->GetSelectionOutput(outputPort);
+    if (!esProxy)
+      {
+      vtkErrorMacro("Input proxy does not support selection extraction.");
+      return;
+      }
+
+    vtkSMPropertyHelper(
+      this->GetSubProxy("SelectionRepresentation"),"Input").Set(esProxy);
+    this->GetSubProxy("SelectionRepresentation")->UpdateVTKObjects();
+
+    this->Superclass::AddInput(1, esProxy, 0, "SetInputConnection");
+
+    // Next we ensure that input is set on all input properties for the
+    // subproxies. This ensures that domains and such on subproxies can still
+    // function correctly.
+
+    // This piece of code is a disgrace :). We shouldn't have to do these kinds of
+    // hacks. It implies that something's awry with the way domains and
+    // updated/defined for sub-proxies.
+    vtkInternals::RepresentationProxiesSet::iterator iter;
+    for (iter = this->Internals->UniqueRepresentationProxies.begin();
+      iter != this->Internals->UniqueRepresentationProxies.end(); ++iter)
+      {
+      if ((*iter)->GetProperty("Input"))
+        {
+        vtkSMPropertyHelper((*iter), "Input").Set(input, outputPort);
+        (*iter)->UpdateProperty("Input");
+        (*iter)->GetProperty("Input")->UpdateDependentDomains();
+        }
+      }
     }
 
-  vtkSMPropertyHelper(
-    this->GetSubProxy("SelectionRepresentation"),"Input").Set(esProxy);
-  this->GetSubProxy("SelectionRepresentation")->UpdateVTKObjects();
-
-  this->Superclass::AddInput(1, esProxy, 0, "SetInputConnection");
+  this->Superclass::AddInput(inputPort, input, outputPort, method);
 }
 
 //----------------------------------------------------------------------------
