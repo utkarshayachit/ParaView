@@ -207,6 +207,7 @@ SET(Filters_SRCS
   vtkSquirtCompressor.cxx
   vtkZlibImageCompressor.cxx
   vtkSurfaceVectors.cxx
+  vtkTextSourceRepresentation.cxx
   vtkTilesHelper.cxx
   vtkTableFFT.cxx
 #  vtkTemporalCacheFilter.cxx

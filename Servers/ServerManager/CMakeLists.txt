@@ -187,7 +187,7 @@ SET(Kit_SRCS
 #  vtkSMSurfaceRepresentationProxy.cxx
 #  vtkSMTemporalInputDomain.cxx
   vtkSMTesting.cxx
-#  vtkSMTextSourceRepresentationProxy.cxx
+  vtkSMTextSourceRepresentationProxy.cxx
   vtkSMTextWidgetRepresentationProxy.cxx
   vtkSMTimeAnimationCueProxy.cxx
   vtkSMTimeKeeperProxy.cxx

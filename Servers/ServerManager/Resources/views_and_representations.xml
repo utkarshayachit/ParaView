@@ -3044,6 +3044,68 @@
        <!-- end of SpreadSheetRepresentation -->
     </SpreadSheetRepresentationProxy>
 
+    <!-- =================================================================== -->
+    <TextSourceRepresentationProxy name="TextSourceRepresentation"
+      class="vtkTextSourceRepresentation"
+      processes="client|dataserver|renderserver" >
+      <Documentation>
+        Representation proxy used to show text.
+      </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection" >
+        <Documentation>
+          Data input for the representation.
+        </Documentation>
+        <DataTypeDomain name="input_type" composite_data_supported="0">
+          <DataType value="vtkTable"/>
+        </DataTypeDomain>
+      </InputProperty>
+
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="Interactivity"
+        command="SetInteractivity"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <SubProxy>
+        <Proxy name="TextWidgetRepresentation"
+          proxygroup="representations" proxyname="TextWidgetRepresentation">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Position" />
+          <Property name="Position2" />
+          <Property name="PositionInfo" />
+          <Property name="Position2Info" />
+          <Property name="WindowLocation" />
+
+          <Property name="TextScaleMode"/>
+          <Property name="Resizable"/>
+
+          <!-- properties for Text -->
+          <Property name="Justification"/>
+          <Property name="Orientation"/>
+          <Property name="Color"/>
+          <Property name="Opacity"/>
+          <Property name="FontFamily"/>
+          <Property name="Bold"/>
+          <Property name="Italic"/>
+          <Property name="Shadow"/>
+          <Property name="FontSize"/>
+        </ExposedProperties>
+      </SubProxy>
+
+      <!-- End of TextSourceRepresentation -->
+    </TextSourceRepresentationProxy>
+
+
   </ProxyGroup>
 
 </ServerManagerConfiguration>
