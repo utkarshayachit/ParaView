@@ -16,10 +16,12 @@
 
 #include "vtkClientServerStream.h"
 #include "vtkCollection.h"
+#include "vtkDataArray.h"
 #include "vtkEventForwarderCommand.h"
 #include "vtkExtractSelectedFrustum.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
+#include "vtkPointData.h"
 #include "vtkProcessModule.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
@@ -34,7 +36,6 @@
 #include "vtkSMInputProperty.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMRepresentationProxy.h"
@@ -44,6 +45,21 @@
 
 namespace
 {
+  bool vtkIsImageEmpty(vtkImageData* image)
+    {
+    vtkDataArray* scalars = image->GetPointData()->GetScalars();
+    for (int comp=0; comp < scalars->GetNumberOfComponents(); comp++)
+      {
+      double range[2];
+      scalars->GetRange(range, comp);
+      if (range[0] != 0.0 || range[1] != 0.0)
+        {
+        return false;
+        }
+      }
+    return true;
+    }
+
   class vtkRenderHelper : public vtkPVRenderViewProxy
   {
 public:
@@ -70,7 +86,6 @@ vtkCxxRevisionMacro(vtkSMRenderViewProxy, "$Revision$");
 //----------------------------------------------------------------------------
 vtkSMRenderViewProxy::vtkSMRenderViewProxy()
 {
-  this->UseInteractiveRenderingForSceenshots = false;
 }
 
 //----------------------------------------------------------------------------
@@ -524,9 +539,22 @@ bool vtkSMRenderViewProxy::SelectFrustumInternal(int region[4],
 //----------------------------------------------------------------------------
 vtkImageData* vtkSMRenderViewProxy::CaptureWindowInternal(int magnification)
 {
-  //this->GetRenderWindow()->SwapBuffersOff();
+  vtkRenderWindow* window = this->GetRenderWindow();
+  vtkPVRenderView* view =
+    vtkPVRenderView::SafeDownCast(this->GetClientSideObject());
 
-  if (this->UseInteractiveRenderingForSceenshots)
+  // Offscreen rendering is not functioning properly on the mac.
+  // Do not use it.
+#if !defined(__APPLE__)
+  int prevOffscreen = window->GetOffScreenRendering();
+  bool use_offscreen = view->GetUseOffscreenRendering() ||
+    view->GetUseOffscreenRenderingForScreenshots();
+  window->SetOffScreenRendering(use_offscreen? 1: 0);
+#endif
+
+  this->GetRenderWindow()->SwapBuffersOff();
+
+  if (view->GetUseInteractiveRenderingForSceenshots())
     {
     this->InteractiveRender();
     }
@@ -535,11 +563,11 @@ vtkImageData* vtkSMRenderViewProxy::CaptureWindowInternal(int magnification)
     this->StillRender();
     }
 
-  vtkWindowToImageFilter* w2i = vtkWindowToImageFilter::New();
+  vtkSmartPointer<vtkWindowToImageFilter> w2i =
+    vtkSmartPointer<vtkWindowToImageFilter>::New();
   w2i->SetInput(this->GetRenderWindow());
   w2i->SetMagnification(magnification);
   w2i->ReadFrontBufferOff();
-  w2i->ReadFrontBufferOn(); // FIXME
   w2i->ShouldRerenderOff();
 
   // BUG #8715: We go through this indirection since the active connection needs
@@ -551,12 +579,30 @@ vtkImageData* vtkSMRenderViewProxy::CaptureWindowInternal(int magnification)
   vtkProcessModule::GetProcessModule()->SendStream(
     this->ConnectionID, vtkProcessModule::CLIENT, stream);
 
+  this->GetRenderWindow()->SwapBuffersOn();
+
+#if !defined(__APPLE__)
+  window->SetOffScreenRendering(prevOffscreen);
+
+  if (view->GetUseOffscreenRenderingForScreenshots() &&
+    vtkIsImageEmpty(w2i->GetOutput()))
+    {
+    // ensure that some image was capture. Due to buggy offscreen rendering
+    // support on some drivers, we may end up with black images, in which case
+    // we force on-screen rendering.
+    if (vtkProcessModule::GetProcessModule()->GetNumberOfLocalPartitions() == 1)
+      {
+      vtkWarningMacro(
+        "Disabling offscreen rendering since empty image was detected.");
+      view->SetUseOffscreenRenderingForScreenshots(false);
+      return this->CaptureWindowInternal(magnification);
+      }
+    }
+#endif
+
   vtkImageData* capture = vtkImageData::New();
   capture->ShallowCopy(w2i->GetOutput());
-  w2i->Delete();
-
-  //this->GetRenderWindow()->SwapBuffersOn();
-  //this->GetRenderWindow()->Frame();
+  this->GetRenderWindow()->Frame();
   return capture;
 }
 
@@ -564,6 +610,4 @@ vtkImageData* vtkSMRenderViewProxy::CaptureWindowInternal(int magnification)
 void vtkSMRenderViewProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "UseInteractiveRenderingForSceenshots: " <<
-    this->UseInteractiveRenderingForSceenshots << endl;
 }

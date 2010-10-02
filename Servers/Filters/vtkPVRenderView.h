@@ -261,6 +261,31 @@ public:
   // Provides access to the last selection.
   vtkGetObjectMacro(LastSelection, vtkSelection);
 
+  // Description:
+  // Set or get whether capture should be done as
+  // StillRender or InteractiveRender when capturing screenshots.
+  vtkSetMacro(UseInteractiveRenderingForSceenshots, bool);
+  vtkBooleanMacro(UseInteractiveRenderingForSceenshots, bool);
+  vtkGetMacro(UseInteractiveRenderingForSceenshots, bool);
+
+  // Description:
+  // Set or get whether offscreen rendering should be used during
+  // CaptureWindow calls. On Apple machines, this flag has no effect.
+  vtkSetMacro(UseOffscreenRenderingForScreenshots, bool);
+  vtkBooleanMacro(UseOffscreenRenderingForScreenshots, bool);
+  vtkGetMacro(UseOffscreenRenderingForScreenshots, bool);
+
+  // Description:
+  // Get/Set whether to use offscreen rendering for all rendering. This is
+  // merely a suggestion. If --use-offscreen-rendering command line option is
+  // specified, then setting this flag to 0 on that process has no effect.
+  // Setting it to true, however, will ensure that even is
+  // --use-offscreen-rendering is not specified, it will use offscreen
+  // rendering.
+  virtual void SetUseOffscreenRendering(bool);
+  vtkBooleanMacro(UseOffscreenRendering, bool);
+  vtkGetMacro(UseOffscreenRendering, bool);
+
 public:
   //*****************************************************************
   // Methods merely exposing methods for internal objects.
@@ -327,7 +352,6 @@ public:
   void SetStereoCapableWindow(int val);
   void SetStereoRender(int val);
   void SetStereoType(int val);
-  void SetOffScreenRendering(int val);
   void SetMultiSamples(int val);
   void SetAlphaBitPlanes(int val);
   void SetStencilCapable(int val);
@@ -421,6 +445,9 @@ protected:
   double LODRenderingThreshold;
   unsigned long ClientOutlineThreshold;
   double LastComputedBounds[6];
+  bool UseOffscreenRendering;
+  bool UseOffscreenRenderingForScreenshots;
+  bool UseInteractiveRenderingForSceenshots;
 
   double LODResolution;
   bool UseLightKit;

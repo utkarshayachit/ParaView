@@ -99,13 +99,6 @@ public:
   // way as other properties.
   void SynchronizeCameraProperties();
 
-  // Description:
-  // Set or get whether capture should be done as
-  // StillRender or InteractiveRender inside CaptureWindow calls.
-  vtkSetMacro(UseInteractiveRenderingForSceenshots, bool);
-  vtkBooleanMacro(UseInteractiveRenderingForSceenshots, bool);
-  vtkGetMacro(UseInteractiveRenderingForSceenshots, bool);
-
 //BTX
 protected:
   vtkSMRenderViewProxy();
@@ -133,7 +126,6 @@ protected:
   // Called at the end of CreateVTKObjects().
   virtual void CreateVTKObjects();
 
-  bool UseInteractiveRenderingForSceenshots;
 private:
   vtkSMRenderViewProxy(const vtkSMRenderViewProxy&); // Not implemented
   void operator=(const vtkSMRenderViewProxy&); // Not implemented

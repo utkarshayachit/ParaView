@@ -73,6 +73,8 @@ vtkCxxSetObjectMacro(vtkPVRenderView, LastSelection, vtkSelection);
 //----------------------------------------------------------------------------
 vtkPVRenderView::vtkPVRenderView()
 {
+  vtkPVOptions* options = vtkProcessModule::GetProcessModule()->GetOptions();
+
   this->StillRenderImageReductionFactor = 1;
   this->InteractiveRenderImageReductionFactor = 2;
   this->GeometrySize = 0;
@@ -91,6 +93,9 @@ vtkPVRenderView::vtkPVRenderView()
   this->OrientationWidget = vtkPVAxesWidget::New();
   this->InteractionMode = INTERACTION_MODE_3D;
   this->LastSelection = NULL;
+  this->UseOffscreenRenderingForScreenshots = false;
+  this->UseInteractiveRenderingForSceenshots = false;
+  this->UseOffscreenRendering = (options->GetUseOffscreenRendering() != 0);
   this->Selector = vtkPHardwareSelector::New();
 
   this->LastComputedBounds[0] = this->LastComputedBounds[2] =
@@ -115,6 +120,7 @@ vtkPVRenderView::vtkPVRenderView()
   // bit.
   vtkRenderWindow* window = this->SynchronizedWindows->NewRenderWindow();
   window->SetMultiSamples(0);
+  window->SetOffScreenRendering(this->UseOffscreenRendering? 1 : 0);
   this->RenderView = vtkRenderViewBase::New();
   this->RenderView->SetRenderWindow(window);
   if (this->Interactor)
@@ -221,6 +227,21 @@ vtkPVRenderView::~vtkPVRenderView()
 
   this->OrderedCompositingBSPCutsSource->Delete();
   this->OrderedCompositingBSPCutsSource = NULL;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetUseOffscreenRendering(bool use_offscreen)
+{
+  if (this->UseOffscreenRendering == use_offscreen)
+    {
+    return;
+    }
+
+  vtkPVOptions* options = vtkProcessModule::GetProcessModule()->GetOptions();
+  bool process_use_offscreen = options->GetUseOffscreenRendering() != 0;
+
+  this->UseOffscreenRendering = use_offscreen || process_use_offscreen;
+  this->GetRenderWindow()->SetOffScreenRendering(this->UseOffscreenRendering);
 }
 
 //----------------------------------------------------------------------------
@@ -1060,13 +1081,6 @@ void vtkPVRenderView::SetStereoRender(int val)
 void vtkPVRenderView::SetStereoType(int val)
 {
   this->GetRenderWindow()->SetStereoType(val);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVRenderView::SetOffScreenRendering(int)
-{
-  // FIXME
-  //this->GetRenderWindow()->SetOffScreenRendering(val);
 }
 
 //----------------------------------------------------------------------------

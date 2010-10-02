@@ -26,6 +26,8 @@
 #include "vtkSMAnimationSceneProxy.h"
 #include "vtkSmartPointer.h"
 #include "vtkSMIntVectorProperty.h"
+#include "vtkSMPropertyHelper.h"
+#include "vtkSMRenderViewProxy.h"
 #include "vtkSMViewProxy.h"
 #include "vtkTIFFWriter.h"
 #include "vtkToolkits.h"
@@ -116,23 +118,25 @@ bool vtkSMAnimationSceneImageWriter::SaveInitialize()
 
   this->FileCount = 0;
 
-#if !defined(__APPLE__)      
+#if !defined(__APPLE__)
   // Iterate over all views and enable offscreen rendering. This avoid toggling
   // of the offscreen rendering flag on every frame.
   unsigned int num_modules = this->AnimationScene->GetNumberOfViewModules();
   for (unsigned int cc=0; cc < num_modules; cc++)
     {
-    //vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(
-    //  this->AnimationScene->GetViewModule(cc));
-    //if (rmview)
-    //  {
-    //  if (rmview->GetUseOffscreenRenderingForScreenshots())
-    //    {
-    //    rmview->SetUseOffscreen(1);
-    //    }
-    //  }
+    vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(
+      this->AnimationScene->GetViewModule(cc));
+    if (rmview)
+      {
+      if (vtkSMPropertyHelper(rmview,
+          "UseOffscreenRenderingForScreenshots").GetAsInt() == 1)
+        {
+        vtkSMPropertyHelper(rmview, "UseOffscreenRendering").Set(1);
+        rmview->UpdateProperty("UseOffscreenRendering");
+        }
+      }
     }
-#endif      
+#endif
 
   return true;
 }
@@ -321,18 +325,20 @@ bool vtkSMAnimationSceneImageWriter::SaveFinalize()
     }
   this->SetImageWriter(0);
 
+#if !defined(__APPLE__)
   // restore offscreen rendering state.
-  //unsigned int num_modules = this->AnimationScene->GetNumberOfViewModules();
-  //for (unsigned int cc=0; cc < num_modules; cc++)
-  //  {
-  //  vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(
-  //    this->AnimationScene->GetViewModule(cc));
-  //  if (rmview)
-  //    {
-  //    rmview->SetUseOffscreen(0);
-  //    }
-  //  }
-
+  unsigned int num_modules = this->AnimationScene->GetNumberOfViewModules();
+  for (unsigned int cc=0; cc < num_modules; cc++)
+    {
+    vtkSMRenderViewProxy* rmview = vtkSMRenderViewProxy::SafeDownCast(
+      this->AnimationScene->GetViewModule(cc));
+    if (rmview)
+      {
+      vtkSMPropertyHelper(rmview, "UseOffscreenRendering").Set(0);
+      rmview->UpdateProperty("UseOffscreenRendering");
+      }
+    }
+#endif
   return true;
 }
 

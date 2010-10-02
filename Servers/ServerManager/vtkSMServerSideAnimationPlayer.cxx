@@ -21,9 +21,10 @@
 #include "vtkProcessModule.h"
 #include "vtkSMAnimationSceneImageWriter.h"
 #include "vtkSMAnimationSceneProxy.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMProxyManager.h"
-#include "vtkSMRenderViewProxy.h"
+#include "vtkSMViewProxy.h"
 
 #include <vtkstd/string>
 
@@ -125,17 +126,19 @@ void vtkSMServerSideAnimationPlayer::PerformActions()
   // BUG #10159.
   for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
     {
-    vtkSMRenderViewProxy* ren = 
-      vtkSMRenderViewProxy::SafeDownCast(iter->GetProxy());
+    vtkSMViewProxy* view =
+      vtkSMViewProxy::SafeDownCast(iter->GetProxy());
     // We need to ensure that we skip prototypes.
-    //if (ren && ren->GetConnectionID()
-    //  != vtkProcessModuleConnectionManager::GetNullConnectionID())
-    //  {
-    //  if (ren->GetUseOffscreenRenderingForScreenshots())
-    //    {
-    //    ren->SetUseOffscreen(1);
-    //    }
-    //  }
+    if (view && view->GetConnectionID()
+     != vtkProcessModuleConnectionManager::GetNullConnectionID())
+      {
+      if (vtkSMPropertyHelper(view,
+          "UseOffscreenRenderingForScreenshots", true).GetAsInt() == 1)
+        {
+        vtkSMPropertyHelper(view, "SetUseOffscreenRendering", true).Set(1);
+        view->UpdateVTKObjects();
+        }
+      }
     }
 
   // Write any animations.

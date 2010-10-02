@@ -52,9 +52,43 @@
     <RenderViewProxy name="RenderView" class="vtkPVRenderView"
            processes="client|renderserver|dataserver"
            base_proxygroup="views" base_proxyname="ViewBase" >
+      <Documentation>
+        View proxy for a 3D interactive render view.
+      </Documentation>
 
-      <IntVectorProperty
-        name="InteractionMode"
+      <IntVectorProperty name="UseOffscreenRendering"
+        command="SetUseOffscreenRendering"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set whether to use offscreen rendering.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="UseOffscreenRenderingForScreenshots"
+        command="SetUseOffscreenRenderingForScreenshots"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set whether offscreen rendering should be used during
+          CaptureWindow calls.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="UseInteractiveRenderingForSceenshots"
+        command="SetUseInteractiveRenderingForSceenshots"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set whether InteractiveRender() should be used during
+          CaptureWindow calls. Default is to use StillRender().
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="InteractionMode"
         command="SetInteractionMode"
         number_of_elements="1"
         default_values="0">
@@ -447,13 +481,6 @@
          <Entry value="7" text="Anaglyph" />
          <Entry value="8" text="Checkerboard" />
        </EnumerationDomain>
-     </IntVectorProperty>
-
-     <IntVectorProperty name="OffScreenRendering"
-       command="SetOffScreenRendering"
-       number_of_elements="1"
-       default_values="0">
-       <BooleanDomain name="bool" />
      </IntVectorProperty>
 
      <IntVectorProperty name="MultiSamples"
