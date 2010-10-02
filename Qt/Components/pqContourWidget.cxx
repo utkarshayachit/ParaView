@@ -152,15 +152,6 @@ void pqContourWidget::select()
 }
 
 //-----------------------------------------------------------------------------
-bool pqContourWidget::getBounds(double bounds[6]) const
-{
-  return false;
-#ifdef FIXME
-  return this->getWidgetProxy()->GetBounds(bounds);
-#endif
-}
-
-//-----------------------------------------------------------------------------
 void pqContourWidget::deselect()
 {
   this->setLineColor(QColor::fromRgbF(1.0,1.0,1.0));
