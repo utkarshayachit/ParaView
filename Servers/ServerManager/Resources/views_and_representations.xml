@@ -503,17 +503,29 @@
        <BooleanDomain name="bool"/>
      </IntVectorProperty>
 
-      <ProxyProperty name="HiddenRepresentations"
-        command="AddRepresentation"
-        remove_command="RemoveRepresentation"
-        is_internal="1"
-        repeatable="1">
-        <Documentation>
-          This property is meant for adding/removing representation secretly.
-          e.g. 3D widgets etc. This property is not saved in states nor it
-          recorded by undo-redo.
-        </Documentation>
-      </ProxyProperty>
+     <ProxyProperty name="HiddenRepresentations"
+       command="AddRepresentation"
+       remove_command="RemoveRepresentation"
+       is_internal="1"
+       repeatable="1">
+       <Documentation>
+         This property is meant for adding/removing representation secretly.
+         e.g. 3D widgets etc. This property is not saved in states nor it
+         recorded by undo-redo.
+       </Documentation>
+     </ProxyProperty>
+
+     <ProxyProperty name="HiddenProps"
+       command="AddPropToRenderer"
+       remove_command="RemovePropFromRenderer"
+       is_internal="1"
+       repeatable="1">
+       <Documentation>
+         This property is meant for adding/removing props secretly.
+         e.g. 3D widgets etc. This property is not saved in states nor it
+         recorded by undo-redo.
+       </Documentation>
+     </ProxyProperty>
 
      <Property name="ResetCamera" command="ResetCamera" />
 
@@ -3104,6 +3116,47 @@
 
       <!-- End of TextSourceRepresentation -->
     </TextSourceRepresentationProxy>
+
+    <Proxy name="FrustumWidget" class="vtkPVFrustumActor"
+      processes="client|dataserver|renderserver" >
+      <Documentation>
+        Representation for a frustum
+      </Documentation>
+
+      <DoubleVectorProperty name="Frustum"
+         command="SetFrustum"
+         number_of_elements="24"
+         argument_is_array="1"
+         default_values="0 0 0 1 0 0 0 1 0 1 1 0 0 0 1 1 0 1 0 1 1 1 1 1" >
+         <Documentation>
+          Specify the corners of the outline when in Oriented mode, the values
+          are supplied as 8*3 double values.
+         </Documentation>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="Color"
+        command="SetColor"
+        number_of_elements="3"
+        default_values="0.5 0.5 0.5">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="LineWidth"
+        command="SetLineWidth"
+        number_of_elements="1"
+        default_values="3.0">
+        <DoubleRangeDomain name="range" min="0"/>
+      </DoubleVectorProperty>
+
+      <!-- End of FrustumWidget -->
+    </Proxy>
 
 
   </ProxyGroup>
