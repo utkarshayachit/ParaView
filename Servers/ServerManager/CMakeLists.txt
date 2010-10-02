@@ -49,7 +49,6 @@ SET(Kit_SRCS
   #vtkSMCaveRenderModuleProxy.cxx
 #  vtkSMCaveRenderViewProxy.cxx
   vtkSMChartRepresentationProxy.cxx
-#  vtkSMClientDeliveryRepresentationProxy.cxx
 #  vtkSMClientServerRenderSyncManagerHelper.cxx
 #  vtkSMClientServerRenderViewProxy.cxx
   vtkSMComparativeAnimationCueProxy.cxx
@@ -77,6 +76,7 @@ SET(Kit_SRCS
   vtkSMExponentialKeyFrameProxy.cxx
   vtkSMExporterProxy.cxx
   vtkSMExtentDomain.cxx
+  vtkSMFetchDataProxy.cxx
   vtkSMFieldDataDomain.cxx
   vtkSMFileListDomain.cxx
   vtkSMFileSeriesReaderProxy.cxx

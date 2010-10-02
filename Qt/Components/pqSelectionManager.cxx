@@ -53,16 +53,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSelection.h"
 #include "vtkSelectionNode.h"
 #include "vtkSmartPointer.h"
-#ifdef FIXME
-#include "vtkSMClientDeliveryRepresentationProxy.h"
-#include "vtkSMClientDeliveryStrategyProxy.h"
-#endif
+#include "vtkSMFetchDataProxy.h"
 #include "vtkSMInputProperty.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMRenderViewProxy.h"
 #include "vtkSMSelectionHelper.h"
-#include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
 
 //-----------------------------------------------------------------------------
@@ -274,7 +271,6 @@ QList<vtkIdType> pqSelectionManager::getGlobalIDs()
 //-----------------------------------------------------------------------------
 QList<vtkIdType> pqSelectionManager::getGlobalIDs(vtkSMProxy* selectionSource,pqOutputPort* opport)
 {
-#ifdef FIXME
   QList<vtkIdType> gids;
   int selectionPort = 0;
   vtkSMProxy* dataSource = opport->getSource()->getProxy();
@@ -312,26 +308,19 @@ QList<vtkIdType> pqSelectionManager::getGlobalIDs(vtkSMProxy* selectionSource,pq
   convertor->UpdatePipeline(timeKeeper->getTime());
 
   // Now deliver the selection to the client.
+  vtkSMFetchDataProxy* fetcher =
+    vtkSMFetchDataProxy::SafeDownCast(pxm->NewProxy("filters", "FetchData"));
+  fetcher->SetConnectionID(convertor->GetConnectionID());
+  vtkSMPropertyHelper(fetcher, "Input").Set(convertor);
+  vtkSMPropertyHelper(fetcher, "PostGatherHelperName").Set("vtkAppendSelection");
+  fetcher->UpdateVTKObjects();
+  fetcher->UpdatePipeline();
 
-  vtkSMClientDeliveryStrategyProxy* strategy = 
-    vtkSMClientDeliveryStrategyProxy::SafeDownCast(
-      pxm->NewProxy("strategies", "ClientDeliveryStrategy"));
-  strategy->AddInput(convertor, 0);
-  strategy->SetPostGatherHelper("vtkAppendSelection");
-  strategy->Update();
- 
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  vtkAlgorithm* alg = vtkAlgorithm::SafeDownCast(
-    pm->GetObjectFromID(strategy->GetOutput()->GetID()));
-  vtkSelection* sel= vtkSelection::SafeDownCast(
-    alg->GetOutputDataObject(0));
-
+  vtkSelection* sel= vtkSelection::SafeDownCast(fetcher->GetData());
   ::getGlobalIDs(sel, gids);
-
   convertor->Delete();
-  strategy->Delete();
+  fetcher->Delete();
   return gids;
-#endif
 }
 
 
@@ -344,11 +333,10 @@ QList<QPair<int, vtkIdType> > pqSelectionManager::getIndices()
 
 }
 
-
 //-----------------------------------------------------------------------------
-QList<QPair<int, vtkIdType> > pqSelectionManager::getIndices(vtkSMProxy* selectionSource,pqOutputPort* opport)
+QList<QPair<int, vtkIdType> > pqSelectionManager::getIndices(
+  vtkSMProxy* selectionSource,pqOutputPort* opport)
 {
-#ifdef FIXME
   QList<QPair<int, vtkIdType> > indices;
   int selectionPort = 0;
   vtkSMProxy* dataSource = opport->getSource()->getProxy();
@@ -386,25 +374,20 @@ QList<QPair<int, vtkIdType> > pqSelectionManager::getIndices(vtkSMProxy* selecti
   convertor->UpdateVTKObjects();
   convertor->UpdatePipeline(timeKeeper->getTime());
 
-  vtkSMClientDeliveryStrategyProxy* strategy = 
-    vtkSMClientDeliveryStrategyProxy::SafeDownCast(
-      pxm->NewProxy("strategies", "ClientDeliveryStrategy"));
-  strategy->AddInput(convertor, 0);
-  strategy->SetPostGatherHelper("vtkAppendSelection");
-  strategy->Update();
- 
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  vtkAlgorithm* alg = vtkAlgorithm::SafeDownCast(
-    pm->GetObjectFromID(strategy->GetOutput()->GetID()));
-  vtkSelection* sel= vtkSelection::SafeDownCast(
-    alg->GetOutputDataObject(0));
+  // Now deliver the selection to the client.
+  vtkSMFetchDataProxy* fetcher =
+    vtkSMFetchDataProxy::SafeDownCast(pxm->NewProxy("filters", "FetchData"));
+  fetcher->SetConnectionID(convertor->GetConnectionID());
+  vtkSMPropertyHelper(fetcher, "Input").Set(convertor);
+  vtkSMPropertyHelper(fetcher, "PostGatherHelperName").Set("vtkAppendSelection");
+  fetcher->UpdateVTKObjects();
+  fetcher->UpdatePipeline();
 
+  vtkSelection* sel= vtkSelection::SafeDownCast(fetcher->GetData());
   ::getIndices(sel, indices);
-
   convertor->Delete();
-  strategy->Delete();
+  fetcher->Delete();
   return indices;
-#endif
 }
 
 //-----------------------------------------------------------------------------
