@@ -48,6 +48,7 @@ vtkImageSliceRepresentation::~vtkImageSliceRepresentation()
 {
   this->SliceData->Delete();
   this->DeliveryFilter->Delete();
+  this->SliceMapper->SetInput(0);
   this->SliceMapper->Delete();
   this->Actor->Delete();
 }
@@ -67,6 +68,26 @@ void vtkImageSliceRepresentation::SetColorAttributeType(int type)
 
   default:
     vtkErrorMacro("Attribute type not supported: " << type);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkImageSliceRepresentation::SetSliceMode(int mode)
+{
+  if (this->SliceMode != mode)
+    {
+    this->SliceMode = mode;
+    this->MarkModified();
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkImageSliceRepresentation::SetSlice(unsigned int val)
+{
+  if (this->Slice != val)
+    {
+    this->Slice = val;
+    this->MarkModified();
     }
 }
 
@@ -130,7 +151,7 @@ int vtkImageSliceRepresentation::ProcessViewRequest(
       vtkImageData* clone = vtkImageData::New();
       clone->ShallowCopy(this->DeliveryFilter->GetOutputDataObject(0));
       this->SliceMapper->SetInput(clone);
-      clone->FastDelete();
+      clone->Delete();
 
       this->DeliveryTimeStamp.Modified();
       }
@@ -169,6 +190,8 @@ void vtkImageSliceRepresentation::UpdateSliceData(
   vtkImageData* input = vtkImageData::GetData(inputVector[0], 0);
 
   int inWholeExtent[6], outExt[6];
+  memset(outExt, 0, sizeof(int)*6);
+
   inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), inWholeExtent);
   int dataDescription = vtkStructuredData::SetExtent(inWholeExtent, outExt);
 

@@ -78,7 +78,7 @@ public:
 
   // Description:
   // Get set the slice number to extract.
-  vtkSetMacro(Slice, unsigned int);
+  virtual void SetSlice(unsigned int);
   vtkGetMacro(Slice, unsigned int);
 
   //BTX
@@ -92,7 +92,7 @@ public:
 
   // Description:
   // Get/Set the direction in which to slice a 3D input data.
-  vtkSetClampMacro(SliceMode, int, VTK_XY_PLANE, VTK_XZ_PLANE);
+  virtual void SetSliceMode(int);
   vtkGetMacro(SliceMode, int);
 
   //---------------------------------------------------------------------------
