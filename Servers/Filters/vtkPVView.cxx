@@ -46,6 +46,7 @@ vtkPVView::vtkPVView()
     this->SynchronizedWindows->Register(this);
     }
   this->Identifier = 0;
+  this->ViewTime = 0.0;
 
   this->RequestInformation = vtkInformation::New();
   this->ReplyInformationVector = vtkInformationVector::New();
@@ -120,6 +121,8 @@ bool vtkPVView::SynchronizeSize(unsigned long &size)
 void vtkPVView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+  os << indent << "Identifier: " << this->Identifier << endl;
+  os << indent << "ViewTime: " << this->ViewTime << endl;
 }
 
 //----------------------------------------------------------------------------

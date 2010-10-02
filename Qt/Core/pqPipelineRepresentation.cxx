@@ -437,7 +437,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     pqPipelineRepresentation::getColorArray(attrInfo, inAttrInfo, arrayInfo);
     if (arrayInfo)
       {
-      chosenFieldType = vtkDataObject::FIELD_ASSOCIATION_CELLS;
+      chosenFieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
       chosenArrayInfo = arrayInfo;
       }
     }

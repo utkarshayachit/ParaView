@@ -216,6 +216,11 @@ pqView* pqStandardViewModules::createView(const QString& viewtype,
     return new pqSpreadSheetView(
       group, viewname, viewmodule, server, p);
     }
+  else if (viewmodule->IsA("vtkSMTwoDRenderViewProxy"))
+    {
+    return new pqTwoDRenderView(
+      group, viewname, viewmodule, server, p);
+    }
   else if (viewmodule->IsA("vtkSMRenderViewProxy"))
     {
     return new pqRenderView(group, viewname, viewmodule, server, p);
@@ -238,11 +243,6 @@ pqView* pqStandardViewModules::createView(const QString& viewtype,
     {
     // Handle the other comparative render views.
     return new pqComparativeRenderView(
-      group, viewname, viewmodule, server, p);
-    }
-  else if (viewmodule->IsA("vtkSMTwoDRenderViewProxy"))
-    {
-    return new pqTwoDRenderView(
       group, viewname, viewmodule, server, p);
     }
 //  else if (viewmodule->IsA("vtkSMScatterPlotViewProxy"))

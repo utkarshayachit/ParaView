@@ -91,7 +91,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->CenterAxes->SetPickable(0);
   this->CenterAxes->SetScale(0.25, 0.25, 0.25);
   this->OrientationWidget = vtkPVAxesWidget::New();
-  this->InteractionMode = INTERACTION_MODE_3D;
+  this->InteractionMode = -1;
   this->LastSelection = NULL;
   this->UseOffscreenRenderingForScreenshots = false;
   this->UseInteractiveRenderingForSceenshots = false;
@@ -194,6 +194,8 @@ vtkPVRenderView::vtkPVRenderView()
   this->OrientationWidget->SetInteractor(this->Interactor);
 
   this->GetRenderer()->AddActor(this->CenterAxes);
+
+  this->SetInteractionMode(INTERACTION_MODE_3D);
 }
 
 //----------------------------------------------------------------------------
@@ -296,6 +298,7 @@ void vtkPVRenderView::SetInteractionMode(int mode)
     switch (this->InteractionMode)
       {
     case INTERACTION_MODE_3D:
+    case INTERACTION_MODE_2D:
       this->Interactor->SetInteractorStyle(this->InteractorStyle);
       break;
 
@@ -303,8 +306,6 @@ void vtkPVRenderView::SetInteractionMode(int mode)
       this->Interactor->SetInteractorStyle(this->RubberBandStyle);
       break;
 
-    case INTERACTION_MODE_2D:
-      abort();
       break;
       }
     }
@@ -489,8 +490,11 @@ void vtkPVRenderView::GatherBoundsInformation()
 // Note this is called on all processes.
 void vtkPVRenderView::ResetCamera()
 {
-  this->Update();
-  this->GatherBoundsInformation();
+  // Do all passes needed for rendering so that the geometry in the renderer is
+  // updated. This is essential since the bounds are determined by using the
+  // geometry bounds know to the renders on all processes. If they are not
+  // updated, we will get wrong bounds.
+  this->Render(false, true);
 
   // Remember, vtkRenderer::ResetCamera() call
   // vtkRenderer::ResetCameraClippingPlanes() with the given bounds.
@@ -502,7 +506,7 @@ void vtkPVRenderView::StillRender()
 {
   vtkTimerLog::MarkStartEvent("Still Render");
   this->GetRenderWindow()->SetDesiredUpdateRate(0.002);
-  this->Render(false);
+  this->Render(false, false);
   vtkTimerLog::MarkEndEvent("Still Render");
 }
 
@@ -511,12 +515,12 @@ void vtkPVRenderView::InteractiveRender()
 {
   vtkTimerLog::MarkStartEvent("Interactive Render");
   this->GetRenderWindow()->SetDesiredUpdateRate(5.0);
-  this->Render(true);
+  this->Render(true, false);
   vtkTimerLog::MarkEndEvent("Interactive Render");
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderView::Render(bool interactive)
+void vtkPVRenderView::Render(bool interactive, bool skip_rendering)
 {
   if (!interactive)
     {
@@ -609,6 +613,11 @@ void vtkPVRenderView::Render(bool interactive)
     // communication each time.
     this->GatherBoundsInformation();
     this->UpdateCenterAxes(this->LastComputedBounds);
+    }
+
+  if (skip_rendering)
+    {
+    return;
     }
 
   // Call Render() on local render window only if

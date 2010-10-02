@@ -200,9 +200,12 @@ void pqTextureComboBox::setRepresentation(pqDataRepresentation* repr)
 
   // When the texture attached to the representation changes, we want to update
   // the combo box.
-  this->Internal->VTKConnect->Connect(
-    this->Internal->Representation->getProxy()->GetProperty("Texture"),
-    vtkCommand::ModifiedEvent, this, SLOT(updateFromProperty()));
+  if (this->Internal->Representation->getProxy()->GetProperty("Texture"))
+    {
+    this->Internal->VTKConnect->Connect(
+      this->Internal->Representation->getProxy()->GetProperty("Texture"),
+      vtkCommand::ModifiedEvent, this, SLOT(updateFromProperty()));
+    }
   this->updateFromProperty();
 
   QTimer::singleShot(0, this, SLOT(updateEnableState()));

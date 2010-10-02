@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Server Manager Includes.
 #include "vtkSMProxy.h"
 #include "vtkSMRenderViewProxy.h"
-#include "vtkSMPVRepresentationProxy.h"
+#include "vtkSMRepresentationProxy.h"
 //#include "vtkSMScatterPlotRepresentationProxy.h"
 // Qt Includes.
 #include <QtDebug>
@@ -135,7 +135,8 @@ pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
 //      }
     if (proxy->IsA("vtkSMRepresentationProxy") && proxy->GetProperty("Input"))
       {
-      if (proxy->GetProperty("Representation"))
+      if (proxy->IsA("vtkSMPVRepresentationProxy") ||
+        xml_type == "ImageSliceRepresentation")
         {
         // pqPipelineRepresentation is a design flaw! We need to get rid of it
         // and have helper code that manages the crap in that class

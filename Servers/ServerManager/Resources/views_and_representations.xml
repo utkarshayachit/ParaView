@@ -548,8 +548,29 @@
          <Property name="EyeAngle" />
        </ExposedProperties>
      </SubProxy>
-
     </RenderViewProxy>
+
+    <!-- ================================================================== -->
+    <TwoDRenderViewProxy name="2DRenderView"
+                         class="vtkPV2DRenderView"
+                         processes="client|renderserver|dataserver"
+                         base_proxygroup="views"
+                         base_proxyname="RenderView" >
+      <Documentation>
+        2D render view. Currently this view can only show image slices.
+      </Documentation>
+
+      <IntVectorProperty name="AxesVisibility"
+        command="SetAxisVisibility"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set the visibility of the 2D overlay axes.
+        </Documentation>
+      </IntVectorProperty>
+
+    </TwoDRenderViewProxy>
 
     <!-- ================================================================== -->
     <ContextViewProxy name="XYChartViewBase"
@@ -1757,6 +1778,8 @@
         <DataTypeDomain name="input_type" composite_data_supported="0">
           <DataType value="vtkImageData" />
         </DataTypeDomain>
+        <InputArrayDomain name="input_array_any" attribute_type="any">
+        </InputArrayDomain>
       </InputProperty>
 
       <IntVectorProperty name="Visibility"
@@ -1772,7 +1795,7 @@
       <IntVectorProperty name="ColorAttributeType"
         command="SetColorAttributeType"
         number_of_elements="1"
-        default_values="1">
+        default_values="0">
         <Documentation>
           Select the attribute type from where the scalars array is used. The
           scalar array name is specified using ColorArrayName. Note that if the
@@ -1901,6 +1924,13 @@
         <IntRangeDomain name="bool" />
       </IntVectorProperty>
 
+      <DoubleVectorProperty name="Opacity"
+        command="SetOpacity"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
       <!-- End of ImageSliceRepresentation -->
     </RepresentationProxy>
 
@@ -1934,7 +1964,7 @@
       <IntVectorProperty name="ColorAttributeType"
         command="SetColorAttributeType"
         number_of_elements="1"
-        default_values="1">
+        default_values="0">
         <EnumerationDomain name="enum">
           <Entry value="0" text="POINT_DATA" />
           <Entry value="1" text="CELL_DATA" />

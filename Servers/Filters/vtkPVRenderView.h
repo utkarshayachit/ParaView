@@ -84,7 +84,7 @@ public:
   // @CallOnAllProcessess - this must be called on all processes, however it will
   // have any effect only the driver processes i.e. the process with the
   // interactor.
-  void SetInteractionMode(int mode);
+  virtual void SetInteractionMode(int mode);
   vtkGetMacro(InteractionMode, int);
 
   // Description:
@@ -298,14 +298,14 @@ public:
 
   //*****************************************************************
   // Forwarded to orientation axes widget.
-  void SetOrientationAxesInteractivity(bool);
-  void SetOrientationAxesVisibility(bool);
+  virtual void SetOrientationAxesInteractivity(bool);
+  virtual void SetOrientationAxesVisibility(bool);
   void SetOrientationAxesLabelColor(double r, double g, double b);
   void SetOrientationAxesOutlineColor(double r, double g, double b);
 
   //*****************************************************************
   // Forwarded to center axes.
-  void SetCenterAxesVisibility(bool);
+  virtual void SetCenterAxesVisibility(bool);
 
   //*****************************************************************
   // Forward to vtkPVGenericRenderWindowInteractor.
@@ -368,7 +368,7 @@ protected:
 
   // Description:
   // Actual render method.
-  void Render(bool interactive);
+  void Render(bool interactive, bool skip_rendering);
 
   // Description:
   // Calls vtkView::REQUEST_INFORMATION() on all representations

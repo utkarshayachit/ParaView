@@ -83,9 +83,7 @@ pqTwoDRenderView::~pqTwoDRenderView()
 /// action gets pushed on the interaction undo stack.
 void pqTwoDRenderView::resetCamera()
 {
-  vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
-    this->getProxy());
-  view->InvokeCommand("ResetCamera");
+  this->getProxy()->InvokeCommand("ResetCamera");
   this->render();
 }
 
