@@ -45,11 +45,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSelectionNode.h"
 #include "vtkSmartPointer.h"
 #include "vtkSMInputProperty.h"
+#include "vtkSMIntVectorProperty.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMSourceProxy.h"
+#include "vtkSMStringVectorProperty.h"
+#include "vtkSpreadSheetView.h"
 #include "vtkStdString.h"
 #include "vtkTable.h"
 #include "vtkUnsignedIntArray.h"
 #include "vtkVariant.h"
+#include "vtkWeakPointer.h"
 
 // Qt Includes.
 #include <QTimer>
@@ -63,10 +68,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 
-#include "vtkSMPropertyHelper.h"
-#include "vtkSMStringVectorProperty.h"
-#include "vtkSMIntVectorProperty.h"
-#include "vtkSpreadSheetView.h"
 
 static uint qHash(pqSpreadSheetViewModel::vtkIndex index)
 {
@@ -100,6 +101,7 @@ public:
   int ActiveRegion[2];
   vtkSmartPointer<vtkEventQtSlotConnect> VTKConnect;
   QPointer<pqDataRepresentation> ActiveRepresentation;
+  vtkWeakPointer<vtkSMProxy> ActiveRepresentationProxy;
   vtkSpreadSheetView *VTKView;
   bool Dirty;
 };
@@ -148,10 +150,25 @@ pqDataRepresentation* pqSpreadSheetViewModel::activeRepresentation() const
 {
   return this->Internal->ActiveRepresentation;
 }
+
+//-----------------------------------------------------------------------------
+vtkSMProxy* pqSpreadSheetViewModel::activeRepresentationProxy() const
+{
+  return (this->Internal->ActiveRepresentation?
+    this->Internal->ActiveRepresentation->getProxy() :
+    this->Internal->ActiveRepresentationProxy.GetPointer());
+}
+
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::setActiveRepresentation(pqDataRepresentation* repr)
 {
   this->Internal->ActiveRepresentation = repr;
+}
+
+//-----------------------------------------------------------------------------
+void pqSpreadSheetViewModel::setActiveRepresentationProxy(vtkSMProxy* repr)
+{
+  this->Internal->ActiveRepresentationProxy = repr;
 }
 
 //-----------------------------------------------------------------------------
@@ -175,10 +192,10 @@ int pqSpreadSheetViewModel::columnCount(const QModelIndex&) const
 //-----------------------------------------------------------------------------
 int pqSpreadSheetViewModel::getFieldType() const
 {
-  if (this->activeRepresentation())
+  if (this->activeRepresentationProxy())
     {
     return vtkSMPropertyHelper(
-      this->activeRepresentation()->getProxy(), "FieldAssociation").GetAsInt();
+      this->activeRepresentationProxy(), "FieldAssociation").GetAsInt();
     }
   return -1;
 }
@@ -529,17 +546,17 @@ QSet<pqSpreadSheetViewModel::vtkIndex> pqSpreadSheetViewModel::getVTKIndices(
   // - (hlevel, hindex, id)
   QSet<vtkIndex> vtkindices;
 
-  if (!this->activeRepresentation())
-    {
-    return vtkindices;
-    }
-
   vtkSpreadSheetView* view = this->GetView();
   Q_ASSERT(view->GetShowExtractedSelection() == 0);
 
+  vtkIdType numrows = view->GetNumberOfRows();
   foreach (QModelIndex idx, indexes)
     {
     vtkIdType row = idx.row();
+    if (row >= numrows)
+      {
+      continue;
+      }
     vtkIndex value;
     vtkVariant processId = view->GetValueByName(row, "vtkOriginalProcessIds");
 
@@ -588,7 +605,6 @@ bool pqSpreadSheetViewModel::isDataValid( const QModelIndex &idx) const
     {
     return false;
     }
-
 
   vtkPVDataInformation* info = repr->getInputDataInformation();
   int field_type = this->getFieldType();

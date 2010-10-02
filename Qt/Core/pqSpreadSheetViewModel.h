@@ -129,6 +129,7 @@ public:
   /// Returns the active representation. Active representation is the
   /// representation being shown by the view.
   pqDataRepresentation* activeRepresentation() const;
+  vtkSMProxy* activeRepresentationProxy() const;
 
 public slots:
   /// resets the model.
@@ -137,6 +138,11 @@ public slots:
   /// Sets the active representation. Active representation is the
   /// representation being shown by the view.
   void setActiveRepresentation(pqDataRepresentation*);
+
+  /// Sets the active representation. When using this API instead of
+  /// setActiveRepresentation(pqDataRepresentation*), some functionality won't be
+  /// available.
+  void setActiveRepresentationProxy(vtkSMProxy*);
 
 signals:
   /// Fired whenever the server side selection changes.

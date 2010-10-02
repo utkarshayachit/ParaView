@@ -19,6 +19,8 @@
 #include "vtkClientServerMoveData.h"
 #include "vtkCompositeDataIterator.h"
 #include "vtkCompositeDataSet.h"
+#include "vtkCSVExporter.h"
+#include "vtkDataSetAttributes.h"
 #include "vtkMarkSelectedRows.h"
 #include "vtkMemberFunctionCommand.h"
 #include "vtkMultiProcessController.h"
@@ -192,6 +194,7 @@ vtkStandardNewMacro(vtkSpreadSheetView);
 //----------------------------------------------------------------------------
 vtkSpreadSheetView::vtkSpreadSheetView()
 {
+  this->NumberOfRows = 0;
   this->ShowExtractedSelection = false;
   this->TableStreamer = vtkSortedTableStreamer::New();
   this->TableSelectionMarker = vtkMarkSelectedRows::New();
@@ -456,6 +459,29 @@ bool vtkSpreadSheetView::IsAvailable(vtkIdType row)
   vtkIdType blockSize = this->TableStreamer->GetBlockSize();
   vtkIdType blockIndex = row / blockSize;
   return this->Internals->GetDataObject(blockIndex) != NULL;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSpreadSheetView::Export(vtkCSVExporter* exporter)
+{
+  if (!exporter->Open())
+    {
+    return false;
+    }
+
+  vtkIdType blockSize = this->TableStreamer->GetBlockSize();
+  vtkIdType numBlocks = (this->GetNumberOfRows() / blockSize) + 1;
+  for (vtkIdType cc=0; cc < numBlocks; cc++)
+    {
+    vtkTable* block = this->FetchBlock(cc);
+    if (cc==0)
+      {
+      exporter->WriteHeader(block->GetRowData());
+      }
+    exporter->WriteData(block->GetRowData());
+    }
+  exporter->Close();
+  return true;
 }
 
 //***************************************************************************

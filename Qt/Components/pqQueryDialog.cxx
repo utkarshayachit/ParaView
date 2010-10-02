@@ -47,13 +47,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVArrayInformation.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVDataSetAttributesInformation.h"
+#include "vtkSmartPointer.h"
 #include "vtkSMGlobalPropertiesManager.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMSourceProxy.h"
-#ifdef FIXME
-#include "vtkSMSpreadSheetRepresentationProxy.h"
-#endif
 
 #include <QList>
 
@@ -61,13 +59,18 @@ class pqQueryDialog::pqInternals : public Ui::pqQueryDialog
 {
 public:
   QList<pqQueryClauseWidget*> Clauses;
-#ifdef FIXME
-  pqSpreadSheetViewModel DataModel;
-#endif
+  pqSpreadSheetViewModel* DataModel;
   pqPropertyLinks Links;
-  
+  vtkSmartPointer<vtkSMProxy> ViewProxy;
+  vtkSmartPointer<vtkSMProxy> RepresentationProxy;
+
   pqPropertyLinks LabelColorLinks;
   pqSignalAdaptorColor* LabelColorAdaptor;
+  pqInternals()
+    {
+    this->DataModel = NULL;
+    this->LabelColorAdaptor = NULL;
+    }
 };
 
 //-----------------------------------------------------------------------------
@@ -118,8 +121,9 @@ pqQueryDialog::pqQueryDialog(
   QObject::connect(this->Internals->runQuery,
     SIGNAL(clicked()), this, SLOT(runQuery()));
 
-#ifdef FIXME
   // Setup the spreadsheet view.
+  this->setupSpreadSheet();
+#ifdef FIXME
   this->Internals->spreadsheet->setModel(&this->Internals->DataModel);
 
   // Create representation to show the producer.
@@ -194,6 +198,37 @@ pqQueryDialog::~pqQueryDialog()
   this->Internals = 0;
 }
 
+//-----------------------------------------------------------------------------
+void pqQueryDialog::setupSpreadSheet()
+{
+  vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+  vtkIdType cid = this->Producer->getServer()->GetConnectionID();
+
+  vtkSMProxy* repr = pxm->NewProxy("representations", "SpreadSheetRepresentation");
+  repr->SetConnectionID(cid);
+  // we always want to show all the blocks in the dataset, since we don't have a
+  // block chooser widget in this dialog.
+  vtkSMPropertyHelper(repr, "CompositeDataSetIndex").Set(0);
+  vtkSMPropertyHelper(repr, "Input").Set(
+    this->Producer->getSource()->getProxy(), this->Producer->getPortNumber());
+  repr->UpdateVTKObjects();
+
+  vtkSMProxy* view = pxm->NewProxy("views", "SpreadSheetView");
+  view->SetConnectionID(cid);
+  vtkSMPropertyHelper(view, "SelectionOnly").Set(1);
+  vtkSMPropertyHelper(view, "Representations").Set(repr);
+  vtkSMPropertyHelper(view, "ViewSize").Set(0, 1);
+  vtkSMPropertyHelper(view, "ViewSize").Set(1, 1);
+  view->UpdateVTKObjects();
+  view->InvokeCommand("StillRender");
+
+  this->Internals->ViewProxy.TakeReference(view);
+  this->Internals->RepresentationProxy.TakeReference(repr);
+  this->Internals->DataModel = new pqSpreadSheetViewModel(view, this);
+  this->Internals->DataModel->setActiveRepresentationProxy(repr);
+  this->Internals->spreadsheet->setModel(this->Internals->DataModel);
+}
+
 #include <QInputEvent>
 #include <pqCoreUtilities.h>
 #include "QVTKWidget.h"
@@ -207,13 +242,13 @@ bool pqQueryDialog::eventFilter(QObject* obj, QEvent* evt)
   bool is_render_window = (qobject_cast<QVTKWidget*>(obj));
   bool is_magical_event =
     (is_meant_for_dialog || !pqCoreUtilities::mainWidget()->isAncestorOf(wdg));
-  
+
   if (is_input_event && !is_meant_for_dialog && !is_magical_event &&
     !is_render_window)
     {
     return true;
     }
-      
+
   return this->Superclass::eventFilter(obj, evt);
 }
 
@@ -317,17 +352,15 @@ void pqQueryDialog::runQuery()
 
   this->producer()->renderAllViews();
 
-#ifdef FIXME
   int attr_type = this->Internals->selectionType->itemData(
     this->Internals->selectionType->currentIndex()).toInt();
-  vtkSMSpreadSheetRepresentationProxy* repr =
-    this->Internals->DataModel.getRepresentationProxy();
+
+  vtkSMProxy* repr = this->Internals->RepresentationProxy;
   // Pass the chosen attribute type to the spreasheet so we show cells or
   // points etc. based on what was selected.
   vtkSMPropertyHelper(repr, "FieldAssociation").Set(attr_type);
   repr->UpdateVTKObjects();
-  this->Internals->DataModel.getRepresentationProxy()->Update();
-  this->Internals->DataModel.forceUpdate();
+  this->Internals->ViewProxy->InvokeCommand("StillRender");
 
   // Once a query has been made, we enable components of the GUI that use the
   // selection
@@ -335,10 +368,9 @@ void pqQueryDialog::runQuery()
   this->Internals->labels->setEnabled(true);
   this->Internals->extractSelection->setEnabled(true);
   this->Internals->extractSelectionOverTime->setEnabled(true);
-  
+
   // update the list of available labels.
   this->updateLabels();
-#endif
   emit this->selected(this->producer());
 }
 

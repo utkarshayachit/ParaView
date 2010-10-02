@@ -25,11 +25,12 @@
 #include "vtkPVView.h"
 
 class vtkClientServerMoveData;
+class vtkCSVExporter;
+class vtkMarkSelectedRows;
 class vtkReductionFilter;
 class vtkSortedTableStreamer;
 class vtkTable;
 class vtkVariant;
-class vtkMarkSelectedRows;
 
 class VTK_EXPORT vtkSpreadSheetView : public vtkPVView
 {
@@ -114,6 +115,10 @@ public:
   // Set the block size
   // @CallOnAllProcessess
   void SetBlockSize(vtkIdType val);
+
+  // Description:
+  // Export the contents of this view using the exporter.
+  bool Export(vtkCSVExporter* exporter);
 
 //BTX
   // INTERNAL METHOD. Don't call directly.
