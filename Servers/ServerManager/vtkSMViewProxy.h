@@ -50,6 +50,10 @@ public:
   virtual void InteractiveRender();
 
   // Description:
+  // Called vtkPVView::Update on the server-side.
+  virtual void Update();
+
+  // Description:
   // Create a default representation for the given source proxy.
   // Returns a new proxy.
   virtual vtkSMRepresentationProxy* CreateDefaultRepresentation(

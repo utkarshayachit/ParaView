@@ -76,17 +76,21 @@ void vtkSMViewProxy::StillRender()
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkClientServerStream stream;
 
-  stream << vtkClientServerStream::Invoke
-    << this->GetID()
-    << "Update"
-    << vtkClientServerStream::End;
-  pm->SendStream(this->ConnectionID, this->Servers, stream);
+  // We call update separately from the render. This is done so that we don't
+  // get any synchronization issues with GUI responding to the data-updated
+  // event by making some data information requests(for example). If those
+  // happen while StillRender/InteractiveRender is being executed on the server
+  // side then we get deadlocks.
+  this->Update();
 
-  stream << vtkClientServerStream::Invoke
-    << this->GetID()
-    << "StillRender"
-    << vtkClientServerStream::End;
-  pm->SendStream(this->ConnectionID, this->Servers, stream);
+  if (!this->GetID().IsNull())
+    {
+    stream << vtkClientServerStream::Invoke
+      << this->GetID()
+      << "StillRender"
+      << vtkClientServerStream::End;
+    pm->SendStream(this->ConnectionID, this->Servers, stream);
+    }
   this->PostRender(interactive==1);
   this->InvokeEvent(vtkCommand::EndEvent, &interactive);
 }
@@ -96,23 +100,42 @@ void vtkSMViewProxy::InteractiveRender()
 {
   int interactive = 1;
   this->InvokeEvent(vtkCommand::StartEvent, &interactive);
-  vtkClientServerStream stream;
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
 
-  stream << vtkClientServerStream::Invoke
-    << this->GetID()
-    << "Update"
-    << vtkClientServerStream::End;
-  pm->SendStream(this->ConnectionID, this->Servers, stream);
+  // We call update separately from the render. This is done so that we don't
+  // get any synchronization issues with GUI responding to the data-updated
+  // event by making some data information requests(for example). If those
+  // happen while StillRender/InteractiveRender is being executed on the server
+  // side then we get deadlocks.
+  this->Update();
 
-  stream << vtkClientServerStream::Invoke
-    << this->GetID()
-    << "InteractiveRender"
-    << vtkClientServerStream::End;
-  pm->SendStream(this->ConnectionID, this->Servers, stream);
+  if (!this->GetID().IsNull())
+    {
+    vtkClientServerStream stream;
+    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+    stream << vtkClientServerStream::Invoke
+      << this->GetID()
+      << "InteractiveRender"
+      << vtkClientServerStream::End;
+    pm->SendStream(this->ConnectionID, this->Servers, stream);
+    }
 
   this->PostRender(interactive==1);
   this->InvokeEvent(vtkCommand::EndEvent, &interactive);
+}
+
+//----------------------------------------------------------------------------
+void vtkSMViewProxy::Update()
+{
+  if (!this->GetID().IsNull())
+    {
+    vtkClientServerStream stream;
+    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+    stream << vtkClientServerStream::Invoke
+      << this->GetID()
+      << "Update"
+      << vtkClientServerStream::End;
+    pm->SendStream(this->ConnectionID, this->Servers, stream);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -155,20 +178,27 @@ int vtkSMViewProxy::ReadXMLAttributes(
 vtkImageData* vtkSMViewProxy::CaptureWindow(int magnification)
 {
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  vtkClientServerStream stream;
-  stream << vtkClientServerStream::Invoke
-    << this->GetID()
-    << "PrepareForScreenshot"
-    << vtkClientServerStream::End;
-  pm->SendStream(this->ConnectionID, this->Servers, stream);
+  if (!this->GetID().IsNull())
+    {
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke
+      << this->GetID()
+      << "PrepareForScreenshot"
+      << vtkClientServerStream::End;
+    pm->SendStream(this->ConnectionID, this->Servers, stream);
+    }
 
   vtkImageData* capture = this->CaptureWindowInternal(magnification);
 
-  stream << vtkClientServerStream::Invoke
-    << this->GetID()
-    << "CleanupAfterScreenshot"
-    << vtkClientServerStream::End;
-  pm->SendStream(this->ConnectionID, this->Servers, stream);
+  if (!this->GetID().IsNull())
+    {
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke
+      << this->GetID()
+      << "CleanupAfterScreenshot"
+      << vtkClientServerStream::End;
+    pm->SendStream(this->ConnectionID, this->Servers, stream);
+    }
 
   if (capture)
     {
