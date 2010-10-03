@@ -24,6 +24,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointSource.h"
 #include "vtkPolyData.h"
+#include "vtkPVCacheKeeper.h"
 #include "vtkPVRenderView.h"
 #include "vtkTable.h"
 #include "vtkTextRepresentation.h"
@@ -37,6 +38,8 @@ vtkCxxSetObjectMacro(vtkTextSourceRepresentation, TextWidgetRepresentation,
 vtkTextSourceRepresentation::vtkTextSourceRepresentation()
 {
   this->TextWidgetRepresentation = 0;
+
+  this->CacheKeeper = vtkPVCacheKeeper::New();
   this->DataCollector = vtkUnstructuredDataDeliveryFilter::New();
   this->DataCollector->SetOutputDataType(VTK_POLY_DATA);
 
@@ -53,6 +56,8 @@ vtkTextSourceRepresentation::vtkTextSourceRepresentation()
   this->DummyPolyData = vtkPolyData::New();
   this->DummyPolyData->ShallowCopy(source->GetOutputDataObject(0));
   source->Delete();
+
+  this->CacheKeeper->SetInput(this->DummyPolyData);
 }
 
 //----------------------------------------------------------------------------
@@ -61,6 +66,7 @@ vtkTextSourceRepresentation::~vtkTextSourceRepresentation()
   this->SetTextWidgetRepresentation(0);
   this->DataCollector->Delete();
   this->DummyPolyData->Delete();
+  this->CacheKeeper->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -115,8 +121,19 @@ bool vtkTextSourceRepresentation::RemoveFromView(vtkView* view)
 //----------------------------------------------------------------------------
 void vtkTextSourceRepresentation::MarkModified()
 {
-  this->Modified();
   this->DataCollector->Modified();
+  if (!this->GetUseCache())
+    {
+    // Cleanup caches when not using cache.
+    this->CacheKeeper->RemoveAllCaches();
+    }
+  this->Modified();
+}
+
+//----------------------------------------------------------------------------
+bool vtkTextSourceRepresentation::IsCached(double cache_key)
+{
+  return this->CacheKeeper->IsCached(cache_key);
 }
 
 //----------------------------------------------------------------------------
@@ -124,14 +141,21 @@ int vtkTextSourceRepresentation::RequestData(
   vtkInformation* request, vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
 {
+  // Pass caching information to the cache keeper.
+  this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
+  this->CacheKeeper->SetCacheTime(this->GetCacheKey());
+
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
-    vtkTable* input = vtkTable::GetData(inputVector[0], 0);
-    if (input->GetNumberOfRows() > 0 && input->GetNumberOfColumns() > 0)
+    if (!this->GetUsingCacheForUpdate())
       {
-      this->DummyPolyData->GetFieldData()->ShallowCopy(input->GetRowData());
+      vtkTable* input = vtkTable::GetData(inputVector[0], 0);
+      if (input->GetNumberOfRows() > 0 && input->GetNumberOfColumns() > 0)
+        {
+        this->DummyPolyData->GetFieldData()->ShallowCopy(input->GetRowData());
+        }
       }
-    this->DataCollector->SetInput(this->DummyPolyData);
+    this->DataCollector->SetInputConnection(this->CacheKeeper->GetOutputPort());
     }
   else
     {

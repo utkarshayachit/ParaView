@@ -23,6 +23,7 @@
 #include "vtkLabeledDataMapper.h"
 #include "vtkMPIMoveData.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVCacheKeeper.h"
 #include "vtkPVRenderView.h"
 #include "vtkRenderer.h"
 #include "vtkTextProperty.h"
@@ -37,6 +38,7 @@ vtkDataLabelRepresentation::vtkDataLabelRepresentation()
   this->CellLabelVisibility = 0;
 
   this->MergeBlocks = vtkCompositeDataToUnstructuredGridFilter::New();
+  this->CacheKeeper = vtkPVCacheKeeper::New();
   this->DataCollector = vtkUnstructuredDataDeliveryFilter::New();
 
   this->PointLabelMapper = vtkLabeledDataMapper::New();
@@ -53,6 +55,7 @@ vtkDataLabelRepresentation::vtkDataLabelRepresentation()
 
   this->DataCollector->SetOutputDataType(VTK_UNSTRUCTURED_GRID);
 
+  this->CacheKeeper->SetInputConnection(this->MergeBlocks->GetOutputPort());
   this->PointLabelMapper->SetInputConnection(this->DataCollector->GetOutputPort());
   this->CellCenters->SetInputConnection(this->DataCollector->GetOutputPort());
   this->CellLabelMapper->SetInputConnection(this->CellCenters->GetOutputPort());
@@ -87,6 +90,7 @@ vtkDataLabelRepresentation::~vtkDataLabelRepresentation()
   this->CellLabelProperty->Delete();
   this->Transform->Delete();
   this->TransformHelperProp->Delete();
+  this->CacheKeeper->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -250,7 +254,18 @@ void vtkDataLabelRepresentation::SetCellLabelFontSize(int val)
 void vtkDataLabelRepresentation::MarkModified()
 {
   this->DataCollector->Modified();
+  if (!this->GetUseCache())
+    {
+    // Cleanup caches when not using cache.
+    this->CacheKeeper->RemoveAllCaches();
+    }
   this->Modified();
+}
+
+//----------------------------------------------------------------------------
+bool vtkDataLabelRepresentation::IsCached(double cache_key)
+{
+  return this->CacheKeeper->IsCached(cache_key);
 }
 
 //----------------------------------------------------------------------------
@@ -293,12 +308,16 @@ bool vtkDataLabelRepresentation::RemoveFromView(vtkView* view)
 int vtkDataLabelRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  // Pass caching information to the cache keeper.
+  this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
+  this->CacheKeeper->SetCacheTime(this->GetCacheKey());
+
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
     this->MergeBlocks->SetInputConnection(
       this->GetInternalOutputPort());
     this->MergeBlocks->Update();
-    this->DataCollector->SetInputConnection(this->MergeBlocks->GetOutputPort());
+    this->DataCollector->SetInputConnection(this->CacheKeeper->GetOutputPort());
     }
   else
     {

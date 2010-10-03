@@ -23,6 +23,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkOutlineSource.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkPVCacheKeeper.h"
 #include "vtkPVLODVolume.h"
 #include "vtkPVRenderView.h"
 #include "vtkRenderer.h"
@@ -51,20 +52,23 @@ vtkImageVolumeRepresentation::vtkImageVolumeRepresentation()
   this->Actor = vtkPVLODVolume::New();
   this->Actor->SetProperty(this->Property);
 
+  this->CacheKeeper = vtkPVCacheKeeper::New();
+
   this->OutlineSource = vtkOutlineSource::New();
   this->OutlineDeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
   this->OutlineMapper = vtkPolyDataMapper::New();
-
-  this->OutlineDeliveryFilter->SetInputConnection(
-    this->OutlineSource->GetOutputPort());
-  this->OutlineMapper->SetInputConnection(
-    this->OutlineDeliveryFilter->GetOutputPort());
-  this->Actor->SetLODMapper(this->OutlineMapper);
 
   this->ColorArrayName = 0;
   this->ColorAttributeType = POINT_DATA;
   this->ActiveVolumeMapper = 0;
   this->Cache = vtkImageData::New();
+
+  this->CacheKeeper->SetInput(this->Cache);
+  this->OutlineDeliveryFilter->SetInputConnection(
+    this->OutlineSource->GetOutputPort());
+  this->OutlineMapper->SetInputConnection(
+    this->OutlineDeliveryFilter->GetOutputPort());
+  this->Actor->SetLODMapper(this->OutlineMapper);
 }
 
 //----------------------------------------------------------------------------
@@ -77,6 +81,7 @@ vtkImageVolumeRepresentation::~vtkImageVolumeRepresentation()
   this->OutlineSource->Delete();
   this->OutlineDeliveryFilter->Delete();
   this->OutlineMapper->Delete();
+  this->CacheKeeper->Delete();
 
   this->SetColorArrayName(0);
   this->SetActiveVolumeMapper(0);
@@ -154,21 +159,31 @@ int vtkImageVolumeRepresentation::ProcessViewRequest(
 int vtkImageVolumeRepresentation::RequestData(vtkInformation* request,
     vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  // Pass caching information to the cache keeper.
+  this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
+  this->CacheKeeper->SetCacheTime(this->GetCacheKey());
+
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
     vtkImageData* input = vtkImageData::GetData(inputVector[0], 0);
-    this->Cache->ShallowCopy(input);
-    this->GetActiveVolumeMapper()->SetInput(this->Cache);
-    this->Actor->SetEnableLOD(0);
+    if (!this->GetUsingCacheForUpdate())
+      {
+      this->Cache->ShallowCopy(input);
+      }
+    this->CacheKeeper->Update();
 
-    this->OutlineSource->SetBounds(input->GetBounds());
+    this->Actor->SetEnableLOD(0);
+    this->GetActiveVolumeMapper()->SetInputConnection(
+      this->CacheKeeper->GetOutputPort());
+
+    this->OutlineSource->SetBounds(vtkImageData::SafeDownCast(
+        this->CacheKeeper->GetOutputDataObject(0))->GetBounds());
     }
   else
     {
     // when no input is present, it implies that this processes is on a node
     // without the data input i.e. either client or render-server, in which case
     // we show only the outline.
-    this->Cache->Initialize();
     this->GetActiveVolumeMapper()->RemoveAllInputs();
     this->Actor->SetEnableLOD(1);
     }
@@ -177,9 +192,20 @@ int vtkImageVolumeRepresentation::RequestData(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
+bool vtkImageVolumeRepresentation::IsCached(double cache_key)
+{
+  return this->CacheKeeper->IsCached(cache_key);
+}
+
+//----------------------------------------------------------------------------
 void vtkImageVolumeRepresentation::MarkModified()
 {
   this->OutlineDeliveryFilter->Modified();
+  if (!this->GetUseCache())
+    {
+    // Cleanup caches when not using cache.
+    this->CacheKeeper->RemoveAllCaches();
+    }
   this->Modified();
 }
 

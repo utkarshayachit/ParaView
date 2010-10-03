@@ -28,6 +28,7 @@
 class vtkCompositePolyDataMapper2;
 class vtkGeometryRepresentationMultiBlockMaker;
 class vtkOrderedCompositeDistributor;
+class vtkPVCacheKeeper;
 class vtkPVGeometryFilter;
 class vtkPVLODActor;
 class vtkQuadricClustering;
@@ -182,10 +183,6 @@ protected:
   virtual int RequestData(vtkInformation*,
     vtkInformationVector**, vtkInformationVector*);
 
-  virtual int RequestUpdateExtent(vtkInformation* request,
-    vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector);
-
   // Description:
   // Produce meta-data about this representation that the view may find useful.
   bool GenerateMetaData(vtkInformation*, vtkInformation*);
@@ -211,8 +208,13 @@ protected:
   virtual vtkPVLODActor* GetRenderedProp()
     { return this->Actor; }
 
+  // Description:
+  // Overridden to check with the vtkPVCacheKeeper to see if the key is cached.
+  virtual bool IsCached(double cache_key);
+
   vtkPVGeometryFilter* GeometryFilter;
   vtkGeometryRepresentationMultiBlockMaker* MultiBlockMaker;
+  vtkPVCacheKeeper* CacheKeeper;
   vtkQuadricClustering* Decimator;
   vtkCompositePolyDataMapper2* Mapper;
   vtkCompositePolyDataMapper2* LODMapper;

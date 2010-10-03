@@ -80,8 +80,24 @@ public:
 
   // Description:
   // Get/Set the time this view is showing.
+  // @CallOnAllProcessess
   vtkSetMacro(ViewTime, double);
   vtkGetMacro(ViewTime, double);
+
+  // Description:
+  // Get/Set the cache key. When caching is enabled, this key is used to
+  // identify what geometry cache to use for the current render. It is passed on
+  // to the representations in vtkPVView::Update(). The CacheKey is respected
+  // only when UseCache is true.
+  // @CallOnAllProcessess
+  vtkSetMacro(CacheKey, double);
+  vtkGetMacro(CacheKey, double);
+
+  // Description:
+  // Get/Set whether caching is enabled.
+  // @CallOnAllProcessess
+  vtkSetMacro(UseCache, bool);
+  vtkGetMacro(UseCache, bool);
 
   // Description:
   // These methods are used to setup the view for capturing screen shots.
@@ -157,6 +173,9 @@ protected:
     vtkInformationRequestKey* passType,
     vtkInformation* request, vtkInformationVector* reply);
   double ViewTime;
+
+  double CacheKey;
+  bool UseCache;
 
 private:
   vtkPVView(const vtkPVView&); // Not implemented

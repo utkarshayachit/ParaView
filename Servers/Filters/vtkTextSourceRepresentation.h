@@ -25,8 +25,9 @@
 #include "vtkPVDataRepresentation.h"
 
 class vtk3DWidgetRepresentation;
-class vtkUnstructuredDataDeliveryFilter;
 class vtkPolyData;
+class vtkPVCacheKeeper;
+class vtkUnstructuredDataDeliveryFilter;
 
 class VTK_EXPORT vtkTextSourceRepresentation : public vtkPVDataRepresentation
 {
@@ -77,6 +78,11 @@ protected:
   // Returns true if the removal succeeds.
   virtual bool RemoveFromView(vtkView* view);
 
+  // Description:
+  // Overridden to check with the vtkPVCacheKeeper to see if the key is cached.
+  virtual bool IsCached(double cache_key);
+
+  vtkPVCacheKeeper* CacheKeeper;
   vtkUnstructuredDataDeliveryFilter* DataCollector;
   vtkPolyData* DummyPolyData;
   vtk3DWidgetRepresentation* TextWidgetRepresentation;

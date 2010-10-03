@@ -17,6 +17,29 @@
         </Documentation>
       </DoubleVectorProperty>
 
+      <DoubleVectorProperty name="CacheKey"
+        command="SetCacheKey"
+        number_of_elements="1"
+        is_internal="1"
+        default_values="none">
+        <DoubleRangeDomain name="range"/>
+        <Documentation>
+          This is the cache key used to indentify which cache entry to use for
+          rendering when caching is enabled.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="UseCache"
+        command="SetUseCache"
+        number_of_elements="1"
+        is_internal="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Indicates whether to use cache for subsequent renderings.
+        </Documentation>
+      </IntVectorProperty>
+
       <IntVectorProperty name="ViewPosition"
         command="SetPosition"
         number_of_elements="2"
@@ -932,6 +955,38 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
+
       <IntVectorProperty name="SelectionVisibility"
         command="SetSelectionVisibility"
         number_of_elements="1"
@@ -1284,6 +1339,38 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
+
       <IntVectorProperty name="ColorAttributeType"
         command="SetColorAttributeType"
         number_of_elements="1"
@@ -1486,6 +1573,38 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
+
       <IntVectorProperty name="ColorAttributeType"
         command="SetColorAttributeType"
         number_of_elements="1"
@@ -1641,6 +1760,38 @@
           Get/Set the visibility of the representation.
         </Documentation>
       </IntVectorProperty>
+
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
 
       <IntVectorProperty name="ColorAttributeType"
         command="SetColorAttributeType"
@@ -1817,6 +1968,38 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
+
       <IntVectorProperty name="ColorAttributeType"
         command="SetColorAttributeType"
         number_of_elements="1"
@@ -1985,6 +2168,38 @@
           Get/Set the visibility of the representation.
         </Documentation>
       </IntVectorProperty>
+
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
 
       <IntVectorProperty name="ColorAttributeType"
         command="SetColorAttributeType"
@@ -2743,6 +2958,38 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
+
       <DoubleVectorProperty name="Color"
         command="SetColor"
         number_of_elements="3"
@@ -2878,6 +3125,38 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
+
       <IntVectorProperty name="AttributeType"
         command="SetFieldAssociation"
         number_of_elements="1"
@@ -3009,6 +3288,38 @@
           Visibility of the representation.
         </Documentation>
       </IntVectorProperty>
+
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
 
       <IntVectorProperty name="FieldAssociation"
         command="SetFieldAssociation"
@@ -3227,6 +3538,38 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
+
       <IntVectorProperty name="FieldAssociation"
          command="SetFieldAssociation"
          number_of_elements="1"
@@ -3303,6 +3646,38 @@
         default_values="1">
         <BooleanDomain name="bool" />
       </IntVectorProperty>
+
+      <IntVectorProperty name="ForceUseCache"
+        command="SetForceUseCache"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ForcedCacheKey"
+        command="SetForcedCacheKey"
+        is_internal="1"
+        number_of_elements="1"
+        default_values="none">
+        <DoubleRangeDomain name="range" />
+        <Documentation>
+          Typically UseCache and CacheKey are updated by the View and
+          representations cache based on what the view tells it. However in some
+          cases we may want to force a representation to cache irrespective of
+          the view (e.g. comparative views). In which case these ivars can up
+          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+          Instead, ForcedCacheKey is used.
+        </Documentation>
+      </DoubleVectorProperty>
 
       <IntVectorProperty name="Interactivity"
         command="SetInteractivity"

@@ -32,6 +32,7 @@ class vtkCellCenters;
 class vtkCompositeDataToUnstructuredGridFilter;
 class vtkLabeledDataMapper;
 class vtkProp3D;
+class vtkPVCacheKeeper;
 class vtkTextProperty;
 class vtkTransform;
 class vtkUnstructuredDataDeliveryFilter;
@@ -126,9 +127,14 @@ protected:
   virtual int RequestData(vtkInformation*,
     vtkInformationVector**, vtkInformationVector*);
 
+  // Description:
+  // Overridden to check with the vtkPVCacheKeeper to see if the key is cached.
+  virtual bool IsCached(double cache_key);
+
   void UpdateTransform();
 
   vtkCompositeDataToUnstructuredGridFilter* MergeBlocks;
+  vtkPVCacheKeeper* CacheKeeper;
   vtkUnstructuredDataDeliveryFilter* DataCollector;
 
   vtkLabeledDataMapper* PointLabelMapper;

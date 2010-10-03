@@ -67,10 +67,49 @@ public:
   // Set whether the UpdateTime is valid.
   vtkGetMacro(UpdateTimeValid, bool);
 
+  // Description:
+  // This controls when to use cache and when using cache, what cached value to
+  // use for the next update. This class using a special executive so that is a
+  // data is cached, then it does not propagate any pipeline requests upstream.
+  // These ivars are updated by vtkPVView::Update() based on the corresponding
+  // variable values on the vtkPVView itself.
+  vtkSetMacro(UseCache, bool);
+  vtkSetMacro(CacheKey, double);
+
+  // Description:
+  // Typically UseCache and CacheKey are updated by the View and representations
+  // cache based on what the view tells it. However in some cases we may want to
+  // force a representation to cache irrespective of the view (e.g. comparative
+  // views). In which case these ivars can up set. If ForcedCacheKey is true, it
+  // overrides UseCache and CacheKey. Instead, ForcedCacheKey is used.
+  vtkSetMacro(ForcedCacheKey, double);
+  vtkSetMacro(ForceUseCache, bool);
+
+  // Description:
+  // Returns whether caching is used and what key to use when caching is
+  // enabled.
+  virtual double GetCacheKey()
+    { return this->ForceUseCache? this->ForcedCacheKey : this->CacheKey; }
+  virtual bool GetUseCache()
+    { return this->ForceUseCache || this->UseCache; }
+
+  // Description:
+  // Called by vtkPVDataRepresentationPipeline to see if using cache is valid
+  // and will be used for the update. If so, it bypasses all pipeline passes.
+  // Subclasses should override IsCached(double) to indicate if a particular
+  // entry is cached.
+  bool GetUsingCacheForUpdate();
+
 //BTX
 protected:
   vtkPVDataRepresentation();
   ~vtkPVDataRepresentation();
+
+  // Description:
+  // Subclasses should override this method when they support caching to
+  // indicate if the particular key is cached. Default returns false.
+  virtual bool IsCached(double cache_key)
+    { (void)cache_key; return false; }
 
   // Description:
   // Create a default executive.
@@ -92,6 +131,11 @@ private:
   void operator=(const vtkPVDataRepresentation&); // Not implemented
 
   bool Visibility;
+  bool UseCache;
+  bool ForceUseCache;
+  double CacheKey;
+  double ForcedCacheKey;
+
 //ETX
 };
 

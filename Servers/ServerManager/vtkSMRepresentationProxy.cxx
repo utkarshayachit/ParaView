@@ -25,6 +25,7 @@ vtkStandardNewMacro(vtkSMRepresentationProxy);
 //----------------------------------------------------------------------------
 vtkSMRepresentationProxy::vtkSMRepresentationProxy()
 {
+  this->SetExecutiveName("vtkPVDataRepresentationPipeline");
   this->RepresentedDataInformationValid = false;
   this->RepresentedDataInformation = vtkPVRepresentedDataInformation::New();
   this->MarkedModified = false;

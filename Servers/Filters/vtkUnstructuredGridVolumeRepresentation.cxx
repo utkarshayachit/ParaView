@@ -24,6 +24,7 @@
 #include "vtkPolyDataMapper.h"
 #include "vtkProjectedTetrahedraMapper.h"
 #include "vtkPVGeometryFilter.h"
+#include "vtkPVCacheKeeper.h"
 #include "vtkPVLODVolume.h"
 #include "vtkPVRenderView.h"
 #include "vtkRenderer.h"
@@ -54,6 +55,8 @@ vtkUnstructuredGridVolumeRepresentation::vtkUnstructuredGridVolumeRepresentation
   this->Preprocessor = vtkVolumeRepresentationPreprocessor::New();
   this->Preprocessor->SetTetrahedraOnly(1);
 
+  this->CacheKeeper = vtkPVCacheKeeper::New();
+
   this->DefaultMapper = vtkProjectedTetrahedraMapper::New();
   this->Property = vtkVolumeProperty::New();
   this->Actor = vtkPVLODVolume::New();
@@ -71,7 +74,8 @@ vtkUnstructuredGridVolumeRepresentation::vtkUnstructuredGridVolumeRepresentation
   this->LODDeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
   this->LODDeliveryFilter->SetOutputDataType(VTK_POLY_DATA);
 
-  this->LODGeometryFilter->SetInputConnection(this->Preprocessor->GetOutputPort());
+  this->CacheKeeper->SetInputConnection(this->Preprocessor->GetOutputPort());
+  this->LODGeometryFilter->SetInputConnection(this->CacheKeeper->GetOutputPort());
   this->LODMapper->SetInputConnection(this->LODDeliveryFilter->GetOutputPort());
   this->Actor->SetProperty(this->Property);
   this->Actor->SetMapper(this->DefaultMapper);
@@ -86,6 +90,7 @@ vtkUnstructuredGridVolumeRepresentation::vtkUnstructuredGridVolumeRepresentation
 vtkUnstructuredGridVolumeRepresentation::~vtkUnstructuredGridVolumeRepresentation()
 {
   this->Preprocessor->Delete();
+  this->CacheKeeper->Delete();
   this->DefaultMapper->Delete();
   this->Property->Delete();
   this->Actor->Delete();
@@ -133,6 +138,11 @@ void vtkUnstructuredGridVolumeRepresentation::MarkModified()
   this->DeliveryFilter->Modified();
   this->Distributor->Modified();
   this->LODDeliveryFilter->Modified();
+  if (!this->GetUseCache())
+    {
+    // Cleanup caches when not using cache.
+    this->CacheKeeper->RemoveAllCaches();
+    }
   this->Modified();
 }
 
@@ -150,6 +160,10 @@ int vtkUnstructuredGridVolumeRepresentation::FillInputPortInformation(
 int vtkUnstructuredGridVolumeRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  // Pass caching information to the cache keeper.
+  this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
+  this->CacheKeeper->SetCacheTime(this->GetCacheKey());
+
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
     this->Preprocessor->SetInputConnection(
@@ -160,7 +174,7 @@ int vtkUnstructuredGridVolumeRepresentation::RequestData(vtkInformation* request
       this->Distributor->GetOutputPort());
 
     this->DeliveryFilter->SetInputConnection(
-      this->Preprocessor->GetOutputPort());
+      this->CacheKeeper->GetOutputPort());
     this->LODDeliveryFilter->SetInputConnection(
       this->LODGeometryFilter->GetOutputPort());
     }
@@ -175,12 +189,9 @@ int vtkUnstructuredGridVolumeRepresentation::RequestData(vtkInformation* request
 }
 
 //----------------------------------------------------------------------------
-int vtkUnstructuredGridVolumeRepresentation::RequestUpdateExtent(
-  vtkInformation* request,
-  vtkInformationVector** inputVector,
-  vtkInformationVector* outputVector)
+bool vtkUnstructuredGridVolumeRepresentation::IsCached(double cache_key)
 {
-  return this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
+  return this->CacheKeeper->IsCached(cache_key);
 }
 
 //----------------------------------------------------------------------------

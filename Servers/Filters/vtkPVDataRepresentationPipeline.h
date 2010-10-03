@@ -32,21 +32,13 @@ public:
   vtkTypeMacro(vtkPVDataRepresentationPipeline, vtkCompositeDataPipeline);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Set the update time.
-  vtkSetMacro(UpdateTime, double);
-  vtkGetMacro(UpdateTime, double);
-
-  // Description:
-  // Set whether the UpdateTime is valid.
-  vtkSetMacro(UpdateTimeValid, bool);
-  vtkGetMacro(UpdateTimeValid, bool);
-
-  void Hack();
 //BTX
 protected:
   vtkPVDataRepresentationPipeline();
   ~vtkPVDataRepresentationPipeline();
+
+  virtual int ForwardUpstream(int i, int j, vtkInformation* request);
+  virtual int ForwardUpstream(vtkInformation* request);
 
   virtual void ExecuteDataEnd(vtkInformation* request,
     vtkInformationVector** inInfoVec,
@@ -60,9 +52,6 @@ protected:
     vtkInformationVector** inInfoVec,
     vtkInformationVector* outInfoVec);
 
-  bool UpdateTimeValid;
-  double UpdateTime;
-  double LastTime;
 private:
   vtkPVDataRepresentationPipeline(const vtkPVDataRepresentationPipeline&); // Not implemented
   void operator=(const vtkPVDataRepresentationPipeline&); // Not implemented

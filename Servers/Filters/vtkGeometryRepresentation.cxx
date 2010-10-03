@@ -25,6 +25,7 @@
 #include "vtkOrderedCompositeDistributor.h"
 #include "vtkPKdTree.h"
 #include "vtkProperty.h"
+#include "vtkPVCacheKeeper.h"
 #include "vtkPVGeometryFilter.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVRenderView.h"
@@ -80,6 +81,7 @@ vtkStandardNewMacro(vtkGeometryRepresentation);
 vtkGeometryRepresentation::vtkGeometryRepresentation()
 {
   this->GeometryFilter = vtkPVGeometryFilter::New();
+  this->CacheKeeper = vtkPVCacheKeeper::New();
   this->MultiBlockMaker = vtkGeometryRepresentationMultiBlockMaker::New();
   this->Decimator = vtkQuadricClustering::New();
   this->Decimator->SetUseInputPoints(1);
@@ -107,7 +109,8 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->Distributor->SetPassThrough(1);
 
   this->MultiBlockMaker->SetInputConnection(this->GeometryFilter->GetOutputPort());
-  this->Decimator->SetInputConnection(this->MultiBlockMaker->GetOutputPort());
+  this->CacheKeeper->SetInputConnection(this->MultiBlockMaker->GetOutputPort());
+  this->Decimator->SetInputConnection(this->CacheKeeper->GetOutputPort());
   this->Mapper->SetInputConnection(this->Distributor->GetOutputPort());
   this->LODMapper->SetInputConnection(this->LODDeliveryFilter->GetOutputPort());
   this->Actor->SetMapper(this->Mapper);
@@ -127,6 +130,7 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
 //----------------------------------------------------------------------------
 vtkGeometryRepresentation::~vtkGeometryRepresentation()
 {
+  this->CacheKeeper->Delete();
   this->GeometryFilter->Delete();
   this->MultiBlockMaker->Delete();
   this->Decimator->Delete();
@@ -219,23 +223,24 @@ int vtkGeometryRepresentation::ProcessViewRequest(
 int vtkGeometryRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  // Pass caching information to the cache keeper.
+  this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
+  this->CacheKeeper->SetCacheTime(this->GetCacheKey());
+
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
     this->GeometryFilter->SetInputConnection(
       this->GetInternalOutputPort());
     cout << "Update GeometryFilter" << endl;
     this->GeometryFilter->Update();
-    this->MultiBlockMaker->SetInputConnection(
-      this->GeometryFilter->GetOutputPort());
     this->DeliveryFilter->SetInputConnection(
-      this->MultiBlockMaker->GetOutputPort());
+      this->CacheKeeper->GetOutputPort());
     this->LODDeliveryFilter->SetInputConnection(
       this->Decimator->GetOutputPort());
     }
   else
     {
     cout << "Process has not input data" << endl;
-    this->MultiBlockMaker->RemoveAllInputs();
     this->DeliveryFilter->RemoveAllInputs();
     this->LODDeliveryFilter->RemoveAllInputs();
     }
@@ -244,11 +249,9 @@ int vtkGeometryRepresentation::RequestData(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkGeometryRepresentation::RequestUpdateExtent(vtkInformation* request,
-  vtkInformationVector** inputVector,
-  vtkInformationVector* outputVector)
+bool vtkGeometryRepresentation::IsCached(double cache_key)
 {
-  return this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
+  return this->CacheKeeper->IsCached(cache_key);
 }
 
 //----------------------------------------------------------------------------
@@ -283,10 +286,15 @@ bool vtkGeometryRepresentation::GenerateMetaData(vtkInformation*,
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::MarkModified()
 {
-  this->GeometryFilter->Modified();
   this->DeliveryFilter->Modified();
   this->LODDeliveryFilter->Modified();
   this->Distributor->Modified();
+
+  if (!this->GetUseCache())
+    {
+    // Cleanup caches when not using cache.
+    this->CacheKeeper->RemoveAllCaches();
+    }
   this->Modified();
 }
 

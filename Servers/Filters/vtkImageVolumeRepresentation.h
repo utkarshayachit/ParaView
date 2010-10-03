@@ -32,6 +32,7 @@ class vtkImageData;
 class vtkOutlineSource;
 class vtkPiecewiseFunction;
 class vtkPolyDataMapper;
+class vtkPVCacheKeeper;
 class vtkPVLODVolume;
 class vtkUnstructuredDataDeliveryFilter;
 class vtkVolumeMapper;
@@ -137,11 +138,15 @@ protected:
   virtual bool RemoveFromView(vtkView* view);
 
   // Description:
+  // Overridden to check with the vtkPVCacheKeeper to see if the key is cached.
+  virtual bool IsCached(double cache_key);
+
+  // Description:
   // Passes on parameters to the active volume mapper
   virtual void UpdateMapperParameters();
 
   vtkImageData* Cache;
-
+  vtkPVCacheKeeper* CacheKeeper;
   vtkFixedPointVolumeRayCastMapper* DefaultMapper;
   vtkVolumeProperty* Property;
   vtkPVLODVolume* Actor;

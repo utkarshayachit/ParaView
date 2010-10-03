@@ -25,8 +25,6 @@ vtkStandardNewMacro(vtkPVDataRepresentationPipeline);
 //----------------------------------------------------------------------------
 vtkPVDataRepresentationPipeline::vtkPVDataRepresentationPipeline()
 {
-  this->UpdateTime = 0.0;
-  this->UpdateTimeValid = false;
 }
 
 //----------------------------------------------------------------------------
@@ -35,10 +33,32 @@ vtkPVDataRepresentationPipeline::~vtkPVDataRepresentationPipeline()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataRepresentationPipeline::Hack()
+int vtkPVDataRepresentationPipeline::ForwardUpstream(
+  int i, int j, vtkInformation* request)
 {
-  vtkPVDataRepresentation::SafeDownCast(this->Algorithm)->SetUpdateTime(this->UpdateTime);
-  vtkPVDataRepresentation::SafeDownCast(this->Algorithm)->SetUpdateTimeValid(this->UpdateTimeValid);
+  vtkPVDataRepresentation* representation =
+    vtkPVDataRepresentation::SafeDownCast(this->Algorithm);
+  if (representation && representation->GetUsingCacheForUpdate())
+    {
+    // shunt upstream updates when using cache.
+    return 1;
+    }
+
+  return this->Superclass::ForwardUpstream(i, j, request);
+}
+
+//----------------------------------------------------------------------------
+int vtkPVDataRepresentationPipeline::ForwardUpstream(vtkInformation* request)
+{
+  vtkPVDataRepresentation* representation =
+    vtkPVDataRepresentation::SafeDownCast(this->Algorithm);
+  if (representation && representation->GetUsingCacheForUpdate())
+    {
+    // shunt upstream updates when using cache.
+    return 1;
+    }
+
+  return this->Superclass::ForwardUpstream(request);
 }
 
 //----------------------------------------------------------------------------
@@ -57,7 +77,6 @@ void vtkPVDataRepresentationPipeline::ExecuteDataEnd(vtkInformation* request,
     vtkInformationVector* outInfoVec)
 {
   this->Superclass::ExecuteDataEnd(request, inInfoVec, outInfoVec);
-  this->LastTime = this->UpdateTime;
 }
 
 //----------------------------------------------------------------------------
@@ -71,6 +90,4 @@ int vtkPVDataRepresentationPipeline::NeedToExecuteData(int outputPort,
 void vtkPVDataRepresentationPipeline::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "UpdateTimeValid: " << this->UpdateTimeValid << endl;
-  os << indent << "UpdateTime: " << this->UpdateTime << endl;
 }

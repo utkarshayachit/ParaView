@@ -21,6 +21,8 @@
 // \li 0: Data (vtkDataObject)
 // \li 1: Extracted Data (vtkUnstructruedGrid or multi-block of it)
 // \li 2: Extracted vtkSelection (vtkSelection)
+// .SECTION Caveats
+// This representation doesn't support caching currently.
 
 #ifndef __vtkSpreadSheetRepresentation_h
 #define __vtkSpreadSheetRepresentation_h

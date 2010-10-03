@@ -26,11 +26,11 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlot.h"
+#include "vtkPVCacheKeeper.h"
 #include "vtkPVContextView.h"
 #include "vtkPVMergeTables.h"
 #include "vtkReductionFilter.h"
 #include "vtkSelection.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTable.h"
 
 vtkStandardNewMacro(vtkChartRepresentation);
@@ -46,10 +46,15 @@ vtkChartRepresentation::vtkChartRepresentation()
   // component)?
   this->Preprocessor->SetFlattenTable(1);
 
+  this->CacheKeeper = vtkPVCacheKeeper::New();
+
   this->ReductionFilter = vtkReductionFilter::New();
   vtkPVMergeTables* post_gather_algo = vtkPVMergeTables::New();
   this->ReductionFilter->SetPostGatherHelper(post_gather_algo);
   this->ReductionFilter->SetController(vtkMultiProcessController::GetGlobalController());
+
+  this->CacheKeeper->SetInputConnection(this->Preprocessor->GetOutputPort());
+  this->ReductionFilter->SetInputConnection(this->CacheKeeper->GetOutputPort());
 
   post_gather_algo->FastDelete();
   this->DeliveryFilter = vtkClientServerMoveData::New();
@@ -63,6 +68,7 @@ vtkChartRepresentation::~vtkChartRepresentation()
   this->AnnLink->Delete();
 
   this->Preprocessor->Delete();
+  this->CacheKeeper->Delete();
   this->ReductionFilter->Delete();
   this->DeliveryFilter->Delete();
 }
@@ -137,22 +143,23 @@ vtkTable* vtkChartRepresentation::GetLocalOutput()
 int vtkChartRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  // Pass caching information to the cache keeper.
+  this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
+  this->CacheKeeper->SetCacheTime(this->GetCacheKey());
+
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
     this->Preprocessor->SetInputConnection(
       this->GetInternalOutputPort(0));
     this->Preprocessor->Update();
-    this->ReductionFilter->SetInputConnection(this->Preprocessor->GetOutputPort());
     this->DeliveryFilter->SetInputConnection(this->ReductionFilter->GetOutputPort());
     }
   else
     {
     this->Preprocessor->RemoveAllInputs();
-    this->ReductionFilter->RemoveAllInputs();
     this->DeliveryFilter->RemoveAllInputs();
     }
 
-  this->ReductionFilter->Update();
   this->DeliveryFilter->Update();
   if (this->Options)
     {
@@ -162,10 +169,21 @@ int vtkChartRepresentation::RequestData(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
+bool vtkChartRepresentation::IsCached(double cache_key)
+{
+  return this->CacheKeeper->IsCached(cache_key);
+}
+
+//----------------------------------------------------------------------------
 void vtkChartRepresentation::MarkModified()
 {
   this->ReductionFilter->Modified();
   this->DeliveryFilter->Modified();
+  if (!this->GetUseCache())
+    {
+    // Cleanup caches when not using cache.
+    this->CacheKeeper->RemoveAllCaches();
+    }
   this->Modified();
 }
 

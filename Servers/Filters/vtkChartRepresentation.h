@@ -33,6 +33,7 @@ class vtkAnnotationLink;
 class vtkBlockDeliveryPreprocessor;
 class vtkClientServerMoveData;
 class vtkContextNamedOptions;
+class vtkPVCacheKeeper;
 class vtkPVContextView;
 class vtkReductionFilter;
 class vtkTable;
@@ -113,10 +114,15 @@ protected:
   virtual bool RemoveFromView(vtkView* view);
 
   // Description:
+  // Overridden to check with the vtkPVCacheKeeper to see if the key is cached.
+  virtual bool IsCached(double cache_key);
+
+  // Description:
   // Returns vtkTable at the local processes.
   vtkTable* GetLocalOutput();
 
   vtkBlockDeliveryPreprocessor* Preprocessor;
+  vtkPVCacheKeeper* CacheKeeper;
   vtkReductionFilter* ReductionFilter;
   vtkClientServerMoveData* DeliveryFilter;
   vtkWeakPointer<vtkPVContextView> ContextView;

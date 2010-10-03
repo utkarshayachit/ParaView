@@ -28,6 +28,7 @@
 class vtkImageData;
 class vtkImageSliceDataDeliveryFilter;
 class vtkImageSliceMapper;
+class vtkPVCacheKeeper;
 class vtkPVLODActor;
 class vtkScalarsToColors;
 
@@ -150,12 +151,17 @@ protected:
   // Returns true if the removal succeeds.
   virtual bool RemoveFromView(vtkView* view);
 
+  // Description:
+  // Overridden to check with the vtkPVCacheKeeper to see if the key is cached.
+  virtual bool IsCached(double cache_key);
+
   int SliceMode;
   unsigned int Slice;
 
   vtkTimeStamp DeliveryTimeStamp;
 
   int WholeExtent[6];
+  vtkPVCacheKeeper* CacheKeeper;
   vtkImageSliceDataDeliveryFilter* DeliveryFilter;
   vtkImageSliceMapper* SliceMapper;
   vtkPVLODActor* Actor;

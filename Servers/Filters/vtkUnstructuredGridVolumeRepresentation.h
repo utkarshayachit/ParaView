@@ -29,6 +29,7 @@ class vtkOrderedCompositeDistributor;
 class vtkPiecewiseFunction;
 class vtkPolyDataMapper;
 class vtkProjectedTetrahedraMapper;
+class vtkPVCacheKeeper;
 class vtkPVGeometryFilter;
 class vtkPVLODVolume;
 class vtkUnstructuredDataDeliveryFilter;
@@ -124,10 +125,6 @@ protected:
   virtual int RequestData(vtkInformation*,
     vtkInformationVector**, vtkInformationVector*);
 
-  virtual int RequestUpdateExtent(vtkInformation* request,
-    vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector);
-
   // Description:
   // Produce meta-data about this representation that the view may find useful.
   bool GenerateMetaData(vtkInformation*, vtkInformation*);
@@ -145,10 +142,15 @@ protected:
   virtual bool RemoveFromView(vtkView* view);
 
   // Description:
+  // Overridden to check with the vtkPVCacheKeeper to see if the key is cached.
+  virtual bool IsCached(double cache_key);
+
+  // Description:
   // Passes on parameters to the active volume mapper
   virtual void UpdateMapperParameters();
 
   vtkVolumeRepresentationPreprocessor* Preprocessor;
+  vtkPVCacheKeeper* CacheKeeper;
   vtkUnstructuredDataDeliveryFilter* DeliveryFilter;
   vtkOrderedCompositeDistributor* Distributor;
   vtkProjectedTetrahedraMapper* DefaultMapper;

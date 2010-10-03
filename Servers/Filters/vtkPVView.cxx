@@ -47,6 +47,8 @@ vtkPVView::vtkPVView()
     }
   this->Identifier = 0;
   this->ViewTime = 0.0;
+  this->CacheKey = 0.0;
+  this->UseCache = false;
 
   this->RequestInformation = vtkInformation::New();
   this->ReplyInformationVector = vtkInformationVector::New();
@@ -123,6 +125,8 @@ void vtkPVView::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
   os << indent << "Identifier: " << this->Identifier << endl;
   os << indent << "ViewTime: " << this->ViewTime << endl;
+  os << indent << "CacheKey: " << this->CacheKey << endl;
+  os << indent << "UseCache: " << this->UseCache << endl;
 }
 
 //----------------------------------------------------------------------------
@@ -168,6 +172,8 @@ void vtkPVView::CallProcessViewRequest(
         {
         // Pass the view time information to the representation
         pvrepr->SetUpdateTime(this->GetViewTime());
+        pvrepr->SetUseCache(this->GetUseCache());
+        pvrepr->SetCacheKey(this->GetCacheKey());
         }
       pvrepr->ProcessViewRequest(type, inInfo, outInfo);
       }

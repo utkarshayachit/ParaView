@@ -22,16 +22,23 @@
 #include "vtkPVDataRepresentationPipeline.h"
 #include "vtkPVView.h"
 
+#include <assert.h>
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::vtkPVDataRepresentation()
 {
   this->Visibility = true;
   vtkExecutive* exec = this->CreateDefaultExecutive();
   this->SetExecutive(exec);
-  exec->FastDelete();
+  exec->Delete();
 
   this->UpdateTimeValid = false;
   this->UpdateTime = 0.0;
+
+  this->UseCache = false;
+  this->CacheKey = 0.0;
+
+  this->ForceUseCache = false;
+  this->ForcedCacheKey = 0.0;
 }
 
 //----------------------------------------------------------------------------
@@ -63,6 +70,7 @@ vtkExecutive* vtkPVDataRepresentation::CreateDefaultExecutive()
 int vtkPVDataRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request, vtkInformation*, vtkInformation*)
 {
+  assert(this->GetExecutive()->IsA("vtkPVDataRepresentationPipeline"));
   if (this->GetVisibility() == false)
     {
     return 0;
@@ -117,9 +125,26 @@ int vtkPVDataRepresentation::RequestUpdateExtent(vtkInformation* request,
   return 1;
 }
 
+//----------------------------------------------------------------------------
+bool vtkPVDataRepresentation::GetUsingCacheForUpdate()
+{
+  if (this->GetUseCache())
+    {
+    return this->IsCached(this->GetCacheKey());
+    }
+
+  return false;
+}
 
 //----------------------------------------------------------------------------
 void vtkPVDataRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+  os << indent << "Visibility: " << this->Visibility << endl;
+  os << indent << "UpdateTimeValid: " << this->UpdateTimeValid << endl;
+  os << indent << "UpdateTime: " << this->UpdateTime << endl;
+  os << indent << "UseCache: " << this->UseCache << endl;
+  os << indent << "CacheKey: " << this->CacheKey << endl;
+  os << indent << "ForceUseCache: " << this->ForceUseCache << endl;
+  os << indent << "ForcedCacheKey: " << this->ForcedCacheKey << endl;
 }

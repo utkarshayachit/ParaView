@@ -24,6 +24,7 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkProperty.h"
+#include "vtkPVCacheKeeper.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVRenderView.h"
 #include "vtkRenderer.h"
@@ -37,6 +38,9 @@ vtkImageSliceRepresentation::vtkImageSliceRepresentation()
   this->SliceMode = XY_PLANE;
 
   this->SliceData = vtkImageData::New();
+  this->CacheKeeper = vtkPVCacheKeeper::New();
+  this->CacheKeeper->SetInput(this->SliceData);
+
   this->DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();
   this->SliceMapper = vtkImageSliceMapper::New();
   this->Actor = vtkPVLODActor::New();
@@ -47,6 +51,7 @@ vtkImageSliceRepresentation::vtkImageSliceRepresentation()
 vtkImageSliceRepresentation::~vtkImageSliceRepresentation()
 {
   this->SliceData->Delete();
+  this->CacheKeeper->Delete();
   this->DeliveryFilter->Delete();
   this->SliceMapper->SetInput(0);
   this->SliceMapper->Delete();
@@ -168,14 +173,17 @@ int vtkImageSliceRepresentation::ProcessViewRequest(
 int vtkImageSliceRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  // Pass caching information to the cache keeper.
+  this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
+  this->CacheKeeper->SetCacheTime(this->GetCacheKey());
+
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
     {
     this->UpdateSliceData(inputVector);
-    this->DeliveryFilter->SetInput(this->SliceData);
+    this->DeliveryFilter->SetInputConnection(this->CacheKeeper->GetOutputPort());
     }
   else
     {
-    this->SliceData->Initialize();
     this->DeliveryFilter->RemoveAllInputs();
     }
 
@@ -183,9 +191,20 @@ int vtkImageSliceRepresentation::RequestData(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
+bool vtkImageSliceRepresentation::IsCached(double cache_key)
+{
+  return this->CacheKeeper->IsCached(cache_key);
+}
+
+//----------------------------------------------------------------------------
 void vtkImageSliceRepresentation::UpdateSliceData(
   vtkInformationVector** inputVector)
 {
+  if (this->GetUsingCacheForUpdate())
+    {
+    return;
+    }
+
   vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
   vtkImageData* input = vtkImageData::GetData(inputVector[0], 0);
 
@@ -270,6 +289,11 @@ bool vtkImageSliceRepresentation::RemoveFromView(vtkView* view)
 void vtkImageSliceRepresentation::MarkModified()
 {
   this->DeliveryFilter->Modified();
+  if (!this->GetUseCache())
+    {
+    // Cleanup caches when not using cache.
+    this->CacheKeeper->RemoveAllCaches();
+    }
   this->Modified();
 }
 
