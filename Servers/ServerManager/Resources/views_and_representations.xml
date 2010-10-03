@@ -1035,8 +1035,17 @@
           proxygroup="representations" proxyname="Glyph3DRepresentation">
         </Proxy>
         <ExposedProperties>
-          <Property name="Source" />
+          <Property name="Masking" />
           <Property name="MeshVisibility" />
+          <Property name="Orient" />
+          <Property name="OrientationMode" />
+          <Property name="ScaleFactor" />
+          <Property name="ScaleMode" />
+          <Property name="Scaling" />
+          <Property name="SelectMaskArray" />
+          <Property name="SelectOrientationVectors" />
+          <Property name="SelectScaleArray" />
+          <Property name="Source" />
         </ExposedProperties>
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
@@ -2223,7 +2232,9 @@
     <!-- ================================================================== -->
     <RepresentationProxy name="Glyph3DRepresentation"
                           class="vtkGlyph3DRepresentation"
-                          processes="client|renderserver|dataserver">
+                          processes="client|renderserver|dataserver"
+                          base_proxygroup="representations"
+                          base_proxyname="SurfaceRepresentation" >
       <Documentation>
         Representation to show any dataset in a 3D render view.
       </Documentation>
@@ -2260,13 +2271,131 @@
       <IntVectorProperty name="MeshVisibility"
         command="SetMeshVisibility"
         number_of_elements="1"
-        default_values="1">
+        default_values="0">
         <BooleanDomain name="bool" />
         <Documentation>
           Get/Set the visibility of the original mesh.
         </Documentation>
       </IntVectorProperty>
 
+      <StringVectorProperty name="SelectMaskArray"
+        command="SetMaskArray"
+        number_of_elements="1"
+        default_values=""
+        label="Mask Array">
+      </StringVectorProperty>
+
+      <StringVectorProperty name="SelectScaleArray"
+        command="SetScaleArray"
+        number_of_elements="1"
+        default_values=""
+        label="Scale" >
+      </StringVectorProperty>
+
+      <StringVectorProperty name="SelectOrientationVectors"
+        command="SetOrientationArray"
+        number_of_elements="1"
+        default_values=""
+        label="Orientation Vectors">
+      </StringVectorProperty>
+
+      <IntVectorProperty name="Scaling"
+        command="SetScaling"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Enable/Disable scaling of source geometry.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="ScaleMode"
+        command="SetScaleMode"
+        number_of_elements="1"
+        default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry text="No Data Scaling Off" value="0" />
+          <Entry text="Magnitude" value="1" />
+          <Entry text="Vector Components" value="2" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="ScaleFactor"
+        command="SetScaleFactor"
+        number_of_elements="1"
+        default_values="1.0" >
+        <BoundsDomain name="bounds" mode="scaled_extent" scale_factor="0.1">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </BoundsDomain>
+        <ArrayRangeDomain name="scalar_range">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+             <Property name="SelectInputScalars" function="ArraySelection"/>
+          </RequiredProperties>
+        </ArrayRangeDomain>
+        <ArrayRangeDomain name="vector_range">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+             <Property name="SelectInputVectors" function="ArraySelection"/>
+          </RequiredProperties>
+        </ArrayRangeDomain>
+        <Documentation>
+          The value of this property will be used as a multiplier for scaling
+          the glyphs before adding them to the output.
+        </Documentation>
+     </DoubleVectorProperty>
+
+      <IntVectorProperty name="Orient"
+        command="SetOrient"
+        number_of_elements="1"
+        default_values="0" >
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          If this property is set to 1, the glyphs will be oriented based on the
+          selected orientation vector array.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="OrientationMode"
+        command="SetOrientationMode"
+        number_of_elements="1"
+        default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry text="Direction" value="0" />
+          <Entry text="Rotation" value="1" />
+        </EnumerationDomain>
+        <Documentation>
+          Orientation mode indicates if the OrientationArray provides the
+          direction vector for the orientation or the rotations around each
+          axes.  Default is DIRECTION.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="Masking"
+        command="SetMasking"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Tells the mapper to skip glyphing input points that haves false values
+          in the mask array. If there is no mask array (id access mode is set
+          and there is no such id, or array name access mode is set and
+          the there is no such name), masking is silently ignored.
+          A mask array is a vtkBitArray with only one component.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="BoundsInfo"
+        command="GetBounds"
+        number_of_elements="6"
+        information_only="1"
+        default_values="0 1 0 1 0 1" >
+        <SimpleDoubleInformationHelper />
+      </DoubleVectorProperty>
+
+      <!-- end of Glyph3DRepresentation -->
     </RepresentationProxy>
 
     <!-- ================================================================== -->

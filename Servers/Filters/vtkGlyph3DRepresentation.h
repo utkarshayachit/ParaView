@@ -42,6 +42,19 @@ public:
   // representation of false, all view passes are ignored.
   virtual void SetVisibility(bool);
 
+  //**************************************************************************
+  // Forwarded to vtkGlyph3DMapper
+  void SetMaskArray(const char* val);
+  void SetScaleArray(const char* val);
+  void SetOrientationArray(const char* val);
+  void SetScaling(int val);
+  void SetScaleMode(int val);
+  void SetScaleFactor(double val);
+  void SetOrient(int val);
+  void SetOrientationMode(int val);
+  void SetMasking(int val);
+  double* GetBounds();
+
 //BTX
 protected:
   vtkGlyph3DRepresentation();
@@ -69,6 +82,7 @@ protected:
   vtkGlyph3DMapper* GlyphMapper;
   vtkGlyph3DMapper* LODGlyphMapper;
   vtkPVLODActor* GlyphActor;
+  vtkQuadricClustering* GlyphDecimator;
   vtkUnstructuredDataDeliveryFilter* DataCollector;
   vtkUnstructuredDataDeliveryFilter* LODDataCollector;
   vtkPVArrowSource* DummySource;

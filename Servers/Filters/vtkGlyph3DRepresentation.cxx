@@ -14,18 +14,19 @@
 =========================================================================*/
 #include "vtkGlyph3DRepresentation.h"
 
+#include "vtkCompositePolyDataMapper2.h"
 #include "vtkDataObject.h"
 #include "vtkGlyph3DMapper.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMPIMoveData.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVArrowSource.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVRenderView.h"
+#include "vtkQuadricClustering.h"
 #include "vtkRenderer.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
-#include "vtkMPIMoveData.h"
-#include "vtkCompositePolyDataMapper2.h"
-#include "vtkPVArrowSource.h"
 
 vtkStandardNewMacro(vtkGlyph3DRepresentation);
 //----------------------------------------------------------------------------
@@ -162,9 +163,79 @@ int vtkGlyph3DRepresentation::RequestData(vtkInformation* request,
   return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
-
 //----------------------------------------------------------------------------
 void vtkGlyph3DRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+}
+
+//**************************************************************************
+// Forwarded to vtkGlyph3DMapper
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetMaskArray(const char* val)
+{
+  this->GlyphMapper->SetMaskArray(val);
+  this->LODGlyphMapper->SetMaskArray(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetScaleArray(const char* val)
+{
+  this->GlyphMapper->SetScaleArray(val);
+  this->LODGlyphMapper->SetScaleArray(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetOrientationArray(const char* val)
+{
+  this->GlyphMapper->SetOrientationArray(val);
+  this->LODGlyphMapper->SetOrientationArray(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetScaling(int val)
+{
+  this->GlyphMapper->SetScaling(val);
+  this->LODGlyphMapper->SetScaling(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetScaleMode(int val)
+{
+  this->GlyphMapper->SetScaleMode(val);
+  this->LODGlyphMapper->SetScaleMode(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetScaleFactor(double val)
+{
+  this->GlyphMapper->SetScaleFactor(val);
+  this->LODGlyphMapper->SetScaleFactor(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetOrient(int val)
+{
+  this->GlyphMapper->SetOrient(val);
+  this->LODGlyphMapper->SetOrient(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetOrientationMode(int val)
+{
+  this->GlyphMapper->SetOrientationMode(val);
+  this->LODGlyphMapper->SetOrientationMode(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetMasking(int val)
+{
+  this->GlyphMapper->SetMasking(val);
+  this->LODGlyphMapper->SetMasking(val);
+}
+
+//----------------------------------------------------------------------------
+double* vtkGlyph3DRepresentation::GetBounds()
+{
+  return this->GlyphMapper->GetBounds();
 }
