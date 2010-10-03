@@ -400,7 +400,7 @@ vtkSelection* vtkGeometryRepresentation::ConvertSelection(
   for (unsigned int cc=0; cc < selection->GetNumberOfNodes(); cc++)
     {
     vtkSelectionNode* node = selection->GetNode(cc);
-    if (node->GetSelectedProp() == this->Actor)
+    if (node->GetSelectedProp() == this->GetRenderedProp())
       {
       newInput->AddNode(node);
       node->GetProperties()->Set(vtkSelectionNode::SOURCE(),

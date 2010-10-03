@@ -206,6 +206,11 @@ protected:
   // Passes on parameters to vtkProperty and vtkMapper
   virtual void UpdateColoringParameters();
 
+  // Description:
+  // Used in ConvertSelection to locate the prop used for actual rendering.
+  virtual vtkPVLODActor* GetRenderedProp()
+    { return this->Actor; }
+
   vtkPVGeometryFilter* GeometryFilter;
   vtkGeometryRepresentationMultiBlockMaker* MultiBlockMaker;
   vtkQuadricClustering* Decimator;

@@ -79,6 +79,11 @@ protected:
   // Returns true if the removal succeeds.
   virtual bool RemoveFromView(vtkView* view);
 
+  // Description:
+  // Used in ConvertSelection to locate the prop used for actual rendering.
+  virtual vtkPVLODActor* GetRenderedProp()
+    { return this->GlyphActor; }
+
   vtkGlyph3DMapper* GlyphMapper;
   vtkGlyph3DMapper* LODGlyphMapper;
   vtkPVLODActor* GlyphActor;
