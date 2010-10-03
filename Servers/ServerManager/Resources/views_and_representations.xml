@@ -962,6 +962,8 @@
         subproxy="SurfaceRepresentation" text="Surface" subtype="2" />
       <RepresentationType
         subproxy="SurfaceRepresentation" text="Surface With Edges" subtype="3" />
+      <RepresentationType
+        subproxy="Glyph3DRepresentation" text="3D Glyphs" subtype="2" />
 
       <IntVectorProperty
         name="Representation"
@@ -1022,6 +1024,20 @@
         <Proxy name="OutlineRepresentation"
           proxygroup="representations" proxyname="OutlineRepresentation">
         </Proxy>
+        <ShareProperties subproxy="SurfaceRepresentation">
+          <Exception name="Input" />
+          <Exception name="Visibility" />
+        </ShareProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Glyph3DRepresentation"
+          proxygroup="representations" proxyname="Glyph3DRepresentation">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Source" />
+          <Property name="MeshVisibility" />
+        </ExposedProperties>
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
           <Exception name="Visibility" />
@@ -2202,6 +2218,55 @@
       </IntVectorProperty>
 
       <!-- End of SurfaceRepresentation -->
+    </RepresentationProxy>
+
+    <!-- ================================================================== -->
+    <RepresentationProxy name="Glyph3DRepresentation"
+                          class="vtkGlyph3DRepresentation"
+                          processes="client|renderserver|dataserver">
+      <Documentation>
+        Representation to show any dataset in a 3D render view.
+      </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection">
+       <DataTypeDomain name="input_type">
+         <DataType value="vtkDataSet"/>
+       </DataTypeDomain>
+        <Documentation>
+          Set the input to the representation.
+        </Documentation>
+      </InputProperty>
+
+      <InputProperty name="Source" command="SetInputConnection"
+        port_index="1"
+        label="Glyph Type">
+        <Documentation>
+          Specify the source objects.
+        </Documentation>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkPolyData" />
+        </DataTypeDomain>
+        <ProxyListDomain name="proxy_list">
+          <Proxy group="sources" name="ArrowSource" />
+          <Proxy group="sources" name="ConeSource" />
+          <Proxy group="sources" name="CubeSource" />
+          <Proxy group="sources" name="CylinderSource" />
+          <Proxy group="sources" name="LineSource" />
+          <Proxy group="sources" name="SphereSource" />
+          <Proxy group="sources" name="GlyphSource2D" />
+        </ProxyListDomain>
+      </InputProperty>
+
+      <IntVectorProperty name="MeshVisibility"
+        command="SetMeshVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Get/Set the visibility of the original mesh.
+        </Documentation>
+      </IntVectorProperty>
+
     </RepresentationProxy>
 
     <!-- ================================================================== -->

@@ -64,6 +64,7 @@ SET(Filters_SRCS
   vtkFileSeriesWriter.cxx
   vtkFlashContour.cxx
   vtkFlashReader.cxx
+  vtkGlyph3DRepresentation.cxx
   vtkHierarchicalFractal.cxx
   vtkGeometryRepresentation.cxx
   vtkGridConnectivity.cxx

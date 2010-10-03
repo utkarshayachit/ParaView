@@ -138,12 +138,12 @@ public:
 
   //***************************************************************************
   // Forwarded to Actor.
-  void SetOrientation(double, double, double);
-  void SetOrigin(double, double, double);
-  void SetPickable(int val);
-  void SetPosition(double, double, double);
-  void SetScale(double, double, double);
-  void SetTexture(vtkTexture*);
+  virtual void SetOrientation(double, double, double);
+  virtual void SetOrigin(double, double, double);
+  virtual void SetPickable(int val);
+  virtual void SetPosition(double, double, double);
+  virtual void SetScale(double, double, double);
+  virtual void SetTexture(vtkTexture*);
 
   //***************************************************************************
   // Forwarded to Mapper and LODMapper.
