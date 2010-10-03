@@ -66,9 +66,6 @@
           Representations in this view.
         </Documentation>
       </ProxyProperty>
-
-     <Property name="StillRender" command="StillRender" />
-     <Property name="InteractiveRender" command="InteractiveRender" />
     </Proxy>
 
     <!-- ================================================================== -->
@@ -3758,6 +3755,186 @@
     </Proxy>
 
 
+  </ProxyGroup>
+
+  <ProxyGroup name="views">
+    <!-- ================================================================== -->
+    <Proxy name="ComparativeViewBase" processes="client|renderserver|dataserver">
+
+      <DoubleVectorProperty name="ViewTime"
+        command="SetViewTime"
+        number_of_elements="1"
+        update_self="1"
+        default_values="none">
+        <DoubleRangeDomain name="range"/>
+        <Documentation>
+          The pipeline update time for this view.
+          This gets passed to all representations added to this view.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="CacheKey"
+        number_of_elements="1"
+        is_internal="1"
+        default_values="none">
+        <DoubleRangeDomain name="range"/>
+        <Documentation>
+          This is the cache key used to indentify which cache entry to use for
+          rendering when caching is enabled.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="UseCache"
+        number_of_elements="1"
+        is_internal="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Indicates whether to use cache for subsequent renderings.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="ViewPosition"
+        update_self="1"
+        command="SetViewPosition"
+        number_of_elements="2"
+        default_values="0 0">
+        <Documentation>
+          Set the position on this view in the multiview configuration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="ViewSize"
+        command="SetViewSize"
+        update_self="1"
+        number_of_elements="2"
+        default_values="400 400" >
+        <Documentation>
+          Set the size of this view in the multiview configuration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="Dimensions"
+        command="Build"
+        update_self="1"
+        immediate_update="1"
+        number_of_elements="2"
+        default_values="2 2">
+        <IntRangeDomain name="range" min="1 1" max="10 10" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="OverlayAllComparisons"
+        command="SetOverlayAllComparisons"
+        update_self="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <IntVectorProperty name="Spacing"
+        command="SetSpacing"
+        update_self="1"
+        number_of_elements="2"
+        default_values="1 1">
+        <IntRangeDomain name="range" min="0 0" max="10 10" />
+      </IntVectorProperty>
+
+      <ProxyProperty name="Representations"
+        command="AddRepresentation"
+        remove_command="RemoveRepresentation"
+        update_self="1"
+        repeatable="1">
+        <Documentation>
+          Representations in this view.
+        </Documentation>
+      </ProxyProperty>
+
+      <ProxyProperty name="Cues"
+        command="AddCue"
+        remove_command="RemoveCue"
+        update_self="1">
+        <Documentation>
+          Animation cues for changing parameters.
+        </Documentation>
+      </ProxyProperty>
+    </Proxy>
+
+    <!-- ================================================================== -->
+    <ComparativeViewProxy name="ComparativeRenderView"
+      base_proxygroup="views" base_proxyname="ComparativeViewBase">
+      <Documentation>
+        The is comparative view comprising of individual "RenderView" proxies
+        for each panel in the comparative view grid.
+      </Documentation>
+
+      <SubProxy>
+        <Proxy name="RootView" proxygroup="views" proxyname="RenderView">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="LODThreshold" />
+          <Property name="LODResolution" />
+          <Property name="ResetCamera" />
+          <Property name="UseLight" />
+          <!-- Light -->
+          <Property name="LightAmbientColor" />
+          <Property name="LightDiffuseColor" />
+          <Property name="LightSpecularColor" />
+          <Property name="LightIntensity" />
+          <Property name="LightSwitch" />
+          <!-- LightKit -->
+          <Property name="KeyLightWarmth" />
+          <Property name="KeyLightIntensity" />
+          <Property name="KeyLightElevation" />
+          <Property name="KeyLightAzimuth" />
+          <Property name="FillLightWarmth" />
+          <Property name="FillLightK:F Ratio" />
+          <Property name="FillLightElevation" />
+          <Property name="FillLightAzimuth" />
+          <Property name="BackLightWarmth" />
+          <Property name="BackLightK:B Ratio" />
+          <Property name="BackLightElevation" />
+          <Property name="BackLightAzimuth" />
+          <Property name="HeadLightWarmth" />
+          <Property name="HeadLightK:H Ratio" />
+          <Property name="MaintainLuminance" />
+          <!-- ActiveCamera -->
+          <Property name="CameraPositionInfo" />
+          <Property name="CameraPosition" />
+          <Property name="CameraFocalPointInfo" />
+          <Property name="CameraFocalPoint" />
+          <Property name="CameraViewUpInfo" />
+          <Property name="CameraViewUp" />
+          <Property name="CameraViewAngle" />
+          <Property name="CameraClippingRangeInfo" />
+          <Property name="CameraClippingRange" />
+          <Property name="CameraParallelScale" />
+          <Property name="CameraParallelScaleInfo" />
+          <Property name="CameraParallelProjection" />
+          <Property name="EyeAngle" />
+          <!-- Interactor -->
+          <Property name="CameraManipulators" />
+          <Property name="CenterOfRotation" />
+          <!-- Annotations -->
+          <Property name="CenterAxesVisibility" />
+          <Property name="OrientationAxesInteractivity" />
+          <Property name="OrientationAxesVisibility" />
+          <Property name="OrientationAxesLabelColor" />
+          <Property name="OrientationAxesOutlineColor" />
+          <!-- Renderer -->
+          <Property name="Background" />
+          <Property name="Background2" />
+          <Property name="BackgroundTexture" />
+          <Property name="UseGradientBackground" />
+          <Property name="UseTexturedBackground" />
+          <Property name="StereoRender" />
+          <Property name="StereoType" />
+          <!-- RenderWindow -->
+        </ExposedProperties>
+        <!-- End of "RootView" subproxy -->
+      </SubProxy>
+
+      <!-- End of ComparativeRenderView -->
+    </ComparativeViewProxy>
   </ProxyGroup>
 
 </ServerManagerConfiguration>

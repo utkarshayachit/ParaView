@@ -108,16 +108,8 @@ public:
   // views correctly.
   virtual void SetViewPosition(int x, int y)
     {
-    //this->Superclass::SetViewPosition(x, y);
-    this->UpdateViewLayout();
-    }
-
-  // Description:
-  // ViewSize, ViewPosition need to split up among all the component
-  // views correctly.
-  virtual void SetGUISize(int x, int y)
-    {
-    //this->Superclass::SetGUISize(x, y);
+    this->ViewPosition[0] = x;
+    this->ViewPosition[1] = y;
     this->UpdateViewLayout();
     }
 
@@ -136,14 +128,18 @@ public:
   // This all marks all consumers as dirty.
   virtual void MarkDirty(vtkSMProxy* modifiedProxy);
 
+  // Description:
+  // Get/Set the view time.
+  vtkSetMacro(ViewTime, double);
+  vtkGetMacro(ViewTime, double);
+
   //BTX
 protected:
   vtkSMComparativeViewProxy();
   ~vtkSMComparativeViewProxy();
 
   // Description:
-  // Called at start of CreateVTKObjects().
-  virtual bool BeginCreateVTKObjects();
+  virtual void CreateVTKObjects();
 
   // Description:
   // Creates and appends a new internal view.
@@ -177,7 +173,9 @@ protected:
 
   int Dimensions[2];
   int ViewSize[2];
+  int ViewPosition[2];
   int Spacing[2];
+  double ViewTime;
 
   bool OverlayAllComparisons;
 
