@@ -34,7 +34,6 @@ SET(Kit_SRCS
   vtkSMArrayRangeDomain.cxx
   vtkSMArraySelectionDomain.cxx
   vtkSMArraySelectionInformationHelper.cxx
-#  vtkSMBlockDeliveryRepresentationProxy.cxx
   vtkSMBooleanDomain.cxx
   vtkSMBooleanKeyFrameProxy.cxx
   vtkSMBoundsDomain.cxx
@@ -49,8 +48,6 @@ SET(Kit_SRCS
   #vtkSMCaveRenderModuleProxy.cxx
 #  vtkSMCaveRenderViewProxy.cxx
   vtkSMChartRepresentationProxy.cxx
-#  vtkSMClientServerRenderSyncManagerHelper.cxx
-#  vtkSMClientServerRenderViewProxy.cxx
   vtkSMComparativeAnimationCueProxy.cxx
   vtkSMComparativeViewProxy.cxx
   vtkSMCompositeKeyFrameProxy.cxx
@@ -83,14 +80,9 @@ SET(Kit_SRCS
   vtkSMFixedTypeDomain.cxx
   vtkSMGlobalPropertiesManager.cxx
   vtkSMGlobalPropertiesLinkUndoElement.cxx
-#  vtkSMGlyph3DMapperRepresentationProxy.cxx
   vtkSMHardwareSelector.cxx
-#  vtkSMIceTCompositeViewProxy.cxx
-#  vtkSMIceTDesktopRenderViewProxy.cxx
-#  vtkSMIceTMultiDisplayRenderViewProxy.cxx
   vtkSMIdBasedProxyLocator.cxx
   vtkSMIdTypeVectorProperty.cxx
-#  vtkSMImageSliceRepresentationProxy.cxx
   vtkSMImageTextureProxy.cxx
   vtkSMImplicitPlaneProxy.cxx
   vtkSMImplicitPlaneRepresentationProxy.cxx
@@ -108,7 +100,6 @@ SET(Kit_SRCS
   vtkSMLink.cxx
   vtkSMLookupTableProxy.cxx
   vtkSMMaterialLoaderProxy.cxx
-#  vtkSMMultiProcessRenderView.cxx
   vtkSMNewWidgetRepresentationProxy.cxx
   vtkSMNullProxy.cxx
   vtkSMNumberOfComponentsDomain.cxx
@@ -184,7 +175,6 @@ SET(Kit_SRCS
   vtkSMStringListRangeDomain.cxx
   vtkSMStringVectorProperty.cxx
   vtkSMSubPropertyIterator.cxx
-#  vtkSMSurfaceRepresentationProxy.cxx
 #  vtkSMTemporalInputDomain.cxx
   vtkSMTesting.cxx
   vtkSMTextSourceRepresentationProxy.cxx
@@ -202,7 +192,6 @@ SET(Kit_SRCS
   vtkSMUniformGridVolumeRepresentationProxy.cxx
   vtkSMUnstructuredGridVolumeRepresentationProxy.cxx
   vtkSMUpdateInformationUndoElement.cxx
-  vtkSMUpdateSuppressorProxy.cxx
   vtkSMUtilities.cxx
   vtkSMVectorProperty.cxx
   vtkSMViewProxy.cxx

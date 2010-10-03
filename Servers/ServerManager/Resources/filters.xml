@@ -7711,7 +7711,7 @@ Tessellate a higher-order dataset.
     </SourceProxy>
 
    <!-- ==================================================================== -->
-    <UpdateSuppressorProxy name="UpdateSuppressor2" class="vtkPVUpdateSuppressor"
+    <SourceProxy name="UpdateSuppressor2" class="vtkPVUpdateSuppressor"
       executive="vtkUpdateSuppressorPipeline">
 
       <InputProperty
@@ -7750,7 +7750,7 @@ Tessellate a higher-order dataset.
       </DoubleVectorProperty>
 
       <!-- End UpdateSuppressor2 -->
-    </UpdateSuppressorProxy>
+    </SourceProxy>
 
    <!-- ==================================================================== -->
     <SourceProxy name="CacheKeeper" class="vtkPVCacheKeeper"
