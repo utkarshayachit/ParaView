@@ -66,7 +66,7 @@ public:
 
   // Description:
   // Updates the data pipelines for all visible representations.
-  virtual void UpdateAllRepresentations();
+  virtual void Update();
 
   // Description:
   // Create a default representation for the given source proxy.
@@ -152,8 +152,8 @@ protected:
   void RemoveView(vtkSMViewProxy* remove);
 
   // Description:
-  virtual void EndStillRender();
-  virtual void EndInteractiveRender();
+  // Passes on the render request to the root view.
+  virtual void PostRender(bool interactive);
 
   // Description:
   // Update layout for internal views.
