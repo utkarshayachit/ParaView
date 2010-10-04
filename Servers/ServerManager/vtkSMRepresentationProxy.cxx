@@ -128,7 +128,7 @@ void vtkSMRepresentationProxy::MarkDirty(vtkSMProxy* modifiedProxy)
         this->Servers, stream);
       }
     }
-  this->Superclass::MarkModified(modifiedProxy);
+  this->Superclass::MarkDirty(modifiedProxy);
 }
 
 //----------------------------------------------------------------------------

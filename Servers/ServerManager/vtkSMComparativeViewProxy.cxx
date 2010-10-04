@@ -129,7 +129,7 @@ public:
       VectorOfClones::iterator iter;
       for (iter = this->Clones.begin(); iter != this->Clones.end(); ++iter)
         {
-        vtkSMProxy* repr = iter->CloneRepresentation;
+        vtkSMRepresentationProxy * repr = iter->CloneRepresentation;
         vtkSMPropertyHelper helper(repr, "ForceUseCache", true);
         helper.Set(0);
         repr->UpdateProperty("ForceUseCache");
@@ -688,25 +688,28 @@ void vtkSMComparativeViewProxy::RemoveAllRepresentations()
 //----------------------------------------------------------------------------
 void vtkSMComparativeViewProxy::MarkDirty(vtkSMProxy* modifiedProxy)
 {
-  cout << "vtkSMComparativeViewProxy::MarkDirty" << endl;
-  // The representation that gets added to this view is a consumer of it's
-  // input. While this view is a consumer of the representation. So, when the
-  // input source is modified, that call eventually leads to
-  // vtkSMComparativeViewProxy::MarkDirty(). When that happens, we need to
-  // ensure that we regenerate the comparison, so we call this->MarkOutdated().
+  if (vtkSMViewProxy::SafeDownCast(modifiedProxy) == NULL)
+    {
+    cout << "vtkSMComparativeViewProxy::MarkDirty == " << modifiedProxy << endl;
+    // The representation that gets added to this view is a consumer of it's
+    // input. While this view is a consumer of the representation. So, when the
+    // input source is modified, that call eventually leads to
+    // vtkSMComparativeViewProxy::MarkDirty(). When that happens, we need to
+    // ensure that we regenerate the comparison, so we call this->MarkOutdated().
 
-  // TODO: We can be even smarter. We may want to try to consider only those
-  // representations that are actually involved in the parameter comparison to
-  // mark this view outdated. This will save on the regeneration of cache when
-  // not needed.
+    // TODO: We can be even smarter. We may want to try to consider only those
+    // representations that are actually involved in the parameter comparison to
+    // mark this view outdated. This will save on the regeneration of cache when
+    // not needed.
 
-  // TODO: Another optimization: we can enable caching only for those
-  // representations that are invovled in parameter comparison, others we don't
-  // even need to cache.
+    // TODO: Another optimization: we can enable caching only for those
+    // representations that are invovled in parameter comparison, others we don't
+    // even need to cache.
 
-  // TODO: Need to update data ranges by collecting ranges from all views.
+    // TODO: Need to update data ranges by collecting ranges from all views.
+    this->MarkOutdated();
+    }
   this->Superclass::MarkDirty(modifiedProxy);
-  this->MarkOutdated();
 }
 
 //----------------------------------------------------------------------------
@@ -836,10 +839,12 @@ void vtkSMComparativeViewProxy::ClearDataCaches()
     repcloneiter != this->Internal->RepresentationClones.end();
     ++repcloneiter)
     {
-    vtkSMProxy* repr = repcloneiter->first;
+    vtkSMRepresentationProxy* repr = repcloneiter->first;
     vtkSMPropertyHelper helper(repr, "ForceUseCache", true);
     helper.Set(0);
     repr->UpdateProperty("ForceUseCache");
+    // HACK.
+    repr->ClearMarkedModified();
     repr->MarkDirty(NULL);
     repcloneiter->second.MarkRepresentationsModified();
     helper.Set(1);

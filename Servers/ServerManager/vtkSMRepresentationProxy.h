@@ -69,6 +69,8 @@ private:
   bool RepresentedDataInformationValid;
   vtkPVDataInformation* RepresentedDataInformation;
 
+  friend class vtkSMComparativeViewProxy;
+  void ClearMarkedModified() { this->MarkedModified = false; }
   bool MarkedModified;
 //ETX
 };
