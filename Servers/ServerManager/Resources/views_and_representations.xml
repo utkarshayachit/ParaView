@@ -3935,6 +3935,84 @@
 
       <!-- End of ComparativeRenderView -->
     </ComparativeViewProxy>
+
+    <!-- ================================================================== -->
+    <ComparativeViewProxy name="ComparativeXYChartView"
+      base_proxygroup="views" base_proxyname="ComparativeViewBase">
+      <Documentation>
+        The is comparative view comprising of individual "XYChartView" proxies
+        for each panel in the comparative view grid.
+      </Documentation>
+
+      <SubProxy>
+        <Proxy name="RootView" proxygroup="views" proxyname="XYChartView">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="ChartTitle"/>
+          <Property name="ChartTitleFont" />
+          <Property name="ChartTitleColor" />
+          <Property name="ChartTitleAlignment" />
+          <Property name="ShowLegend" />
+          <Property name="ShowAxis" />
+          <Property name="AxisLogScale" />
+          <Property name="ShowAxisGrid" />
+          <Property name="AxisColor" />
+          <Property name="AxisGridColor" />
+          <Property name="ShowAxisLabels" />
+          <Property name="AxisLabelFont" />
+          <Property name="AxisLabelColor" />
+          <Property name="AxisLabelNotation" />
+          <Property name="AxisLabelPrecision" />
+          <Property name="AxisBehavior" />
+          <Property name="AxisRange" />
+          <Property name="AxisTitle" />
+          <Property name="AxisTitleFont" />
+          <Property name="AxisTitleColor" />
+        </ExposedProperties>
+        <!-- End of "RootView" subproxy -->
+      </SubProxy>
+
+      <!-- End of ComparativeXYChartView -->
+    </ComparativeViewProxy>
+
+    <!-- ================================================================== -->
+    <ComparativeViewProxy name="ComparativeXYBarChartView"
+      base_proxygroup="views" base_proxyname="ComparativeViewBase">
+      <Documentation>
+        The is comparative view comprising of individual "XYBarChartView" proxies
+        for each panel in the comparative view grid.
+      </Documentation>
+
+      <SubProxy>
+        <Proxy name="RootView" proxygroup="views" proxyname="XYBarChartView">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="ChartTitle"/>
+          <Property name="ChartTitleFont" />
+          <Property name="ChartTitleColor" />
+          <Property name="ChartTitleAlignment" />
+          <Property name="ShowLegend" />
+          <Property name="ShowAxis" />
+          <Property name="AxisLogScale" />
+          <Property name="ShowAxisGrid" />
+          <Property name="AxisColor" />
+          <Property name="AxisGridColor" />
+          <Property name="ShowAxisLabels" />
+          <Property name="AxisLabelFont" />
+          <Property name="AxisLabelColor" />
+          <Property name="AxisLabelNotation" />
+          <Property name="AxisLabelPrecision" />
+          <Property name="AxisBehavior" />
+          <Property name="AxisRange" />
+          <Property name="AxisTitle" />
+          <Property name="AxisTitleFont" />
+          <Property name="AxisTitleColor" />
+        </ExposedProperties>
+        <!-- End of "RootView" subproxy -->
+      </SubProxy>
+
+      <!-- End of ComparativeXYBarChartView -->
+    </ComparativeViewProxy>
   </ProxyGroup>
 
 </ServerManagerConfiguration>
