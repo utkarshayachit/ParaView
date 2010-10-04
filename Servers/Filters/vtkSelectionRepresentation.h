@@ -56,6 +56,14 @@ public:
   virtual void MarkModified();
 
   // Description:
+  // Passed on to internal representations as well.
+  virtual void SetUpdateTime(double time);
+  virtual void SetUseCache(bool val);
+  virtual void SetCacheKey(double val);
+  virtual void SetForceUseCache(bool val);
+  virtual void SetForcedCacheKey(double val);
+
+  // Description:
   // Get/Set the visibility for this representation. When the visibility of
   // representation of false, all view passes are ignored.
   // Overridden to propagate to the active representation.

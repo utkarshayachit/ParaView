@@ -60,7 +60,7 @@ public:
 
   // Description:
   // Set the update time.
-  void SetUpdateTime(double time);
+  virtual void SetUpdateTime(double time);
   vtkGetMacro(UpdateTime, double);
 
   // Description:

@@ -231,8 +231,7 @@ int vtkGeometryRepresentation::RequestData(vtkInformation* request,
     {
     this->GeometryFilter->SetInputConnection(
       this->GetInternalOutputPort());
-    cout << "Update GeometryFilter" << endl;
-    this->GeometryFilter->Update();
+    this->CacheKeeper->Update();
     this->DeliveryFilter->SetInputConnection(
       this->CacheKeeper->GetOutputPort());
     this->LODDeliveryFilter->SetInputConnection(
@@ -240,7 +239,6 @@ int vtkGeometryRepresentation::RequestData(vtkInformation* request,
     }
   else
     {
-    cout << "Process has not input data" << endl;
     this->DeliveryFilter->RemoveAllInputs();
     this->LODDeliveryFilter->RemoveAllInputs();
     }

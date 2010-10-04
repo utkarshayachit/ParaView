@@ -167,6 +167,44 @@ int vtkPVCompositeRepresentation::FillInputPortInformation(
 }
 
 //----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::SetUpdateTime(double time)
+{
+  this->CubeAxesRepresentation->SetUpdateTime(time);
+  this->SelectionRepresentation->SetUpdateTime(time);
+  this->Superclass::SetUpdateTime(time);
+}
+//----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::SetUseCache(bool val)
+{
+  this->CubeAxesRepresentation->SetUseCache(val);
+  this->SelectionRepresentation->SetUseCache(val);
+  this->Superclass::SetUseCache(val);
+}
+//----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::SetCacheKey(double val)
+{
+  this->CubeAxesRepresentation->SetCacheKey(val);
+  this->SelectionRepresentation->SetCacheKey(val);
+  this->Superclass::SetCacheKey(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::SetForceUseCache(bool val)
+{
+  this->CubeAxesRepresentation->SetForceUseCache(val);
+  this->SelectionRepresentation->SetForceUseCache(val);
+  this->Superclass::SetForceUseCache(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::SetForcedCacheKey(double val)
+{
+  this->CubeAxesRepresentation->SetForcedCacheKey(val);
+  this->SelectionRepresentation->SetForcedCacheKey(val);
+  this->Superclass::SetForcedCacheKey(val);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVCompositeRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

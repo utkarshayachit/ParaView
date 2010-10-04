@@ -99,6 +99,46 @@ int vtkSelectionRepresentation::FillInputPortInformation(
 }
 
 //----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetUpdateTime(double val)
+{
+  this->GeometryRepresentation->SetUpdateTime(val);
+  this->LabelRepresentation->SetUpdateTime(val);
+  this->Superclass::SetUpdateTime(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetUseCache(bool val)
+{
+  this->GeometryRepresentation->SetUseCache(val);
+  this->LabelRepresentation->SetUseCache(val);
+  this->Superclass::SetUseCache(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetCacheKey(double val)
+{
+  this->GeometryRepresentation->SetCacheKey(val);
+  this->LabelRepresentation->SetCacheKey(val);
+  this->Superclass::SetCacheKey(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetForceUseCache(bool val)
+{
+  this->GeometryRepresentation->SetForceUseCache(val);
+  this->LabelRepresentation->SetForceUseCache(val);
+  this->Superclass::SetForceUseCache(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetForcedCacheKey(double val)
+{
+  this->GeometryRepresentation->SetForcedCacheKey(val);
+  this->LabelRepresentation->SetForcedCacheKey(val);
+  this->Superclass::SetForcedCacheKey(val);
+}
+
+//----------------------------------------------------------------------------
 bool vtkSelectionRepresentation::AddToView(vtkView* view)
 {
   view->AddRepresentation(this->GeometryRepresentation);

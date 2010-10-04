@@ -82,6 +82,14 @@ public:
   // Returns the data object that is rendered from the given input port.
   virtual vtkDataObject* GetRenderedDataObject(int port);
 
+  // Description:
+  // Passed on to internal representations as well.
+  virtual void SetUpdateTime(double time);
+  virtual void SetUseCache(bool val);
+  virtual void SetCacheKey(double val);
+  virtual void SetForceUseCache(bool val);
+  virtual void SetForcedCacheKey(double val);
+
 //BTX
 protected:
   vtkCompositeRepresentation();
