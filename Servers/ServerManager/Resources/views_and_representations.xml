@@ -2140,21 +2140,12 @@
     </RepresentationProxy>
 
     <!-- ================================================================== -->
-    <RepresentationProxy name="SurfaceRepresentation"
+    <RepresentationProxy name="SurfaceRepresentationBase"
                           class="vtkGeometryRepresentation"
                           processes="client|renderserver|dataserver">
       <Documentation>
         Representation to show any dataset in a 3D render view.
       </Documentation>
-
-      <InputProperty name="Input" command="SetInputConnection">
-       <DataTypeDomain name="input_type">
-         <DataType value="vtkDataSet"/>
-       </DataTypeDomain>
-        <Documentation>
-          Set the input to the representation.
-        </Documentation>
-      </InputProperty>
 
       <IntVectorProperty name="Visibility"
         command="SetVisibility"
@@ -2438,15 +2429,15 @@
         <BooleanDomain name="bool" />
       </IntVectorProperty>
 
-      <!-- End of SurfaceRepresentation -->
+      <!-- End of SurfaceRepresentationBase -->
     </RepresentationProxy>
 
     <!-- ================================================================== -->
-    <RepresentationProxy name="Glyph3DRepresentation"
-                          class="vtkGlyph3DRepresentation"
+    <RepresentationProxy name="SurfaceRepresentation"
+                          class="vtkGeometryRepresentation"
                           processes="client|renderserver|dataserver"
                           base_proxygroup="representations"
-                          base_proxyname="SurfaceRepresentation" >
+                          base_proxyname="SurfaceRepresentationBase">
       <Documentation>
         Representation to show any dataset in a 3D render view.
       </Documentation>
@@ -2459,6 +2450,17 @@
           Set the input to the representation.
         </Documentation>
       </InputProperty>
+    </RepresentationProxy>
+
+    <!-- ================================================================== -->
+    <RepresentationProxy name="Glyph3DRepresentation"
+                          class="vtkGlyph3DRepresentation"
+                          processes="client|renderserver|dataserver"
+                          base_proxygroup="representations"
+                          base_proxyname="SurfaceRepresentation" >
+      <Documentation>
+        Representation to show any dataset in a 3D render view.
+      </Documentation>
 
       <InputProperty name="Source" command="SetInputConnection"
         port_index="1"
