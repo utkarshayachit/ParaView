@@ -124,11 +124,9 @@ public:
   //***************************************************************************
   // Forwarded to vtkProperty.
   virtual void SetAmbientColor(double r, double g, double b);
-  virtual void SetBackfaceCulling(int val);
   virtual void SetColor(double r, double g, double b);
   virtual void SetDiffuseColor(double r, double g, double b);
   virtual void SetEdgeColor(double r, double g, double b);
-  virtual void SetFrontfaceCulling(int val);
   virtual void SetInterpolation(int val);
   virtual void SetLineWidth(double val);
   virtual void SetOpacity(double val);
@@ -184,7 +182,7 @@ protected:
 
   // Description:
   // Produce meta-data about this representation that the view may find useful.
-  bool GenerateMetaData(vtkInformation*, vtkInformation*);
+  virtual bool GenerateMetaData(vtkInformation*, vtkInformation*);
 
   // Description:
   // Adds the representation to the view.  This is called from

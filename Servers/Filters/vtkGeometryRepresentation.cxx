@@ -278,7 +278,7 @@ bool vtkGeometryRepresentation::GenerateMetaData(vtkInformation*,
     {
     outInfo->Set(vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1);
     }
-  return 1;
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -504,12 +504,6 @@ void vtkGeometryRepresentation::SetAmbientColor(double r, double g, double b)
 }
 
 //----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetBackfaceCulling(int val)
-{
-  this->Property->SetBackfaceCulling(val);
-}
-
-//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetDiffuseColor(double r, double g, double b)
 {
   this->Property->SetDiffuseColor(r, g, b);
@@ -519,12 +513,6 @@ void vtkGeometryRepresentation::SetDiffuseColor(double r, double g, double b)
 void vtkGeometryRepresentation::SetEdgeColor(double r, double g, double b)
 {
   this->Property->SetEdgeColor(r, g, b);
-}
-
-//----------------------------------------------------------------------------
-void vtkGeometryRepresentation::SetFrontfaceCulling(int val)
-{
-  this->Property->SetFrontfaceCulling(val);
 }
 
 //----------------------------------------------------------------------------

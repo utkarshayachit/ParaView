@@ -67,6 +67,7 @@ SET(Filters_SRCS
   vtkGlyph3DRepresentation.cxx
   vtkHierarchicalFractal.cxx
   vtkGeometryRepresentation.cxx
+  vtkGeometryRepresentationWithFaces.cxx
   vtkGridConnectivity.cxx
   vtkImageCompressor.cxx
   vtkImageSliceDataDeliveryFilter.cxx

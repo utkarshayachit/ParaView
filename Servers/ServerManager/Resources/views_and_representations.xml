@@ -1033,7 +1033,7 @@
           <Entry value="0" text="Points" />
           <Entry value="1" text="Wireframe" />
           <Entry value="2" text="Surface" />
-          <Entry value="5" text="Surface With Edges" />
+          <Entry value="3" text="Surface With Edges" />
           -->
         </EnumerationDomain>
       </IntVectorProperty>
@@ -1046,6 +1046,10 @@
         <ExposedProperties>
           <Property name="Ambient" />
           <Property name="AmbientColor" />
+          <Property name="BackfaceAmbientColor" />
+          <Property name="BackfaceDiffuseColor" />
+          <Property name="BackfaceOpacity" />
+          <Property name="BackfaceRepresentation" />
           <Property name="ColorArrayName" />
           <Property name="ColorAttributeType" />
           <Property name="Diffuse" />
@@ -1838,28 +1842,6 @@
         <DoubleRangeDomain name="range" min="0" max="1" />
       </DoubleVectorProperty>
 
-      <IntVectorProperty name="BackfaceCulling"
-        command="SetBackfaceCulling"
-        number_of_elements="1"
-        default_values="0">
-        <Documentation>
-          Turn on/off backface culling.  When on, polygons facing away from the
-          camera will not be drawn.
-        </Documentation>
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-
-      <IntVectorProperty name="FrontfaceCulling"
-        command="SetFrontfaceCulling"
-        number_of_elements="1"
-        default_values="0">
-        <Documentation>
-          Turn on/off frontface culling.  When on, polygons facing towards
-          from the camera will not be drawn.
-        </Documentation>
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-
       <DoubleVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="3"
@@ -2327,28 +2309,6 @@
         <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1"/>
       </DoubleVectorProperty>
 
-      <IntVectorProperty name="BackfaceCulling"
-        command="SetBackfaceCulling"
-        number_of_elements="1"
-        default_values="0">
-        <Documentation>
-          Turn on/off backface culling.  When on, polygons facing away from the
-          camera will not be drawn.
-        </Documentation>
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-
-      <IntVectorProperty name="FrontfaceCulling"
-        command="SetFrontfaceCulling"
-        number_of_elements="1"
-        default_values="0">
-        <Documentation>
-          Turn on/off frontface culling.  When on, polygons facing towards
-          from the camera will not be drawn.
-        </Documentation>
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-
       <DoubleVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="3"
@@ -2434,7 +2394,7 @@
 
     <!-- ================================================================== -->
     <RepresentationProxy name="SurfaceRepresentation"
-                          class="vtkGeometryRepresentation"
+                          class="vtkGeometryRepresentationWithFaces"
                           processes="client|renderserver|dataserver"
                           base_proxygroup="representations"
                           base_proxyname="SurfaceRepresentationBase">
@@ -2450,6 +2410,46 @@
           Set the input to the representation.
         </Documentation>
       </InputProperty>
+
+      <IntVectorProperty name="BackfaceRepresentation"
+        command="SetBackfaceRepresentation"
+        number_of_elements="1"
+        default_values="4">
+        <Documentation>
+          Choose the representation type for the backface.
+        </Documentation>
+        <EnumerationDomain name="enum">
+          <Entry value="4" text="Follow Frontface" />
+          <Entry value="5" text="Cull Backface" />
+          <Entry value="6" text="Cull Frontface" />
+          <Entry value="0" text="Points" />
+          <Entry value="1" text="Wireframe" />
+          <Entry value="2" text="Surface" />
+          <Entry value="3" text="Surface With Edges" />
+        </EnumerationDomain>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="BackfaceOpacity"
+        command="SetBackfaceOpacity"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="BackfaceAmbientColor"
+        command="SetBackfaceAmbientColor"
+        number_of_elements="3"
+        default_values="1.0 1.0 1.0">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="BackfaceDiffuseColor"
+        command="SetBackfaceDiffuseColor"
+        number_of_elements="3"
+        default_values="1.0 1.0 1.0">
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+
     </RepresentationProxy>
 
     <!-- ================================================================== -->
@@ -2457,10 +2457,19 @@
                           class="vtkGlyph3DRepresentation"
                           processes="client|renderserver|dataserver"
                           base_proxygroup="representations"
-                          base_proxyname="SurfaceRepresentation" >
+                          base_proxyname="SurfaceRepresentationBase" >
       <Documentation>
         Representation to show any dataset in a 3D render view.
       </Documentation>
+
+      <InputProperty name="Input" command="SetInputConnection">
+       <DataTypeDomain name="input_type">
+         <DataType value="vtkDataSet"/>
+       </DataTypeDomain>
+        <Documentation>
+          Set the input to the representation.
+        </Documentation>
+      </InputProperty>
 
       <InputProperty name="Source" command="SetInputConnection"
         port_index="1"
