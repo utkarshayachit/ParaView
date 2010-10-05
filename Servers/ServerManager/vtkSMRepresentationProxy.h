@@ -56,7 +56,7 @@ protected:
 
   virtual void CreateVTKObjects();
 
-  void RepresentationUpdated();
+  virtual void RepresentationUpdated();
 
   // Description:
   // Mark the data information as invalid.

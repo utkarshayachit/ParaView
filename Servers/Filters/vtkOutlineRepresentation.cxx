@@ -21,7 +21,7 @@ vtkStandardNewMacro(vtkOutlineRepresentation);
 //----------------------------------------------------------------------------
 vtkOutlineRepresentation::vtkOutlineRepresentation()
 {
-  this->GeometryFilter->SetUseOutline(1);
+  this->SetUseOutline(1);
   // this doesn't work right now, but once it starts working it will come handy.
   this->SetSuppressLOD(1);
 

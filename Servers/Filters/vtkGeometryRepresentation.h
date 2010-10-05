@@ -26,7 +26,6 @@
 #include "vtkProperty.h" // needed for VTK_POINTS etc.
 
 class vtkCompositePolyDataMapper2;
-class vtkGeometryRepresentationMultiBlockMaker;
 class vtkOrderedCompositeDistributor;
 class vtkPVCacheKeeper;
 class vtkPVGeometryFilter;
@@ -124,18 +123,18 @@ public:
 
   //***************************************************************************
   // Forwarded to vtkProperty.
-  void SetAmbientColor(double r, double g, double b);
-  void SetBackfaceCulling(int val);
-  void SetColor(double r, double g, double b);
-  void SetDiffuseColor(double r, double g, double b);
-  void SetEdgeColor(double r, double g, double b);
-  void SetFrontfaceCulling(int val);
-  void SetInterpolation(int val);
-  void SetLineWidth(double val);
-  void SetOpacity(double val);
-  void SetPointSize(double val);
-  void SetSpecularColor(double r, double g, double b);
-  void SetSpecularPower(double val);
+  virtual void SetAmbientColor(double r, double g, double b);
+  virtual void SetBackfaceCulling(int val);
+  virtual void SetColor(double r, double g, double b);
+  virtual void SetDiffuseColor(double r, double g, double b);
+  virtual void SetEdgeColor(double r, double g, double b);
+  virtual void SetFrontfaceCulling(int val);
+  virtual void SetInterpolation(int val);
+  virtual void SetLineWidth(double val);
+  virtual void SetOpacity(double val);
+  virtual void SetPointSize(double val);
+  virtual void SetSpecularColor(double r, double g, double b);
+  virtual void SetSpecularPower(double val);
 
   //***************************************************************************
   // Forwarded to Actor.
@@ -148,10 +147,10 @@ public:
 
   //***************************************************************************
   // Forwarded to Mapper and LODMapper.
-  void SetInterpolateScalarsBeforeMapping(int val);
-  void SetLookupTable(vtkScalarsToColors* val);
-  void SetMapScalars(int val);
-  void SetStatic(int val);
+  virtual void SetInterpolateScalarsBeforeMapping(int val);
+  virtual void SetLookupTable(vtkScalarsToColors* val);
+  virtual void SetMapScalars(int val);
+  virtual void SetStatic(int val);
 
   // Description:
   // Convert the selection to a type appropriate for sharing with other
@@ -212,8 +211,8 @@ protected:
   // Overridden to check with the vtkPVCacheKeeper to see if the key is cached.
   virtual bool IsCached(double cache_key);
 
-  vtkPVGeometryFilter* GeometryFilter;
-  vtkGeometryRepresentationMultiBlockMaker* MultiBlockMaker;
+  vtkAlgorithm* GeometryFilter;
+  vtkAlgorithm* MultiBlockMaker;
   vtkPVCacheKeeper* CacheKeeper;
   vtkQuadricClustering* Decimator;
   vtkCompositePolyDataMapper2* Mapper;

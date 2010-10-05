@@ -96,9 +96,9 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->DeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
   this->LODDeliveryFilter = vtkUnstructuredDataDeliveryFilter::New();
 
-  this->GeometryFilter->SetUseOutline(0);
-  this->GeometryFilter->SetPassThroughCellIds(1);
-  this->GeometryFilter->SetPassThroughPointIds(1);
+  vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter)->SetUseOutline(0);
+  vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter)->SetPassThroughCellIds(1);
+  vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter)->SetPassThroughPointIds(1);
 
   this->DeliveryFilter->SetOutputDataType(VTK_MULTIBLOCK_DATA_SET);
   this->LODDeliveryFilter->SetOutputDataType(VTK_MULTIBLOCK_DATA_SET);
@@ -584,6 +584,9 @@ void vtkGeometryRepresentation::SetTexture(vtkTexture* val)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetUseOutline(int val)
 {
-  this->GeometryFilter->SetUseOutline(val);
+  if (vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+    {
+    vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter)->SetUseOutline(val);
+    }
   this->Modified();
 }
