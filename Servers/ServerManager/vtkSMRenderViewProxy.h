@@ -61,7 +61,11 @@ public:
   // quietly return an empty selection.
   virtual bool IsSelectionAvailable();
 
-  //BTX
+  // Description:
+  // For backwards compatibility in Python scripts.
+  void ResetCamera()
+    { this->InvokeCommand("ResetCamera"); }
+
   // Description:
   // Similar to IsSelectionAvailable(), however, on failure returns the
   // error message otherwise 0.

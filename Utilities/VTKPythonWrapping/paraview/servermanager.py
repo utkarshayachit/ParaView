@@ -2026,11 +2026,9 @@ def _create_view(view_xml_name, connection=None, **extraArgs):
     if not connection:
         raise RuntimeError, "Cannot create view without connection."
     pxm = ProxyManager()
-    prototype = pxm.GetPrototypeProxy("views", view_xml_name)
-    proxy_xml_name = prototype.GetSuggestedViewType(connection.ID)
     view_module = None
-    if proxy_xml_name:
-        view_module = CreateProxy("views", proxy_xml_name, connection)
+    if view_xml_name:
+        view_module = CreateProxy("views", view_xml_name, connection)
     if not view_module:
         return None
     extraArgs['proxy'] = view_module
