@@ -36,19 +36,16 @@
 #ifndef __vtkSMPointSpriteRepresentationProxy_h
 #define __vtkSMPointSpriteRepresentationProxy_h
 
-#include "vtkSMSurfaceRepresentationProxy.h"
+#include "vtkSMRepresentationProxy.h"
 
 class vtkSMProperty;
 
-class vtkSMPointSpriteRepresentationProxy :
-  public vtkSMSurfaceRepresentationProxy
+class vtkSMPointSpriteRepresentationProxy : public vtkSMRepresentationProxy
 {
 public:
   static vtkSMPointSpriteRepresentationProxy* New();
-  vtkTypeMacro(vtkSMPointSpriteRepresentationProxy, vtkSMSurfaceRepresentationProxy);
+  vtkTypeMacro(vtkSMPointSpriteRepresentationProxy, vtkSMRepresentationProxy);
 
-  bool BeginCreateVTKObjects();
-  bool EndCreateVTKObjects();
 
   static double  ComputeInitialRadius(vtkPVDataInformation* info);
 
@@ -56,9 +53,9 @@ protected:
    vtkSMPointSpriteRepresentationProxy();
   ~vtkSMPointSpriteRepresentationProxy();
 
-  // initialize the client-server strategy.
-  // overload to insert the ArrayToRadius and ArrayToOpacity filters before the strategy.
-  bool InitializeStrategy(vtkSMViewProxy* view);
+  virtual void RepresentationUpdated();
+
+  void CreateVTKObjects();
 
   // Description:
   // Initialize the constant radius, radius range and transfer functions if not initialized yet.
@@ -69,30 +66,7 @@ protected:
 
   virtual void  InitializeSpriteTextures();
 
-
-  vtkSMSourceProxy* ArrayToRadiusFilter;
-  vtkSMSourceProxy* ArrayToOpacityFilter;
-  vtkSMSourceProxy* LODArrayToRadiusFilter;
-  vtkSMSourceProxy* LODArrayToOpacityFilter;
-
-  vtkSMProxy* OpacityTransferFunctionChooser;
-  vtkSMProxy* RadiusTransferFunctionChooser;
-
-  vtkSMProxy* OpacityTableTransferFunction;
-  vtkSMProxy* RadiusTableTransferFunction;
-
-  vtkSMProxy* OpacityGaussianTransferFunction;
-  vtkSMProxy* RadiusGaussianTransferFunction;
-
-  vtkSMProxy* DepthSortPainter;
-  vtkSMProxy* LODDepthSortPainter;
-
-  vtkSMProxy* ScalarsToColorsPainter;
-  vtkSMProxy* LODScalarsToColorsPainter;
-
-  vtkSMProxy* PointSpriteDefaultPainter;
-  vtkSMProxy* LODPointSpriteDefaultPainter;
-
+  bool DefaultsInitialized;
 private:
   vtkSMPointSpriteRepresentationProxy(const vtkSMPointSpriteRepresentationProxy&); // Not implemented
   void operator=(const vtkSMPointSpriteRepresentationProxy&); // Not implemented
