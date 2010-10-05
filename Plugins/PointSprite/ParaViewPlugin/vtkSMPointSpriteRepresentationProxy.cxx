@@ -53,7 +53,6 @@ vtkStandardNewMacro(vtkSMPointSpriteRepresentationProxy)
 //----------------------------------------------------------------------------
 vtkSMPointSpriteRepresentationProxy::vtkSMPointSpriteRepresentationProxy()
 {
-  this->DefaultsInitialized = false;
 }
 
 //----------------------------------------------------------------------------
@@ -62,85 +61,34 @@ vtkSMPointSpriteRepresentationProxy::~vtkSMPointSpriteRepresentationProxy()
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPointSpriteRepresentationProxy::CreateVTKObjects()
+void vtkSMPointSpriteRepresentationProxy::InitializeDefaultValues(
+  vtkSMProxy* proxy)
 {
-  if (this->ObjectsCreated)
+  if (vtkSMPropertyHelper(proxy, "PointSpriteDefaultsInitialized").GetAsInt()!=0)
     {
     return;
     }
-  this->Superclass::CreateVTKObjects();
-  if (!this->ObjectsCreated)
-    {
-    return;
-    }
-}
 
-//----------------------------------------------------------------------------
-void vtkSMPointSpriteRepresentationProxy::RepresentationUpdated()
-{
-  this->Superclass::RepresentationUpdated();
-  if (!this->DefaultsInitialized)
-    {
-    this->InitializeDefaultValues();
-    this->DefaultsInitialized = true;
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkSMPointSpriteRepresentationProxy::InitializeDefaultValues()
-{
-  // Initialize the default radius if needed.
-  bool radiusInitialized = vtkSMIntVectorProperty::SafeDownCast(this->GetProperty(
-      "RadiusInitialized"))->GetElement(0) != 0;
-
-  if (!radiusInitialized)
-    {
-    double radius = this->ComputeInitialRadius(
-        this->GetRepresentedDataInformation());
-    radius = 0.1831;
-    vtkSMDoubleVectorProperty::SafeDownCast(this->GetProperty(
-          "ConstantRadius"))->SetElements1(radius);
-    vtkSMDoubleVectorProperty::SafeDownCast(this->GetProperty(
-          "RadiusRange"))->SetElements2(0.0, radius);
-    vtkSMIntVectorProperty::SafeDownCast(this->GetProperty(
-          "RadiusInitialized"))->SetElements1(1);
-    }
+  vtkSMPropertyHelper(proxy, "PointSpriteDefaultsInitialized").Set(1);
+  proxy->GetProperty("ConstantRadius")->ResetToDefault();
+  proxy->GetProperty("RadiusRange")->ResetToDefault();
 
   // Initialize the Transfer functions if needed
-  int nop = vtkSMVectorProperty::SafeDownCast(this->GetProperty("OpacityTableValues"))->GetNumberOfElements();
+  int nop = vtkSMVectorProperty::SafeDownCast(proxy->GetProperty("OpacityTableValues"))->GetNumberOfElements();
   if (nop == 0)
     {
-    InitializeTableValues(this->GetProperty("OpacityTableValues"));
+    InitializeTableValues(proxy->GetProperty("OpacityTableValues"));
     }
 
-  int nrad = vtkSMVectorProperty::SafeDownCast(this->GetProperty("RadiusTableValues"))->GetNumberOfElements();
+  int nrad = vtkSMVectorProperty::SafeDownCast(proxy->GetProperty("RadiusTableValues"))->GetNumberOfElements();
   if (nrad == 0)
     {
-    InitializeTableValues(this->GetProperty("RadiusTableValues"));
+    InitializeTableValues(proxy->GetProperty("RadiusTableValues"));
     }
 
-  InitializeSpriteTextures();
+  InitializeSpriteTextures(proxy);
 
-  this->UpdateVTKObjects();
-}
-
-double vtkSMPointSpriteRepresentationProxy::ComputeInitialRadius(vtkPVDataInformation* info)
-{
-  vtkIdType npts = info->GetNumberOfPoints();
-  if (npts == 0)
-    npts = 1;
-  double bounds[6];
-  info->GetBounds(bounds);
-
-  double diag = sqrt(((bounds[1] - bounds[0]) * (bounds[1] - bounds[0])
-      + (bounds[3] - bounds[2]) * (bounds[3] - bounds[2]) + (bounds[5]
-      - bounds[4]) * (bounds[5] - bounds[4])) / 3.0);
-
-  double nn = pow(static_cast<double>(npts), 1.0 / 3.0) - 1.0;
-  if (nn < 1.0)
-    nn = 1.0;
-
-  return diag / nn / 2.0;
+  proxy->UpdateVTKObjects();
 }
 
 void vtkSMPointSpriteRepresentationProxy::InitializeTableValues(vtkSMProperty* prop)
@@ -155,7 +103,8 @@ void vtkSMPointSpriteRepresentationProxy::InitializeTableValues(vtkSMProperty* p
   tableprop->SetElements(values);
 }
 
-void vtkSMPointSpriteRepresentationProxy::InitializeSpriteTextures()
+void vtkSMPointSpriteRepresentationProxy::InitializeSpriteTextures(
+  vtkSMProxy* repr)
 {
   vtkSMProxyIterator* proxyIter;
   string texName;
@@ -189,7 +138,7 @@ void vtkSMPointSpriteRepresentationProxy::InitializeSpriteTextures()
     {
     // create the texture proxy
     texture = pxm->NewProxy("textures", "SpriteTexture");
-    texture->SetConnectionID(this->GetConnectionID());
+    texture->SetConnectionID(repr->GetConnectionID());
     texture->SetServers(vtkProcessModule::CLIENT
         | vtkProcessModule::RENDER_SERVER);
     pxm->RegisterProxy("textures", texName.c_str(), texture);
@@ -209,12 +158,13 @@ void vtkSMPointSpriteRepresentationProxy::InitializeSpriteTextures()
     alphathresholdprop->SetElements1(63);
     texture->UpdateVTKObjects();
 
-    vtkSMProxyProperty* textureProperty = vtkSMProxyProperty::SafeDownCast(this->GetProperty("Texture"));
+    vtkSMProxyProperty* textureProperty = vtkSMProxyProperty::SafeDownCast(
+      repr->GetProperty("Texture"));
     if(textureProperty->GetNumberOfProxies() == 0)
       {
       // set this texture as default texture
       textureProperty->SetProxy(0, texture);
-      this->UpdateVTKObjects();
+      repr->UpdateVTKObjects();
       }
     }
 
@@ -236,7 +186,7 @@ void vtkSMPointSpriteRepresentationProxy::InitializeSpriteTextures()
     {
     // create the texture proxy
     texture = pxm->NewProxy("textures", "SpriteTexture");
-    texture->SetConnectionID(this->GetConnectionID());
+    texture->SetConnectionID(repr->GetConnectionID());
     texture->SetServers(vtkProcessModule::CLIENT
         | vtkProcessModule::RENDER_SERVER);
     pxm->RegisterProxy("textures", texName.c_str(), texture);

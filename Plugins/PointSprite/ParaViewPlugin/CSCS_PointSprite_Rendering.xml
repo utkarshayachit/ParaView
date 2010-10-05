@@ -85,9 +85,13 @@
 
       <DoubleVectorProperty name="ConstantRadius"
         command="SetConstantRadius"
-        default_values="1"
         number_of_elements="1"
-        animateable="1">
+        default_values="1">
+        <CustomBoundsDomain name="range">
+          <RequiredProperties>
+            <Property name="Input" function="Input" />
+          </RequiredProperties>
+        </CustomBoundsDomain>
       </DoubleVectorProperty>
 
       <DoubleVectorProperty name="RadiusRange"
@@ -95,6 +99,11 @@
         number_of_elements="2"
         default_values="0 1"
         animateable="0">
+        <CustomBoundsDomain name="range">
+          <RequiredProperties>
+            <Property name="Input" function="Input" />
+          </RequiredProperties>
+        </CustomBoundsDomain>
       </DoubleVectorProperty>
 
       <DoubleVectorProperty name="MaxPixelSize"
@@ -240,7 +249,7 @@
       </DoubleVectorProperty>
 
        <IntVectorProperty
-         name="RadiusInitialized"
+         name="PointSpriteDefaultsInitialized"
          number_of_elements="1"
          default_values="0">
       </IntVectorProperty>

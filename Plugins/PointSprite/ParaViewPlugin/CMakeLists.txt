@@ -19,6 +19,7 @@ include_directories(
 )
 
 set(SM_SOURCES
+  vtkSMCustomBoundsDomain.cxx
   vtkSMPointSpriteRepresentationProxy.cxx
   vtkSMSpriteTextureProxy.cxx
   vtkPointSpriteRepresentation.cxx

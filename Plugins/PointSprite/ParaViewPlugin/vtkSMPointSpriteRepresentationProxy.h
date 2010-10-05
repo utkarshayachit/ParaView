@@ -46,27 +46,17 @@ public:
   static vtkSMPointSpriteRepresentationProxy* New();
   vtkTypeMacro(vtkSMPointSpriteRepresentationProxy, vtkSMRepresentationProxy);
 
-
-  static double  ComputeInitialRadius(vtkPVDataInformation* info);
+  // Description:
+  // Initialize the constant radius, radius range and transfer functions if not initialized yet.
+  static void InitializeDefaultValues(vtkSMProxy*);
 
 protected:
    vtkSMPointSpriteRepresentationProxy();
   ~vtkSMPointSpriteRepresentationProxy();
 
-  virtual void RepresentationUpdated();
+  static void  InitializeTableValues(vtkSMProperty*);
+  static void  InitializeSpriteTextures(vtkSMProxy* repr);
 
-  void CreateVTKObjects();
-
-  // Description:
-  // Initialize the constant radius, radius range and transfer functions if not initialized yet.
-  virtual void  InitializeDefaultValues();
-
-
-  virtual void  InitializeTableValues(vtkSMProperty*);
-
-  virtual void  InitializeSpriteTextures();
-
-  bool DefaultsInitialized;
 private:
   vtkSMPointSpriteRepresentationProxy(const vtkSMPointSpriteRepresentationProxy&); // Not implemented
   void operator=(const vtkSMPointSpriteRepresentationProxy&); // Not implemented
