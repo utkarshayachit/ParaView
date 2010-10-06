@@ -16,6 +16,7 @@
 
 #include "vtkAnnotationLink.h"
 #include "vtkBlockDeliveryPreprocessor.h"
+#include "vtkChart.h"
 #include "vtkClientServerMoveData.h"
 #include "vtkCommand.h"
 #include "vtkContextNamedOptions.h"
@@ -30,14 +31,18 @@
 #include "vtkPVContextView.h"
 #include "vtkPVMergeTables.h"
 #include "vtkReductionFilter.h"
+#include "vtkSelectionDeliveryFilter.h"
 #include "vtkSelection.h"
 #include "vtkTable.h"
+
 
 vtkStandardNewMacro(vtkChartRepresentation);
 vtkCxxSetObjectMacro(vtkChartRepresentation, Options, vtkContextNamedOptions);
 //----------------------------------------------------------------------------
 vtkChartRepresentation::vtkChartRepresentation()
 {
+  this->SetNumberOfInputPorts(2);
+
   this->AnnLink = vtkAnnotationLink::New();
   this->Options = 0;
 
@@ -59,6 +64,8 @@ vtkChartRepresentation::vtkChartRepresentation()
   post_gather_algo->FastDelete();
   this->DeliveryFilter = vtkClientServerMoveData::New();
   this->DeliveryFilter->SetOutputDataType(VTK_TABLE);
+
+  this->SelectionDeliveryFilter = vtkSelectionDeliveryFilter::New();
 }
 
 //----------------------------------------------------------------------------
@@ -71,6 +78,8 @@ vtkChartRepresentation::~vtkChartRepresentation()
   this->CacheKeeper->Delete();
   this->ReductionFilter->Delete();
   this->DeliveryFilter->Delete();
+
+  this->SelectionDeliveryFilter->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -117,11 +126,19 @@ bool vtkChartRepresentation::RemoveFromView(vtkView* view)
 
 //----------------------------------------------------------------------------
 int vtkChartRepresentation::FillInputPortInformation(
-  int vtkNotUsed(port), vtkInformation* info)
+  int port, vtkInformation* info)
 {
-  info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataSet");
-  info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkCompositeDataSet");
-  info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
+  if (port == 0)
+    {
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataSet");
+    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkCompositeDataSet");
+    info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
+    }
+  else
+    {
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkSelection");
+    info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
+    }
   return 1;
 }
 
@@ -160,11 +177,32 @@ int vtkChartRepresentation::RequestData(vtkInformation* request,
     this->DeliveryFilter->RemoveAllInputs();
     }
 
+  if(inputVector[1]->GetNumberOfInformationObjects()==1)
+    {
+    this->SelectionDeliveryFilter->SetInputConnection(
+      this->GetInternalOutputPort(1, 0));
+    }
+  else
+    {
+    this->SelectionDeliveryFilter->RemoveAllInputs();
+    }
+
   this->DeliveryFilter->Update();
+  this->SelectionDeliveryFilter->Update();
+
   if (this->Options)
     {
     this->Options->SetTable(this->GetLocalOutput());
     }
+
+  if (this->ContextView && this->ContextView->GetChart())
+    {
+    vtkSelection* sel = vtkSelection::SafeDownCast(
+      this->SelectionDeliveryFilter->GetOutputDataObject(0));
+    this->AnnLink->SetCurrentSelection(sel);
+    this->ContextView->GetChart()->SetAnnotationLink(this->AnnLink);
+    }
+
   return this->Superclass::RequestData(request, inputVector, outputVector);
 }
 
@@ -196,33 +234,6 @@ void vtkChartRepresentation::SetVisibility(bool visible)
     this->Options->SetTableVisibility(visible);
     }
 }
-
-#ifdef FIXME
-//----------------------------------------------------------------------------
-void vtkChartRepresentation::Update(vtkSMViewProxy* view)
-{
-  this->Superclass::Update(view);
-
-  // Update our selection
-  this->SelectionRepresentation->Update(view);
-
-  if (this->GetChart())
-    {
-    vtkSelection *sel =
-        vtkSelection::SafeDownCast(this->SelectionRepresentation->GetOutput());
-    this->AnnLink->SetCurrentSelection(sel);
-    this->GetChart()->SetAnnotationLink(AnnLink);
-    }
-
-  // Set the table, in case it has changed.
-  if (this->Options)
-    {
-    this->Options->SetTable(vtkTable::SafeDownCast(this->GetOutput()));
-    }
-
-  this->UpdatePropertyInformation();
-}
-#endif
 
 //----------------------------------------------------------------------------
 int vtkChartRepresentation::GetNumberOfSeries()

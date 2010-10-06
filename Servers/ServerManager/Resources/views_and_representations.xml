@@ -1870,13 +1870,6 @@
         <DoubleRangeDomain name="range" />
       </DoubleVectorProperty>
 
-      <IntVectorProperty name="Pickable"
-        command="SetPickable"
-        number_of_elements="1"
-        default_values="1">
-        <IntRangeDomain name="bool" />
-      </IntVectorProperty>
-
       <ProxyProperty name="LookupTable"
         command="SetLookupTable">
         <Documentation>
@@ -3431,14 +3424,14 @@
         </ExposedProperties>
       </SubProxy>
 
-      <!--
-      <SubProxy>
-        <Proxy name="SelectionRepresentation"
-          proxygroup="representations"
-          proxyname="ClientDeliveryRepresentation">
-        </Proxy>
-      </SubProxy>
-      -->
+      <InputProperty name="InternalInput1"
+        command="SetInputConnection"
+        port_index="1"
+        is_internal="1">
+        <Documentation>
+          Internal property. Please don't touch this.
+        </Documentation>
+      </InputProperty>
 
       <!-- End of XYChartRepresentationBase -->
     </ChartRepresentationProxy>
@@ -3654,6 +3647,15 @@
           Set the opacity of the lines.
         </Documentation>
       </StringVectorProperty>
+
+      <InputProperty name="InternalInput1"
+        command="SetInputConnection"
+        port_index="1"
+        is_internal="1">
+        <Documentation>
+          Internal property. Please don't touch this.
+        </Documentation>
+      </InputProperty>
 
     </ParallelCoordinatesRepresentationProxy>
 

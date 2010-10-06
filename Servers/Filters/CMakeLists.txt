@@ -197,6 +197,7 @@ SET(Filters_SRCS
   vtkScatterPlotPainter.cxx
   vtkSciVizStatistics.cxx
   vtkSelectionConverter.cxx
+  vtkSelectionDeliveryFilter.cxx
   vtkSelectionRepresentation.cxx
   vtkSequenceAnimationPlayer.cxx
   vtkSortedTableStreamer.cxx

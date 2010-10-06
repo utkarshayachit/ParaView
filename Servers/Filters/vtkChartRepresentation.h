@@ -36,6 +36,7 @@ class vtkContextNamedOptions;
 class vtkPVCacheKeeper;
 class vtkPVContextView;
 class vtkReductionFilter;
+class vtkSelectionDeliveryFilter;
 class vtkTable;
 
 class VTK_EXPORT vtkChartRepresentation : public vtkPVDataRepresentation
@@ -127,6 +128,8 @@ protected:
   vtkClientServerMoveData* DeliveryFilter;
   vtkWeakPointer<vtkPVContextView> ContextView;
   vtkContextNamedOptions* Options;
+
+  vtkSelectionDeliveryFilter* SelectionDeliveryFilter;
 
   vtkAnnotationLink* AnnLink;
 private:
