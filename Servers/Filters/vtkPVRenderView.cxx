@@ -121,12 +121,9 @@ vtkPVRenderView::vtkPVRenderView()
   vtkRenderWindow* window = this->SynchronizedWindows->NewRenderWindow();
   window->SetMultiSamples(0);
   window->SetOffScreenRendering(this->UseOffscreenRendering? 1 : 0);
+  window->SetInteractor(this->Interactor);
   this->RenderView = vtkRenderViewBase::New();
   this->RenderView->SetRenderWindow(window);
-  if (this->Interactor)
-    {
-    //this->RenderView->SetInteractor(this->Interactor);
-    }
   window->Delete();
 
   this->NonCompositedRenderer = vtkRenderer::New();
