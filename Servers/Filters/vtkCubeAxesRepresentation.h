@@ -84,6 +84,30 @@ public:
   // Set visibility of the representation.
   virtual void SetVisibility(bool visible);
 
+  //***************************************************************************
+  // Forwarded to internal vtkCubeAxesActor
+  void SetFlyMode(int val);
+  void SetInertia(int val);
+  void SetCornerOffset(double val);
+  void SetTickLocation(int val);
+
+  void SetXTitle(const char* val);
+  void SetXAxisVisibility(int val);
+  void SetXAxisTickVisibility(int val);
+  void SetXAxisMinorTickVisibility(int val);
+  void SetDrawXGridlines(int val);
+
+  void SetYAxisVisibility(int val);
+  void SetYTitle(const char* val);
+  void SetYAxisTickVisibility(int val);
+  void SetYAxisMinorTickVisibility(int val);
+  void SetDrawYGridlines(int val);
+
+  void SetZAxisVisibility(int val);
+  void SetZTitle(const char* val);
+  void SetZAxisTickVisibility(int val);
+  void SetZAxisMinorTickVisibility(int val);
+  void SetDrawZGridlines(int val);
 //BTX
 protected:
   vtkCubeAxesRepresentation();

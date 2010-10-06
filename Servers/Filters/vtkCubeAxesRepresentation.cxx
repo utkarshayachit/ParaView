@@ -35,6 +35,8 @@ vtkStandardNewMacro(vtkCubeAxesRepresentation);
 vtkCubeAxesRepresentation::vtkCubeAxesRepresentation()
 {
   this->CubeAxesActor = vtkCubeAxesActor::New();
+  this->CubeAxesActor->SetPickable(0);
+
   this->Position[0] = this->Position[1] = this->Position[2] = 0.0;
   this->Orientation[0] = this->Orientation[1] = this->Orientation[2] = 0.0;
   this->Scale[0] = this->Scale[1] = this->Scale[2] = 1.0;
@@ -237,4 +239,119 @@ void vtkCubeAxesRepresentation::UpdateBounds()
 void vtkCubeAxesRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+}
+
+//***************************************************************************
+// Forwarded to internal vtkCubeAxesActor
+void vtkCubeAxesRepresentation::SetFlyMode(int val)
+{
+  this->CubeAxesActor->SetFlyMode(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetInertia(int val)
+{
+  this->CubeAxesActor->SetInertia(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetCornerOffset(double val)
+{
+  this->CubeAxesActor->SetCornerOffset(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetTickLocation(int val)
+{
+  this->CubeAxesActor->SetTickLocation(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetXTitle(const char* val)
+{
+  this->CubeAxesActor->SetXTitle(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetXAxisVisibility(int val)
+{
+  this->CubeAxesActor->SetXAxisVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetXAxisTickVisibility(int val)
+{
+  this->CubeAxesActor->SetXAxisTickVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetXAxisMinorTickVisibility(int val)
+{
+  this->CubeAxesActor->SetXAxisMinorTickVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetDrawXGridlines(int val)
+{
+  this->CubeAxesActor->SetDrawXGridlines(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetYTitle(const char* val)
+{
+  this->CubeAxesActor->SetYTitle(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetYAxisVisibility(int val)
+{
+  this->CubeAxesActor->SetYAxisVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetYAxisTickVisibility(int val)
+{
+  this->CubeAxesActor->SetYAxisTickVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetYAxisMinorTickVisibility(int val)
+{
+  this->CubeAxesActor->SetYAxisMinorTickVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetDrawYGridlines(int val)
+{
+  this->CubeAxesActor->SetDrawYGridlines(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetZTitle(const char* val)
+{
+  this->CubeAxesActor->SetZTitle(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetZAxisVisibility(int val)
+{
+  this->CubeAxesActor->SetZAxisVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetZAxisTickVisibility(int val)
+{
+  this->CubeAxesActor->SetZAxisTickVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetZAxisMinorTickVisibility(int val)
+{
+  this->CubeAxesActor->SetZAxisMinorTickVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkCubeAxesRepresentation::SetDrawZGridlines(int val)
+{
+  this->CubeAxesActor->SetDrawZGridlines(val);
 }
