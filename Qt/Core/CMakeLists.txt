@@ -84,6 +84,7 @@ QT4_WRAP_CPP(MOC_BUILT_SOURCES
   pqPropertyLinks.h
   pqPropertyManager.h
   pqProxy.h
+  pqQVTKWidget.h
   pqQVTKWidgetEventTranslator.h
   pqRenderView.h
   pqRenderViewBase.h
@@ -287,6 +288,8 @@ ADD_LIBRARY(pqCore
   pqProxyModifiedStateUndoElement.h
   pqProxyUnRegisterUndoElement.cxx
   pqProxyUnRegisterUndoElement.h
+  pqQVTKWidget.cxx
+  pqQVTKWidget.h
   pqQVTKWidgetEventPlayer.cxx
   pqQVTKWidgetEventPlayer.h
   pqQVTKWidgetEventTranslator.cxx

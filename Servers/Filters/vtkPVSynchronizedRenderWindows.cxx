@@ -100,6 +100,77 @@ public:
       }
     }
 
+  bool ExpandLeft(unsigned int me, const int* my_size, int* my_pos)
+    {
+    int my_extents[4] = {my_pos[0], my_pos[1], my_pos[0] + my_size[0] -1,
+      my_pos[1] + my_size[1] - 1};
+
+    int &position = my_pos[0];
+    position = 0;
+    RenderWindowsMap::iterator iter;
+    for (iter = this->RenderWindows.begin(); iter != this->RenderWindows.end(); ++iter)
+      {
+      if (iter->first == me)
+        {
+        continue;
+        }
+
+      // Only interested in boxes entirely to our left.
+      const int *size = iter->second.Size;
+      const int *pos = iter->second.Position;
+      int extents[4] = {pos[0], pos[1], pos[0] + size[0] -1,
+        pos[1] + size[1] - 1};
+
+      if (extents[2] >= my_extents[0] ||
+        extents[1] > my_extents[3] ||
+        extents[3] < my_extents[1])
+        {
+        continue;
+        }
+      if (position <= extents[2])
+        {
+        position = extents[2] + 1;
+        }
+      }
+    return (position != my_extents[0]);
+    }
+
+  bool ExpandTop(unsigned int me, const int* my_size, int* my_pos)
+    {
+    int my_extents[4] = {my_pos[0], my_pos[1], my_pos[0] + my_size[0] -1,
+      my_pos[1] + my_size[1] - 1};
+
+    int &position = my_pos[1];
+    position = 0;
+
+    RenderWindowsMap::iterator iter;
+    for (iter = this->RenderWindows.begin(); iter != this->RenderWindows.end(); ++iter)
+      {
+      if (iter->first == me)
+        {
+        continue;
+        }
+
+      // Only interested in boxes entirely to our left.
+      const int *size = iter->second.Size;
+      const int *pos = iter->second.Position;
+      int extents[4] = {pos[0], pos[1], pos[0] + size[0] -1,
+        pos[1] + size[1] - 1};
+
+      if (extents[3] >= my_extents[1] ||
+        extents[0] > my_extents[2] ||
+        extents[2] < my_extents[0])
+        {
+        continue;
+        }
+      if (position <= extents[3])
+        {
+        position = extents[3]+1;
+        }
+      }
+    return (position != my_extents[1]);
+    }
+
   vtkSmartPointer<vtkRenderWindow> SharedRenderWindow;
   unsigned int ActiveId;
 };
@@ -665,6 +736,8 @@ void vtkPVSynchronizedRenderWindows::RootStartRender(vtkRenderWindow* renWin)
     this->LoadWindowAndLayout(renWin, stream);
     }
 
+  this->ShinkGaps();
+
   // * Ensure layout i.e. all renders have correct viewports and hide inactive
   //   renderers.
   this->UpdateWindowLayout();
@@ -938,6 +1011,42 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
   case INVALID:
     abort();
     }
+}
+
+//----------------------------------------------------------------------------
+// We use the following approach:
+// "Top-left corner for every box is moved up-and-left till it intersects
+// another box"
+// This works well for the way ParaView splits view.
+void vtkPVSynchronizedRenderWindows::ShinkGaps()
+{
+  bool something_expanded;
+  do
+    {
+    something_expanded = false;
+    vtkInternals::RenderWindowsMap::iterator iter;
+    for (iter = this->Internals->RenderWindows.begin();
+      iter != this->Internals->RenderWindows.end(); ++iter)
+      {
+      const int *size = iter->second.Size;
+      int *position = iter->second.Position;
+      if (this->Internals->ExpandLeft(iter->first, size, position))
+        {
+        something_expanded = true;
+        }
+      if (this->Internals->ExpandTop(iter->first, size, position))
+        {
+        something_expanded = true;
+        }
+      }
+    }
+  while (something_expanded);
+
+  // The above code can result in small gaps at the
+  // very ends (bottom/right) in some configurations. We expand those gaps only
+  // in tile-display mode, since otherwise it messes up the aspect ratio and
+  // would end up delivering image with wrong aspect ratio to the client.
+
 }
 
 //----------------------------------------------------------------------------

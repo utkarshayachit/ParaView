@@ -186,6 +186,11 @@ protected:
   // dimensions.
   bool GetTileDisplayParameters(int tile_dims[2]);
 
+  // Description:
+  // Shrinks gaps between views, rather grows the views to reduce gaps. Only
+  // used in tile-display mode to avoid gaps on the server side.
+  void ShinkGaps();
+
   enum ModeEnum
     {
     INVALID,
