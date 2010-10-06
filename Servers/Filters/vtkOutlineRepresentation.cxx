@@ -28,6 +28,9 @@ vtkOutlineRepresentation::vtkOutlineRepresentation()
   this->SetAmbient(1);
   this->SetDiffuse(0);
   this->SetSpecular(0);
+
+  // you cannot select the outline!
+  this->SetPickable(0);
 }
 
 //----------------------------------------------------------------------------
