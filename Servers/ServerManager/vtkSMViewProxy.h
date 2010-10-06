@@ -33,6 +33,7 @@
 
 class vtkImageData;
 class vtkSMRepresentationProxy;
+class vtkView;
 
 class VTK_EXPORT vtkSMViewProxy : public vtkSMProxy
 {
@@ -64,6 +65,10 @@ public:
   // Subclasses should override CaptureWindowInternal() to do the actual image
   // capture.
   vtkImageData* CaptureWindow(int magnification);
+
+  // Description:
+  // Returns the client-side vtkView, if any.
+  vtkView* GetClientSideView();
 
 //BTX
 protected:

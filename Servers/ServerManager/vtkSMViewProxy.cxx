@@ -24,6 +24,7 @@
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMRepresentationProxy.h"
+#include "vtkView.h"
 
 vtkStandardNewMacro(vtkSMViewProxy);
 //----------------------------------------------------------------------------
@@ -37,6 +38,16 @@ vtkSMViewProxy::vtkSMViewProxy()
 vtkSMViewProxy::~vtkSMViewProxy()
 {
   this->SetDefaultRepresentationName(0);
+}
+
+//----------------------------------------------------------------------------
+vtkView* vtkSMViewProxy::GetClientSideView()
+{
+  if (!this->GetID().IsNull())
+    {
+    return vtkView::SafeDownCast(this->GetClientSideObject());
+    }
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
