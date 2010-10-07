@@ -471,6 +471,7 @@ void vtkPVRenderView::GatherBoundsInformation()
   // universal bounds. How can we fix that?
   this->GetRenderer()->ComputeVisiblePropBounds(this->LastComputedBounds);
   this->SynchronizedWindows->SynchronizeBounds(this->LastComputedBounds);
+  this->ResetCameraClippingRange();
 
   if (!vtkMath::AreBoundsInitialized(this->LastComputedBounds))
     {
