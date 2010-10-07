@@ -844,48 +844,6 @@ void pqViewManager::setMaxViewWindowSize(const QSize& win_size)
 }
 
 //-----------------------------------------------------------------------------
-//
-// This method is called at the end of updateViewPositions().
-// This method tries to set the properties GUISizeCompact,
-// ViewPositionCompact, and ViewSizeCompact.  For now, only the
-// vtkSMIceTMultiDisplayRenderViewProxy has these properties.
-//
-void pqViewManager::updateCompactViewPositions()
-{
-  QMap<pqMultiViewFrame*, QPair<QPoint, QSize> > ViewInfo;
-  this->computeCompactSizes(ViewInfo);
-  QSize totalGUISize = this->getMultiViewWidget()->size();
-
-  /// GUISize, ViewSize and ViewPosition properties are managed
-  /// by the GUI, the undo/redo stack should not worry about
-  /// the changes made to them.
-  BEGIN_UNDO_EXCLUDE();
-
-  // Loop for each view
-  QList<pqMultiViewFrame*> frames = ViewInfo.keys();
-  foreach(pqMultiViewFrame* frame, frames)
-    {
-    pqView * view = this->getView(frame);
-    if (!view)
-      {
-      continue;
-      }
-    // Set ViewPosition
-    QPoint viewPos = ViewInfo[frame].first;
-    vtkSMPropertyHelper(view->getProxy(), "ViewPosition").Set(0, viewPos.x());
-    vtkSMPropertyHelper(view->getProxy(), "ViewPosition").Set(1, viewPos.y());
-
-    // Set ViewSize
-    QSize viewSize = ViewInfo[frame].second;
-    vtkSMPropertyHelper(view->getProxy(), "ViewSize").Set(0, viewSize.width());
-    vtkSMPropertyHelper(view->getProxy(), "ViewSize").Set(1, viewSize.height());
-
-    view->getProxy()->UpdateVTKObjects();
-    }
-  END_UNDO_EXCLUDE();
-}
-
-//-----------------------------------------------------------------------------
 void pqViewManager::saveState(vtkPVXMLElement* root)
 {
   vtkPVXMLElement* rwRoot = vtkPVXMLElement::New();

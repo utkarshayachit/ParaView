@@ -191,11 +191,6 @@ protected:
   /// the render modules to put in the window.
   virtual void loadState(vtkPVXMLElement* /*root*/) { }
 
-  /// Update the GUISize/WindowPosition properties
-  /// using compact values to produce gapless multi views
-  /// on the render server.
-  void updateCompactViewPositions();
-
   /// Updates the context menu.
   void updateConversionActions(pqMultiViewFrame* frame);
 
