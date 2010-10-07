@@ -412,7 +412,9 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     }
   repr->UpdateVTKObjects();
 
-  geomInfo = repr->GetRepresentedDataInformation();
+  // update the input using the current application time.
+  this->getInput()->updatePipeline();
+  geomInfo = this->getInputDataInformation();
 
   // Locate input display.
   pqPipelineRepresentation* upstreamDisplay = 
@@ -420,8 +422,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
       this->getRepresentationForUpstreamSource());
   if (upstreamDisplay)
     {
-    inGeomInfo = upstreamDisplay->getRepresentationProxy()->
-      GetRepresentedDataInformation();
+    inGeomInfo = upstreamDisplay->getInputDataInformation();
     }
 
   vtkPVArrayInformation* chosenArrayInfo = 0;
