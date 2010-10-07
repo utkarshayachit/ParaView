@@ -79,7 +79,7 @@ bool pqComponentsTestUtility::CompareView(
   // The returned image will have extents translated to match the view position,
   // we shift them back.
   int viewPos[2];
-  vtkSMPropertyHelper(curView->getViewProxy(), "Position").Get(viewPos, 2);
+  vtkSMPropertyHelper(curView->getViewProxy(), "ViewPosition").Get(viewPos, 2);
   // Update image extents based on ViewPosition
   int extents[6];
   test_image->GetExtent(extents);
