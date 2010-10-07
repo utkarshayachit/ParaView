@@ -622,29 +622,13 @@ void pqRenderView::resetViewDirection(
     double up_x, double up_y, double up_z)
 {
   vtkSMProxy* proxy = this->getProxy();
-
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraPosition"), 0, 0);
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraPosition"), 1, 0);
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraPosition"), 2, 0);
-
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraFocalPoint"), 0, look_x);
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraFocalPoint"), 1, look_y);
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraFocalPoint"), 2, look_z);
-
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraViewUp"), 0, up_x);
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraViewUp"), 1, up_y);
-  pqSMAdaptor::setMultipleElementProperty(
-    proxy->GetProperty("CameraViewUp"), 2, up_z);
+  double pos[3] = {0, 0, 0};
+  double focal_point[3] = { look_x, look_y, look_z };
+  double view_up[3] = { up_x, up_y, up_z };
+  vtkSMPropertyHelper(proxy, "CameraPosition").Set(pos, 3);
+  vtkSMPropertyHelper(proxy, "CameraFocalPoint").Set(focal_point, 3);
+  vtkSMPropertyHelper(proxy, "CameraViewUp").Set(view_up, 3);
   proxy->UpdateVTKObjects();
-
   this->resetCamera();
   this->render();
 }

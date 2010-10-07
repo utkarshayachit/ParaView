@@ -139,6 +139,7 @@ void vtkSMRenderViewProxy::PostRender(bool interactive)
 {
   vtkSMProxy* cameraProxy = this->GetSubProxy("ActiveCamera");
   cameraProxy->UpdatePropertyInformation();
+  this->SynchronizeCameraProperties();
   this->Superclass::PostRender(interactive);
 }
 
