@@ -100,12 +100,17 @@ public:
       }
     }
 
-  bool ExpandLeft(unsigned int me, const int* my_size, int* my_pos)
+  bool ExpandTowardMin(unsigned int me, const int* my_size, int* my_pos,
+    int dimension)
     {
+    int cur_dim_min_offset = dimension;
+    int cur_dim_max_offset = dimension+2;
+    int other_dim_min_offset = (dimension+1)%2;
+    int other_dim_max_offset = other_dim_min_offset + 2;
     int my_extents[4] = {my_pos[0], my_pos[1], my_pos[0] + my_size[0] -1,
       my_pos[1] + my_size[1] - 1};
 
-    int &position = my_pos[0];
+    int &position = my_pos[dimension];
     position = 0;
     RenderWindowsMap::iterator iter;
     for (iter = this->RenderWindows.begin(); iter != this->RenderWindows.end(); ++iter)
@@ -115,34 +120,43 @@ public:
         continue;
         }
 
-      // Only interested in boxes entirely to our left.
+      // Only interested in boxes entirely to our left (or top)
       const int *size = iter->second.Size;
       const int *pos = iter->second.Position;
       int extents[4] = {pos[0], pos[1], pos[0] + size[0] -1,
         pos[1] + size[1] - 1};
 
-      if (extents[2] >= my_extents[0] ||
-        extents[1] > my_extents[3] ||
-        extents[3] < my_extents[1])
+      if (extents[cur_dim_max_offset] > my_extents[cur_dim_min_offset] ||
+        extents[other_dim_min_offset] > my_extents[other_dim_max_offset] ||
+        extents[other_dim_max_offset] < my_extents[other_dim_min_offset])
         {
         continue;
         }
-      if (position <= extents[2])
+      if (position <= extents[cur_dim_max_offset])
         {
-        position = extents[2] + 1;
+        position = extents[cur_dim_max_offset] + 1;
         }
       }
-    return (position != my_extents[0]);
+    return (position != my_extents[dimension]);
     }
-
   bool ExpandTop(unsigned int me, const int* my_size, int* my_pos)
+    { return this->ExpandTowardMin(me, my_size, my_pos, 1); }
+  bool ExpandLeft(unsigned int me, const int* my_size, int* my_pos)
+    { return this->ExpandTowardMin(me, my_size, my_pos, 0); }
+
+  bool ExpandTowardMax(unsigned int me, const int *max, int* my_size, const int *my_pos,
+    int dimension)
     {
+
+    int cur_dim_min_offset = dimension;
+    int cur_dim_max_offset = dimension+2;
+    int other_dim_min_offset = (dimension+1)%2;
+    int other_dim_max_offset = other_dim_min_offset + 2;
     int my_extents[4] = {my_pos[0], my_pos[1], my_pos[0] + my_size[0] -1,
       my_pos[1] + my_size[1] - 1};
 
-    int &position = my_pos[1];
-    position = 0;
-
+    int &size = my_size[dimension];
+    size = (max[dimension] - my_extents[cur_dim_min_offset]);
     RenderWindowsMap::iterator iter;
     for (iter = this->RenderWindows.begin(); iter != this->RenderWindows.end(); ++iter)
       {
@@ -151,25 +165,30 @@ public:
         continue;
         }
 
-      // Only interested in boxes entirely to our left.
-      const int *size = iter->second.Size;
+      // Only interested in boxes entirely to our right (or bottom)
+      const int *_size = iter->second.Size;
       const int *pos = iter->second.Position;
-      int extents[4] = {pos[0], pos[1], pos[0] + size[0] -1,
-        pos[1] + size[1] - 1};
+      int extents[4] = {pos[0], pos[1], pos[0] + _size[0] -1,
+        pos[1] + _size[1] - 1};
 
-      if (extents[3] >= my_extents[1] ||
-        extents[0] > my_extents[2] ||
-        extents[2] < my_extents[0])
+      if (extents[cur_dim_min_offset] <= my_extents[cur_dim_max_offset] ||
+        extents[other_dim_min_offset] > my_extents[other_dim_max_offset] ||
+        extents[other_dim_max_offset] < my_extents[other_dim_min_offset])
         {
         continue;
         }
-      if (position <= extents[3])
+      int my_extent_max = my_extents[cur_dim_min_offset] + size - 1;
+      if ( my_extent_max >= extents[cur_dim_min_offset])
         {
-        position = extents[3]+1;
+        size = extents[cur_dim_min_offset] - my_extents[cur_dim_min_offset];
         }
       }
-    return (position != my_extents[1]);
+    return (size != (my_extents[cur_dim_max_offset] - my_extents[cur_dim_min_offset] + 1));
     }
+  bool ExpandRight(unsigned int me, const int *max, int* my_size, const int *my_pos)
+    { return this->ExpandTowardMax(me, max, my_size, my_pos, 0); }
+  bool ExpandBottom(unsigned int me, const int *max, int* my_size, const int *my_pos)
+    { return this->ExpandTowardMax(me, max, my_size, my_pos, 1); }
 
   vtkSmartPointer<vtkRenderWindow> SharedRenderWindow;
   unsigned int ActiveId;
@@ -1021,9 +1040,11 @@ void vtkPVSynchronizedRenderWindows::UpdateWindowLayout()
 void vtkPVSynchronizedRenderWindows::ShinkGaps()
 {
   bool something_expanded;
+  int max_size[2];
   do
     {
     something_expanded = false;
+    max_size[0] = max_size[1] = 0;
     vtkInternals::RenderWindowsMap::iterator iter;
     for (iter = this->Internals->RenderWindows.begin();
       iter != this->Internals->RenderWindows.end(); ++iter)
@@ -1038,15 +1059,38 @@ void vtkPVSynchronizedRenderWindows::ShinkGaps()
         {
         something_expanded = true;
         }
+      if (max_size[0] < position[0] + size[0]-1)
+        {
+        max_size[0] = position[0] + size[0]-1;
+        }
+      if (max_size[1] < position[1] + size[1]-1)
+        {
+        max_size[1] = position[1] + size[1]-1;
+        }
       }
     }
   while (something_expanded);
 
+  int temp[2];
+  if (!this->GetTileDisplayParameters(temp))
+    {
+    return;
+    }
+
   // The above code can result in small gaps at the
   // very ends (bottom/right) in some configurations. We expand those gaps only
   // in tile-display mode, since otherwise it messes up the aspect ratio and
-  // would end up delivering image with wrong aspect ratio to the client.
-
+  // would end up delivering image with wrong aspect ratio of images sent to the
+  // client.
+  vtkInternals::RenderWindowsMap::iterator iter;
+  for (iter = this->Internals->RenderWindows.begin();
+    iter != this->Internals->RenderWindows.end(); ++iter)
+    {
+    int *size = iter->second.Size;
+    const int *position = iter->second.Position;
+    this->Internals->ExpandRight(iter->first, max_size, size, position);
+    this->Internals->ExpandBottom(iter->first, max_size, size, position);
+    }
 }
 
 //----------------------------------------------------------------------------
