@@ -354,9 +354,6 @@ vtkTable* vtkSpreadSheetView::FetchBlock(vtkIdType blockindex)
   vtkTable* block = this->Internals->GetDataObject(blockindex);
   if (!block)
     {
-    vtkMultiProcessStream stream;
-    stream << this->Identifier << static_cast<int>(blockindex);
-    this->SynchronizedWindows->TriggerRMI(stream, FETCH_BLOCK_TAG);
     this->FetchBlockCallback(blockindex);
     block = vtkTable::SafeDownCast(
       this->DeliveryFilter->GetOutputDataObject(0));
@@ -370,8 +367,11 @@ vtkTable* vtkSpreadSheetView::FetchBlock(vtkIdType blockindex)
 //----------------------------------------------------------------------------
 void vtkSpreadSheetView::FetchBlockCallback(vtkIdType blockindex)
 {
-  this->TableStreamer->SetBlock(blockindex);
+  vtkMultiProcessStream stream;
+  stream << this->Identifier << static_cast<int>(blockindex);
+  this->SynchronizedWindows->TriggerRMI(stream, FETCH_BLOCK_TAG);
 
+  this->TableStreamer->SetBlock(blockindex);
   this->TableStreamer->Modified();
   this->TableSelectionMarker->SetFieldAssociation(
     this->Internals->ActiveRepresentation->GetFieldAssociation());
