@@ -207,6 +207,17 @@ void vtkCompositeRepresentation::MarkModified()
 }
 
 //----------------------------------------------------------------------------
+void vtkCompositeRepresentation::Update()
+{
+  vtkPVDataRepresentation* curActive = this->GetActiveRepresentation();
+  if (curActive)
+    {
+    curActive->Update();
+    }
+  this->Superclass::Update();
+}
+
+//----------------------------------------------------------------------------
 void vtkCompositeRepresentation::SetUpdateTime(double time)
 {
   vtkInternals::RepresentationMap::iterator iter;

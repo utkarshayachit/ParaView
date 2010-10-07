@@ -90,6 +90,10 @@ public:
   virtual void SetForceUseCache(bool val);
   virtual void SetForcedCacheKey(double val);
 
+  // Description:
+  // Bring this algorithm's outputs up-to-date.
+  virtual void Update();
+
 //BTX
 protected:
   vtkCompositeRepresentation();
