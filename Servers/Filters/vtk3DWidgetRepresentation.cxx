@@ -56,15 +56,18 @@ bool vtk3DWidgetRepresentation::AddToView(vtkView* view)
         pvview->GetNonCompositedRenderer() :
         pvview->GetRenderer());
       }
-    if (this->UseNonCompositedRenderer)
+    if (this->Representation)
       {
-      this->Representation->SetRenderer(pvview->GetNonCompositedRenderer());
-      pvview->GetNonCompositedRenderer()->AddActor(this->Representation);
-      }
-    else
-      {
-      this->Representation->SetRenderer(pvview->GetRenderer());
-      pvview->GetRenderer()->AddActor(this->Representation);
+      if (this->UseNonCompositedRenderer)
+        {
+        this->Representation->SetRenderer(pvview->GetNonCompositedRenderer());
+        pvview->GetNonCompositedRenderer()->AddActor(this->Representation);
+        }
+      else
+        {
+        this->Representation->SetRenderer(pvview->GetRenderer());
+        pvview->GetRenderer()->AddActor(this->Representation);
+        }
       }
     this->View = pvview;
     this->UpdateEnabled();
@@ -106,7 +109,6 @@ void vtk3DWidgetRepresentation::UpdateEnabled()
     }
 }
 
-
 //----------------------------------------------------------------------------
 bool vtk3DWidgetRepresentation::RemoveFromView(vtkView* view)
 {
@@ -119,15 +121,18 @@ bool vtk3DWidgetRepresentation::RemoveFromView(vtkView* view)
       this->Widget->SetCurrentRenderer(0);
       this->Widget->SetInteractor(0);
       }
-    if (this->UseNonCompositedRenderer)
+    if (this->Representation)
       {
-      pvview->GetNonCompositedRenderer()->RemoveActor(this->Representation);
+      if (this->UseNonCompositedRenderer)
+        {
+        pvview->GetNonCompositedRenderer()->RemoveActor(this->Representation);
+        }
+      else
+        {
+        pvview->GetRenderer()->RemoveActor(this->Representation);
+        }
+      this->Representation->SetRenderer(0);
       }
-    else
-      {
-      pvview->GetRenderer()->RemoveActor(this->Representation);
-      }
-    this->Representation->SetRenderer(0);
     return true;
     }
   return false;

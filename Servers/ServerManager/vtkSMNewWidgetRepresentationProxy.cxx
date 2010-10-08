@@ -63,7 +63,7 @@ struct vtkSMNewWidgetRepresentationInternals
 //----------------------------------------------------------------------------
 vtkSMNewWidgetRepresentationProxy::vtkSMNewWidgetRepresentationProxy()
 {
-  this->SetServers(vtkProcessModule::RENDER_SERVER | vtkProcessModule::CLIENT);
+  this->SetServers(vtkProcessModule::CLIENT_AND_SERVERS);
   this->RepresentationProxy = 0;
   this->WidgetProxy = 0;
   this->Widget = 0;
