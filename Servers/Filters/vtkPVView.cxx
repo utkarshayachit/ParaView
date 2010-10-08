@@ -171,6 +171,24 @@ void vtkPVView::CallProcessViewRequest(
 {
   int num_reprs = this->GetNumberOfRepresentations();
   outVec->SetNumberOfInformationObjects(num_reprs);
+
+  if (type == REQUEST_UPDATE())
+    {
+    // Pass the view time before updating the representations.
+    for (int cc=0; cc < num_reprs; cc++)
+      {
+      vtkDataRepresentation* repr = this->GetRepresentation(cc);
+      vtkPVDataRepresentation* pvrepr = vtkPVDataRepresentation::SafeDownCast(repr);
+      if (pvrepr)
+        {
+        // Pass the view time information to the representation
+        pvrepr->SetUpdateTime(this->GetViewTime());
+        pvrepr->SetUseCache(this->GetUseCache());
+        pvrepr->SetCacheKey(this->GetCacheKey());
+        }
+      }
+    }
+
   for (int cc=0; cc < num_reprs; cc++)
     {
     vtkInformation* outInfo = outVec->GetInformationObject(cc);
@@ -179,13 +197,6 @@ void vtkPVView::CallProcessViewRequest(
     vtkPVDataRepresentation* pvrepr = vtkPVDataRepresentation::SafeDownCast(repr);
     if (pvrepr)
       {
-      if (type == REQUEST_UPDATE())
-        {
-        // Pass the view time information to the representation
-        pvrepr->SetUpdateTime(this->GetViewTime());
-        pvrepr->SetUseCache(this->GetUseCache());
-        pvrepr->SetCacheKey(this->GetCacheKey());
-        }
       pvrepr->ProcessViewRequest(type, inInfo, outInfo);
       }
     else if (repr && type == REQUEST_UPDATE())
