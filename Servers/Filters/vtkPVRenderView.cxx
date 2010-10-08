@@ -840,6 +840,8 @@ void vtkPVRenderView::RemovePropFromRenderer(vtkProp* prop)
 void vtkPVRenderView::UpdateCenterAxes(double bounds[6])
 {
   vtkBoundingBox bbox(bounds);
+  // include the center of rotation in the axes size determination.
+  bbox.AddPoint(this->CenterAxes->GetPosition());
 
   double widths[3];
   bbox.GetLengths(widths);
