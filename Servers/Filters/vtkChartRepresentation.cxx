@@ -130,8 +130,7 @@ int vtkChartRepresentation::FillInputPortInformation(
 {
   if (port == 0)
     {
-    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataSet");
-    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkCompositeDataSet");
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataObject");
     info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
     }
   else
