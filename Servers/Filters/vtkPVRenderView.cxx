@@ -459,20 +459,26 @@ void vtkPVRenderView::ResetCameraClippingRange()
   this->GetNonCompositedRenderer()->ResetCameraClippingRange(this->LastComputedBounds);
 }
 
+#define PRINT_BOUNDS(bds)\
+  bds[0] << "," << bds[1] << "," << bds[2] << "," << bds[3] << "," << bds[4] << "," << bds[5] << ","
+
 //----------------------------------------------------------------------------
 void vtkPVRenderView::GatherBoundsInformation()
 {
-  // When computing bounds information, we don't want the center-axes to
-  // contaminate the result. So we hide the center axes temporarily.
-  int visible = this->CenterAxes->GetVisibility();
-  this->CenterAxes->SetVisibility(0);
-
   // FIXME: when doing client-only render, we are wasting our energy computing
   // universal bounds. How can we fix that?
-  this->GetRenderer()->ComputeVisiblePropBounds(this->LastComputedBounds);
-  this->SynchronizedWindows->SynchronizeBounds(this->LastComputedBounds);
-  this->ResetCameraClippingRange();
+  vtkMath::UninitializeBounds(this->LastComputedBounds);
 
+  if (this->GetRenderWindow()->GetActualSize()[0] > 0 &&
+    this->GetRenderWindow()->GetActualSize()[1] > 0)
+    {
+    // if ComputeVisiblePropBounds is called when there's no real window on the
+    // local process, all vtkWidgetRepresentations return wacky Z bounds which
+    // screws up the renderer and we don't see any images.
+    this->GetRenderer()->ComputeVisiblePropBounds(this->LastComputedBounds);
+    }
+
+  this->SynchronizedWindows->SynchronizeBounds(this->LastComputedBounds);
   if (!vtkMath::AreBoundsInitialized(this->LastComputedBounds))
     {
     this->LastComputedBounds[0] = this->LastComputedBounds[2] =
@@ -480,8 +486,7 @@ void vtkPVRenderView::GatherBoundsInformation()
     this->LastComputedBounds[1] = this->LastComputedBounds[3] =
       this->LastComputedBounds[5] = 1.0;
     }
-
-  this->CenterAxes->SetVisibility(visible);
+  this->ResetCameraClippingRange();
 }
 
 //----------------------------------------------------------------------------
