@@ -2603,14 +2603,6 @@
         </Documentation>
       </IntVectorProperty>
 
-      <DoubleVectorProperty name="BoundsInfo"
-        command="GetBounds"
-        number_of_elements="6"
-        information_only="1"
-        default_values="0 1 0 1 0 1" >
-        <SimpleDoubleInformationHelper />
-      </DoubleVectorProperty>
-
       <!-- end of Glyph3DRepresentation -->
     </RepresentationProxy>
 
