@@ -96,36 +96,33 @@ public:
 //    this->Opacity = 0;
     }
 
-  // Convenience method to get array information.
-  vtkPVArrayInformation* getArrayInformation(
-    const char* arrayname, int fieldType, vtkPVDataInformation* argInfo=0)
+  static vtkPVArrayInformation* getArrayInformation(const pqPipelineRepresentation* repr,
+    const char* arrayname, int fieldType)
     {
-    if (!arrayname || !arrayname[0] || !this->RepresentationProxy)
+    if (!arrayname || !arrayname[0] || !repr)
       {
-      return 0; 
-      }
-    vtkSMRepresentationProxy* repr = this->RepresentationProxy;
-    vtkPVDataInformation* dataInfo = argInfo? argInfo: repr->GetRepresentedDataInformation();
-    if(!dataInfo)
-      {
-      return 0;
+      return NULL;
       }
 
-    vtkPVArrayInformation* info = NULL;
-    if(fieldType == vtkDataObject::FIELD_ASSOCIATION_CELLS)
+    vtkPVDataInformation* dataInformation = repr->getInputDataInformation();
+    vtkPVArrayInformation* arrayInfo = NULL;
+    if (dataInformation)
       {
-      vtkPVDataSetAttributesInformation* cellinfo = 
-        dataInfo->GetCellDataInformation();
-      info = cellinfo->GetArrayInformation(arrayname);
+      arrayInfo = dataInformation->GetAttributeInformation(fieldType)->
+        GetArrayInformation(arrayname);
       }
-    else
+    if (!arrayInfo)
       {
-      vtkPVDataSetAttributesInformation* pointinfo = 
-        dataInfo->GetPointDataInformation();
-      info = pointinfo->GetArrayInformation(arrayname);
+      dataInformation = repr->getRepresentedDataInformation();
+      if (dataInformation)
+        {
+        arrayInfo = dataInformation->GetAttributeInformation(fieldType)->
+          GetArrayInformation(arrayname);
+        }
       }
-    return info;
+    return arrayInfo;
     }
+
 };
 
 //-----------------------------------------------------------------------------
@@ -498,18 +495,23 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     return;
     }
 
-  QList<QString> myColorFields = this->getColorFields();
-
   // Try to inherit the same array selected by the input.
   if (upstreamDisplay)
     {
-    const QString &upstreamColorField = upstreamDisplay->getColorField(false);
-    if (myColorFields.contains(upstreamColorField))
+    vtkSMPropertyHelper colorAttrType(upstreamDisplay->getProxy(),
+      "ColorAttributeType");
+    vtkSMPropertyHelper colorArrayName(upstreamDisplay->getProxy(),
+      "ColorArrayName");
+    if (pqInternal::getArrayInformation(
+        this, colorArrayName.GetAsString(), colorAttrType.GetAsInt()))
       {
-      this->setColorField(upstreamColorField);
+      this->colorByArray(
+        colorArrayName.GetAsString(), colorAttrType.GetAsInt());
       return;
       }
     }
+
+  QList<QString> myColorFields = this->getColorFields();
 
   // We are going to set the default color mode to use solid color i.e. not use
   // scalar coloring at all. However, for some representations (eg. slice/volume)
@@ -533,7 +535,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
 int pqPipelineRepresentation::getNumberOfComponents(
   const char* arrayname, int fieldtype)
 {
-  vtkPVArrayInformation* info = this->Internal->getArrayInformation(
+  vtkPVArrayInformation* info = pqInternal::getArrayInformation(this,
     arrayname, fieldtype);
   return (info? info->GetNumberOfComponents() : 0);
 }
@@ -541,9 +543,9 @@ int pqPipelineRepresentation::getNumberOfComponents(
 QString pqPipelineRepresentation::getComponentName(
   const char* arrayname, int fieldtype, int component)
 {
-  vtkPVArrayInformation* info = this->Internal->getArrayInformation(
+  vtkPVArrayInformation* info = pqInternal::getArrayInformation(this,
     arrayname, fieldtype);
-     
+
    if ( info )
      {
      return QString (info->GetComponentName( component ) );     
@@ -1044,8 +1046,8 @@ QString pqPipelineRepresentation::getColorFieldComponentName( const QString& arr
 //-----------------------------------------------------------------------------
 bool pqPipelineRepresentation::isPartial(const QString& array, int fieldType) const
 {
-  vtkPVArrayInformation* info = this->Internal->getArrayInformation(
-    array.toAscii().data(), fieldType, this->getInputDataInformation());
+  vtkPVArrayInformation* info = pqInternal::getArrayInformation(this,
+    array.toAscii().data(), fieldType);
   return (info? (info->GetIsPartial()==1) : false);
 }
 
@@ -1073,37 +1075,17 @@ pqPipelineRepresentation::getColorFieldRange(const QString& array, int component
     fieldType = vtkDataObject::FIELD_ASSOCIATION_POINTS;
     }
 
-  vtkPVArrayInformation* representedInfo = this->Internal->getArrayInformation(
+  vtkPVArrayInformation* arrayInfo = pqInternal::getArrayInformation(this,
     field.toAscii().data(), fieldType);
-
-  vtkPVDataInformation* inputInformation = this->getInputDataInformation();
-  vtkPVArrayInformation* inputInfo = this->Internal->getArrayInformation(
-    field.toAscii().data(), fieldType, inputInformation);
-
-  // Try to use full input data range is possible. Sometimes, the data array is
-  // only provided by some pre-processing filter added by the representation
-  // (and is not present in the original input), in that case we use the range
-  // provided by the representation.
-  if (inputInfo)
+  if (arrayInfo)
     {
-    if (component < inputInfo->GetNumberOfComponents())
+    if (component < arrayInfo->GetNumberOfComponents())
       {
       double range[2];
-      inputInfo->GetComponentRange(component, range);
+      arrayInfo->GetComponentRange(component, range);
       return QPair<double,double>(range[0], range[1]);
       }
     }
-
-  if (representedInfo)
-    {
-    if (component <representedInfo->GetNumberOfComponents())
-      {
-      double range[2];
-      representedInfo->GetComponentRange(component, range);
-      return QPair<double,double>(range[0], range[1]);
-      }
-    }
-
   return ret;
 }
 
