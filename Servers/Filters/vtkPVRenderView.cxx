@@ -497,6 +497,8 @@ void vtkPVRenderView::ResetCamera()
   // Remember, vtkRenderer::ResetCamera() call
   // vtkRenderer::ResetCameraClippingPlanes() with the given bounds.
   this->RenderView->GetRenderer()->ResetCamera(this->LastComputedBounds);
+
+  this->InvokeEvent(vtkCommand::ResetCameraEvent);
 }
 
 //----------------------------------------------------------------------------
