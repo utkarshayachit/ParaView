@@ -73,8 +73,10 @@ public:
   // data is cached, then it does not propagate any pipeline requests upstream.
   // These ivars are updated by vtkPVView::Update() based on the corresponding
   // variable values on the vtkPVView itself.
-  vtkSetMacro(UseCache, bool);
-  vtkSetMacro(CacheKey, double);
+  virtual void SetUseCache(bool use)
+    { this->UseCache = use; }
+  virtual void SetCacheKey(double val)
+    { this->CacheKey = val; }
 
   // Description:
   // Typically UseCache and CacheKey are updated by the View and representations
@@ -82,8 +84,10 @@ public:
   // force a representation to cache irrespective of the view (e.g. comparative
   // views). In which case these ivars can up set. If ForcedCacheKey is true, it
   // overrides UseCache and CacheKey. Instead, ForcedCacheKey is used.
-  vtkSetMacro(ForcedCacheKey, double);
-  vtkSetMacro(ForceUseCache, bool);
+  virtual void SetForcedCacheKey(double val)
+    { this->ForcedCacheKey = val; }
+  virtual void SetForceUseCache(bool val)
+    { this->ForceUseCache = val; }
 
   // Description:
   // Returns whether caching is used and what key to use when caching is
