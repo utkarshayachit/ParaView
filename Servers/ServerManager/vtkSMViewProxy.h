@@ -97,6 +97,10 @@ private:
   vtkSMViewProxy(const vtkSMViewProxy&); // Not implemented
   void operator=(const vtkSMViewProxy&); // Not implemented
 
+  // When view's time changes, there's no way for the client-side proxies to
+  // know that they may re-execute and their data info is invalid. So mark those
+  // dirty explicitly.
+  void ViewTimeChanged();
 //ETX
 };
 

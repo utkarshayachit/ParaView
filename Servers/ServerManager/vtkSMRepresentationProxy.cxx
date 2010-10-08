@@ -19,6 +19,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
 #include "vtkPVRepresentedDataInformation.h"
+#include "vtkSMProxyProperty.h"
 #include "vtkTimerLog.h"
 
 vtkStandardNewMacro(vtkSMRepresentationProxy);
@@ -168,6 +169,23 @@ vtkPVDataInformation* vtkSMRepresentationProxy::GetRepresentedDataInformation()
   return this->RepresentedDataInformation;
 }
 
+//-----------------------------------------------------------------------------
+void vtkSMRepresentationProxy::ViewTimeChanged()
+{
+  vtkSMProxy* current = this;
+  vtkSMProxyProperty* pp = vtkSMProxyProperty::SafeDownCast(
+    current->GetProperty("Input"));
+  while (current && pp && pp->GetNumberOfProxies() > 0)
+    {
+    current = pp->GetProxy(0);
+    pp = vtkSMProxyProperty::SafeDownCast(current->GetProperty("Input"));
+    }
+
+  if (current)
+    {
+    current->MarkModified(current);
+    }
+}
 //----------------------------------------------------------------------------
 void vtkSMRepresentationProxy::PrintSelf(ostream& os, vtkIndent indent)
 {

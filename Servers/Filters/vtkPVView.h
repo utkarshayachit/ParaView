@@ -37,6 +37,11 @@ public:
   vtkTypeMacro(vtkPVView, vtkView);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  enum
+    {
+    ViewTimeChangedEvent=9000
+    };
+
   // Description:
   // Initialize the view with an identifier. Unless noted otherwise, this method
   // must be called before calling any other methods on this class.
@@ -79,9 +84,10 @@ public:
   bool SynchronizeSize(unsigned long &size);
 
   // Description:
-  // Get/Set the time this view is showing.
+  // Get/Set the time this view is showing. Whenever time is changed, this fires
+  // a ViewTimeChangedEvent event.
   // @CallOnAllProcessess
-  vtkSetMacro(ViewTime, double);
+  void SetViewTime(double value);
   vtkGetMacro(ViewTime, double);
 
   // Description:

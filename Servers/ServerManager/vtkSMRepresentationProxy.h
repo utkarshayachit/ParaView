@@ -69,6 +69,12 @@ private:
   bool RepresentedDataInformationValid;
   vtkPVDataInformation* RepresentedDataInformation;
 
+  // Description:
+  // When ViewTime changes, we mark all inputs modified so that they fetch the
+  // updated data information.
+  void ViewTimeChanged();
+  friend class vtkSMViewProxy;
+
   friend class vtkSMComparativeViewProxy;
   void ClearMarkedModified() { this->MarkedModified = false; }
   bool MarkedModified;

@@ -89,6 +89,17 @@ void vtkPVView::SetSize(int x, int y)
 }
 
 //----------------------------------------------------------------------------
+void vtkPVView::SetViewTime(double time)
+{
+  if (this->ViewTime != time)
+    {
+    this->ViewTime = time;
+    this->InvokeEvent(ViewTimeChangedEvent);
+    this->Modified();
+    }
+}
+
+//----------------------------------------------------------------------------
 bool vtkPVView::InTileDisplayMode()
 {
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
