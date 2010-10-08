@@ -3267,7 +3267,7 @@
     <ChartRepresentationProxy name="XYChartRepresentationBase"
       base_proxygroup="representations"
       class="vtkXYChartRepresentation"
-      processes="client|dataserver" >
+      processes="client|dataserver|renderserver" >
       <Documentation>
         Representation used by XYChartView.
       </Documentation>
@@ -3431,7 +3431,7 @@
     <!-- =================================================================== -->
     <ParallelCoordinatesRepresentationProxy name="ParallelCoordinatesRepresentation"
       class="vtkParallelCoordinatesRepresentation"
-      processes="client|dataserver" >
+      processes="client|dataserver|renderserver" >
       <Documentation>
         Representation used by ParallelCoordinatesChartView.
       </Documentation>
@@ -3657,7 +3657,7 @@
       base_proxygroup="representations"
       base_proxyname="XYChartRepresentationBase"
       class="vtkXYChartRepresentation"
-      processes="client|dataserver" >
+      processes="client|dataserver|renderserver" >
       <Documentation>
         Representation used by XYChartView.
       </Documentation>
@@ -3676,7 +3676,7 @@
       base_proxygroup="representations"
       base_proxyname="XYChartRepresentationBase"
       class="vtkXYChartRepresentation"
-      processes="client|dataserver" >
+      processes="client|dataserver|renderserver" >
       <Documentation>
         Representation used by XYBarChartView.
       </Documentation>
@@ -3692,7 +3692,7 @@
     <!-- =================================================================== -->
     <SpreadSheetRepresentationProxy name="SpreadSheetRepresentation"
       class="vtkSpreadSheetRepresentation"
-      processes="client|dataserver" >
+      processes="client|dataserver|renderserver" >
 
       <InputProperty name="Input" command="SetInputConnection" >
         <Documentation>

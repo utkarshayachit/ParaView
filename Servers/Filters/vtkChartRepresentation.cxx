@@ -27,9 +27,11 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlot.h"
+#include "vtkProcessModule.h"
 #include "vtkPVCacheKeeper.h"
 #include "vtkPVContextView.h"
 #include "vtkPVMergeTables.h"
+#include "vtkPVOptions.h"
 #include "vtkReductionFilter.h"
 #include "vtkSelectionDeliveryFilter.h"
 #include "vtkSelection.h"
@@ -159,6 +161,12 @@ vtkTable* vtkChartRepresentation::GetLocalOutput()
 int vtkChartRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetProcessType() ==
+    vtkPVOptions::PVRENDER_SERVER)
+    {
+    return this->Superclass::RequestData(request, inputVector, outputVector);
+    }
+
   // Pass caching information to the cache keeper.
   this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
   this->CacheKeeper->SetCacheTime(this->GetCacheKey());

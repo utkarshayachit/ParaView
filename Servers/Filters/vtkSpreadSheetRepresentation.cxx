@@ -18,6 +18,8 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkObjectFactory.h"
+#include "vtkProcessModule.h"
+#include "vtkPVOptions.h"
 
 vtkStandardNewMacro(vtkSpreadSheetRepresentation);
 //----------------------------------------------------------------------------
@@ -88,6 +90,12 @@ int vtkSpreadSheetRepresentation::RequestData(
   vtkInformation* request, vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
 {
+  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetProcessType() ==
+    vtkPVOptions::PVRENDER_SERVER)
+    {
+    return this->Superclass::RequestData(request, inputVector, outputVector);
+    }
+
   this->DataConditioner->RemoveAllInputs();
   this->ExtractedDataConditioner->RemoveAllInputs();
 
