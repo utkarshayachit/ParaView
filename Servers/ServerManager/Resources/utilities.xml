@@ -1,6 +1,7 @@
 <ServerManagerConfiguration>
   <ProxyGroup name="lookup_tables">
-    <LookupTableProxy name="LookupTable" class="vtkLookupTable">
+    <LookupTableProxy name="LookupTable" class="vtkLookupTable"
+      processes="dataserver|renderserver|client" >
       <IntVectorProperty
          name="NumberOfTableValues"
          command="SetNumberOfTableValues"
@@ -73,7 +74,8 @@
 
     </LookupTableProxy>
 
-    <PVLookupTableProxy name="PVLookupTable" class="vtkDiscretizableColorTransferFunction">
+    <PVLookupTableProxy name="PVLookupTable" class="vtkDiscretizableColorTransferFunction"
+      processes="dataserver|renderserver|client" >
       <IntVectorProperty
         name="LockScalarRange"
         number_of_elements="1"
@@ -1419,7 +1421,7 @@
 
   <ProxyGroup name="piecewise_functions">
     <Proxy name="PiecewiseFunction"  class="vtkPiecewiseFunction"
-           processes="client,renderserver" >
+           processes="client|renderserver|dataserver" >
       <DoubleVectorProperty
         name="Points"
         command="AddPoint"
@@ -1434,7 +1436,8 @@
   </ProxyGroup>
 
   <ProxyGroup name="transfer_functions">
-    <Proxy name="ColorTransferFunction" class="vtkColorTransferFunction">
+    <Proxy name="ColorTransferFunction" class="vtkColorTransferFunction"
+      processes="client|renderserver|dataserver" >
       <DoubleVectorProperty
         name="RGBPoints"
         command="AddRGBPoint"
