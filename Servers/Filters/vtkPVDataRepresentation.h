@@ -44,7 +44,7 @@ public:
   // the input is modified. This is essential since the geometry filter does not
   // have any real-input on the client side which messes with the Update
   // requests.
-  virtual void MarkModified() = 0;
+  virtual void MarkModified();
 
   // Description:
   // Get/Set the visibility for this representation. When the visibility of
@@ -104,6 +104,7 @@ public:
   // entry is cached.
   bool GetUsingCacheForUpdate();
 
+  vtkGetMacro(NeedUpdate,  bool);
 //BTX
 protected:
   vtkPVDataRepresentation();
@@ -139,6 +140,7 @@ private:
   bool ForceUseCache;
   double CacheKey;
   double ForcedCacheKey;
+  bool NeedUpdate;
 
 //ETX
 };

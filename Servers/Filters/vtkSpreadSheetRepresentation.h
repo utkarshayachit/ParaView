@@ -39,7 +39,7 @@ public:
 
   // Description:
   // Since this has no delivery, just mark ourselves modified.
-  virtual void MarkModified() { this->Modified(); }
+  virtual void MarkModified() { this->Superclass::MarkModified(); }
 
   vtkAlgorithmOutput* GetDataProducer();
   vtkAlgorithmOutput* GetExtractedDataProducer();

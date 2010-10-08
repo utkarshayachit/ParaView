@@ -232,6 +232,10 @@ protected:
 private:
   vtkGeometryRepresentation(const vtkGeometryRepresentation&); // Not implemented
   void operator=(const vtkGeometryRepresentation&); // Not implemented
+
+  friend class vtkSelectionRepresentation;
+  char* DebugString;
+  vtkSetStringMacro(DebugString);
 //ETX
 };
 

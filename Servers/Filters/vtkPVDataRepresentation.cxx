@@ -39,6 +39,8 @@ vtkPVDataRepresentation::vtkPVDataRepresentation()
 
   this->ForceUseCache = false;
   this->ForcedCacheKey = 0.0;
+
+  this->NeedUpdate = true;
 }
 
 //----------------------------------------------------------------------------
@@ -85,6 +87,13 @@ int vtkPVDataRepresentation::ProcessViewRequest(
 }
 
 //----------------------------------------------------------------------------
+void vtkPVDataRepresentation::MarkModified()
+{
+  this->Modified();
+  this->NeedUpdate = true;
+}
+
+//----------------------------------------------------------------------------
 int vtkPVDataRepresentation::RequestData(vtkInformation*,
     vtkInformationVector**, vtkInformationVector*)
 {
@@ -93,6 +102,7 @@ int vtkPVDataRepresentation::RequestData(vtkInformation*,
   // PostUpdateData(). We do this since now representations are not updated at
   // the proxy level.
   this->InvokeEvent(vtkCommand::UpdateDataEvent);
+  this->NeedUpdate = false;
   return 1;
 }
 

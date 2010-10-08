@@ -44,6 +44,12 @@ int vtkPVDataRepresentationPipeline::ForwardUpstream(
     return 1;
     }
 
+  if (representation && !representation->GetNeedUpdate())
+    {
+    // shunt upstream updates when using cache.
+    return 1;
+    }
+
   return this->Superclass::ForwardUpstream(i, j, request);
 }
 
@@ -58,17 +64,56 @@ int vtkPVDataRepresentationPipeline::ForwardUpstream(vtkInformation* request)
     return 1;
     }
 
+  if (representation && !representation->GetNeedUpdate())
+    {
+    // shunt upstream updates when using cache.
+    return 1;
+    }
+
   return this->Superclass::ForwardUpstream(request);
 }
 
 //----------------------------------------------------------------------------
 int vtkPVDataRepresentationPipeline::ProcessRequest(vtkInformation* request,
-  vtkInformationVector** inInfoVec,
-  vtkInformationVector* outInfoVec)
+                                                vtkInformationVector** inInfo,
+                                                vtkInformationVector* outInfo)
 {
-  int ret_val = this->Superclass::ProcessRequest(request, inInfoVec,
-    outInfoVec);
-  return ret_val;
+//  if (this->Algorithm && request->Has(REQUEST_DATA()))
+//    {
+//    vtkInformation* info = outInfo->GetInformationObject(0);
+//    if(!info->Has(MAXIMUM_NUMBER_OF_PIECES()))
+//      {
+//      info->Set(MAXIMUM_NUMBER_OF_PIECES(), -1);
+//      }
+//    }
+//  if (request->Has(REQUEST_UPDATE_EXTENT()))
+//    {
+//    vtkInformation* info = outInfo->GetInformationObject(0);
+//    if(!info->Has(MAXIMUM_NUMBER_OF_PIECES()))
+//      {
+//      info->Set(MAXIMUM_NUMBER_OF_PIECES(), -1);
+//      }
+//    }
+//
+
+  if (request->Has(REQUEST_DATA()) || request->Has(REQUEST_UPDATE_EXTENT()))
+    {
+    vtkPVDataRepresentation* representation =
+      vtkPVDataRepresentation::SafeDownCast(this->Algorithm);
+    if (representation && representation->GetUsingCacheForUpdate())
+      {
+      // shunt upstream updates when using cache.
+      return 1;
+      }
+
+    if (representation && !representation->GetNeedUpdate())
+      {
+      // shunt upstream updates when using cache.
+      return 1;
+      }
+    }
+
+  return this->Superclass::ProcessRequest(request, inInfo, outInfo);
 }
 
 //----------------------------------------------------------------------------

@@ -70,7 +70,7 @@ public:
   // This needs to be called on all instances of vtkCubeAxesRepresentation when
   // the input is modified.
   virtual void MarkModified()
-    { this->Modified(); }
+    { this->Superclass::MarkModified(); }
 
   // Description:
   // vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is

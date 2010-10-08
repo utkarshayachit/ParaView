@@ -204,6 +204,7 @@ void vtkCompositeRepresentation::MarkModified()
     {
     iter->second.GetPointer()->MarkModified();
     }
+  this->Superclass::MarkModified();
 }
 
 //----------------------------------------------------------------------------

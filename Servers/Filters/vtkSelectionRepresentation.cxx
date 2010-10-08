@@ -30,6 +30,7 @@ vtkSelectionRepresentation::vtkSelectionRepresentation()
 {
   this->GeometryRepresentation = vtkGeometryRepresentation::New();
   this->GeometryRepresentation->SetPickable(0);
+  this->GeometryRepresentation->SetDebugString("vtkSelectionRepresentation");
 
   this->LabelRepresentation = vtkDataLabelRepresentation::New();
   this->LabelRepresentation->SetPointLabelMode(VTK_LABEL_FIELD_DATA);
@@ -159,7 +160,7 @@ void vtkSelectionRepresentation::MarkModified()
 {
   this->GeometryRepresentation->MarkModified();
   this->LabelRepresentation->MarkModified();
-  this->Modified();
+  this->Superclass::MarkModified();
 }
 
 //----------------------------------------------------------------------------

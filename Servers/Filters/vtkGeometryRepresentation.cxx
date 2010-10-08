@@ -125,11 +125,14 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->Representation = SURFACE;
 
   this->SuppressLOD = false;
+  this->DebugString = 0;
+  this->SetDebugString(this->GetClassName());
 }
 
 //----------------------------------------------------------------------------
 vtkGeometryRepresentation::~vtkGeometryRepresentation()
 {
+  this->SetDebugString(0);
   this->CacheKeeper->Delete();
   this->GeometryFilter->Delete();
   this->MultiBlockMaker->Delete();
@@ -223,6 +226,8 @@ int vtkGeometryRepresentation::ProcessViewRequest(
 int vtkGeometryRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  //cout << this << ":" << this->DebugString << ":RequestData" << endl;
+
   // Pass caching information to the cache keeper.
   this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
   this->CacheKeeper->SetCacheTime(this->GetCacheKey());
@@ -284,6 +289,7 @@ bool vtkGeometryRepresentation::GenerateMetaData(vtkInformation*,
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::MarkModified()
 {
+  //cout << this << ":" << this->DebugString << ":MarkModified" << endl;
   this->DeliveryFilter->Modified();
   this->LODDeliveryFilter->Modified();
   this->Distributor->Modified();
@@ -293,7 +299,7 @@ void vtkGeometryRepresentation::MarkModified()
     // Cleanup caches when not using cache.
     this->CacheKeeper->RemoveAllCaches();
     }
-  this->Modified();
+  this->Superclass::MarkModified();
 }
 
 //----------------------------------------------------------------------------

@@ -206,7 +206,7 @@ void vtkImageVolumeRepresentation::MarkModified()
     // Cleanup caches when not using cache.
     this->CacheKeeper->RemoveAllCaches();
     }
-  this->Modified();
+  this->Superclass::MarkModified();
 }
 
 //----------------------------------------------------------------------------
