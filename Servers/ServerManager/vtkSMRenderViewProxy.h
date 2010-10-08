@@ -65,6 +65,11 @@ public:
   // For backwards compatibility in Python scripts.
   void ResetCamera()
     { this->InvokeCommand("ResetCamera"); }
+  void ResetCamera(double bounds[6]);
+
+  // Description:
+  // Convenience method for zooming to a representation.
+  void ZoomTo(vtkSMProxy* representation);
 
   // Description:
   // Similar to IsSelectionAvailable(), however, on failure returns the

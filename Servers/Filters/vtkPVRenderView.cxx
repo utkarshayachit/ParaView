@@ -494,10 +494,20 @@ void vtkPVRenderView::ResetCamera()
   // updated, we will get wrong bounds.
   this->Render(false, true);
 
-  // Remember, vtkRenderer::ResetCamera() call
+  // Remember, vtkRenderer::ResetCamera() calls
   // vtkRenderer::ResetCameraClippingPlanes() with the given bounds.
   this->RenderView->GetRenderer()->ResetCamera(this->LastComputedBounds);
 
+  this->InvokeEvent(vtkCommand::ResetCameraEvent);
+}
+
+//----------------------------------------------------------------------------
+// Note this is called on all processes.
+void vtkPVRenderView::ResetCamera(double bounds[6])
+{
+  // Remember, vtkRenderer::ResetCamera() calls
+  // vtkRenderer::ResetCameraClippingPlanes() with the given bounds.
+  this->RenderView->GetRenderer()->ResetCamera(bounds);
   this->InvokeEvent(vtkCommand::ResetCameraEvent);
 }
 

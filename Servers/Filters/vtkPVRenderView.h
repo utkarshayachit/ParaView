@@ -144,6 +144,7 @@ public:
   // Resets the active camera using collective prop-bounds.
   // @CallOnAllProcessess
   void ResetCamera();
+  void ResetCamera(double bounds[6]);
 
   // Description:
   // Triggers a high-resolution render.

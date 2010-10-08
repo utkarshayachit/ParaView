@@ -14,12 +14,14 @@
 =========================================================================*/
 #include "vtkSMRenderViewProxy.h"
 
+#include "vtkBoundingBox.h"
 #include "vtkClientServerStream.h"
 #include "vtkCollection.h"
 #include "vtkDataArray.h"
 #include "vtkEventForwarderCommand.h"
 #include "vtkExtractSelectedFrustum.h"
 #include "vtkImageData.h"
+#include "vtkMath.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkProcessModule.h"
@@ -40,6 +42,7 @@
 #include "vtkSMProxyManager.h"
 #include "vtkSMRepresentationProxy.h"
 #include "vtkSMSelectionHelper.h"
+#include "vtkTransform.h"
 #include "vtkWeakPointer.h"
 #include "vtkWindowToImageFilter.h"
 
@@ -337,6 +340,84 @@ vtkSMRepresentationProxy* vtkSMRenderViewProxy::CreateDefaultRepresentation(
     }
 
   return 0;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMRenderViewProxy::ZoomTo(vtkSMProxy* representation)
+{
+  vtkSMPropertyHelper helper(representation, "Input");
+  vtkSMSourceProxy* input = vtkSMSourceProxy::SafeDownCast(helper.GetAsProxy());
+  int port =helper.GetOutputPort();
+  if (!input)
+    {
+    return;
+    }
+
+  vtkPVDataInformation* info = input->GetDataInformation(port);
+  double bounds[6];
+  info->GetBounds(bounds);
+  if (!vtkMath::AreBoundsInitialized(bounds))
+    {
+    return;
+    }
+
+  if (representation->GetProperty("Position") &&
+    representation->GetProperty("Orientation") &&
+    representation->GetProperty("Scale"))
+    {
+    double position[3], rotation[3], scale[3];
+    vtkSMPropertyHelper(representation, "Position").Get(position, 3);
+    vtkSMPropertyHelper(representation, "Orientation").Get(rotation, 3);
+    vtkSMPropertyHelper(representation, "Scale").Get(scale, 3);
+
+    if (scale[0] != 1.0 || scale[1] != 1.0 || scale[2] != 1.0 ||
+      position[0] != 0.0 || position[1] != 0.0 || position[2] != 0.0 ||
+      rotation[0] != 0.0 || rotation[1] != 0.0 || rotation[2] != 0.0)
+      {
+      vtkTransform* transform = vtkTransform::New();
+      transform->Translate(position);
+      transform->RotateZ(rotation[2]);
+      transform->RotateX(rotation[0]);
+      transform->RotateY(rotation[1]);
+      transform->Scale(scale);
+
+      int i, j, k;
+      double origX[3], x[3];
+      vtkBoundingBox bbox;
+      for (i = 0; i < 2; i++)
+        {
+        origX[0] = bounds[i];
+        for (j = 0; j < 2; j++)
+          {
+          origX[1] = bounds[2 + j];
+          for (k = 0; k < 2; k++)
+            {
+            origX[2] = bounds[4 + k];
+            transform->TransformPoint(origX, x);
+            bbox.AddPoint(x);
+            }
+          }
+        }
+      bbox.GetBounds(bounds);
+      transform->Delete();
+      }
+    }
+  this->ResetCamera(bounds);
+}
+
+//----------------------------------------------------------------------------
+void vtkSMRenderViewProxy::ResetCamera(double bounds[6])
+{
+  this->CreateVTKObjects();
+
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkClientServerStream stream;
+  stream << vtkClientServerStream::Invoke
+    << this->GetID()
+    << "ResetCamera"
+    << vtkClientServerStream::InsertArray(bounds, 6)
+    << vtkClientServerStream::End;
+  pm->SendStream(this->ConnectionID, this->Servers, stream);
 }
 
 //----------------------------------------------------------------------------
