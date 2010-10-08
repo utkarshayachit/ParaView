@@ -412,6 +412,13 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     }
   repr->UpdateVTKObjects();
 
+  if (pqSMAdaptor::getEnumerationProperty(repr->GetProperty("Representation"))
+    == "Outline")
+    {
+    // no need to determine scalar coloring for outline representation.
+    return;
+    }
+
   // update the input using the current application time.
   this->getInput()->updatePipeline();
   geomInfo = this->getInputDataInformation();
@@ -442,7 +449,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
       chosenArrayInfo = arrayInfo;
       }
     }
-    
+
   // Check for new cell scalars.
   if (!chosenArrayInfo && geomInfo)
     {
@@ -455,7 +462,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
       chosenArrayInfo = arrayInfo;
       }
     }
-   
+
   if (!chosenArrayInfo && geomInfo)
     {
     // Check for scalars in geometry
@@ -490,7 +497,7 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     this->colorByArray(chosenArrayInfo->GetName(), chosenFieldType);
     return;
     }
-  
+
   QList<QString> myColorFields = this->getColorFields();
 
   // Try to inherit the same array selected by the input.
