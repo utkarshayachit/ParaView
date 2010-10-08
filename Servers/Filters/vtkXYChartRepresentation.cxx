@@ -57,14 +57,12 @@ vtkChartXY* vtkXYChartRepresentation::GetChart()
 void vtkXYChartRepresentation::SetXAxisSeriesName(const char* name)
 {
   this->Options->SetXSeriesName(name);
-  this->Modified();
 }
 
 //----------------------------------------------------------------------------
 void vtkXYChartRepresentation::SetUseIndexForXAxis(bool useIndex)
 {
   this->Options->SetUseIndexForXAxis(useIndex);
-  this->Modified();
 }
 
 //----------------------------------------------------------------------------

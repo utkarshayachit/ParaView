@@ -263,12 +263,12 @@ const char* vtkChartRepresentation::GetSeriesName(int col)
 void vtkChartRepresentation::SetFieldAssociation(int v)
 {
   this->Preprocessor->SetFieldAssociation(v);
-  this->Modified();
+  this->MarkModified();
 }
 
 //----------------------------------------------------------------------------
 void vtkChartRepresentation::SetCompositeDataSetIndex(unsigned int v)
 {
   this->Preprocessor->SetCompositeDataSetIndex(v);
-  this->Modified();
+  this->MarkModified();
 }
