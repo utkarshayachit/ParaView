@@ -226,7 +226,7 @@ int vtkGeometryRepresentation::ProcessViewRequest(
 int vtkGeometryRepresentation::RequestData(vtkInformation* request,
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  //cout << this << ":" << this->DebugString << ":RequestData" << endl;
+  // cout << this << ":" << this->DebugString << ":RequestData" << endl;
 
   // Pass caching information to the cache keeper.
   this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
@@ -260,8 +260,13 @@ bool vtkGeometryRepresentation::IsCached(double cache_key)
 //----------------------------------------------------------------------------
 vtkDataObject* vtkGeometryRepresentation::GetRenderedDataObject(int port)
 {
+  // cout << this << ":" << this->DebugString << ":GetRenderedDataObject" << endl;
   (void) port;
-  return this->Distributor->GetOutputDataObject(0);
+  if (this->GeometryFilter->GetNumberOfInputConnections(0) > 0)
+    {
+    return this->CacheKeeper->GetOutputDataObject(0);
+    }
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
