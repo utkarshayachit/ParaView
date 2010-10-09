@@ -134,6 +134,9 @@ namespace
       self->FetchBlockCallback(blockid);
       }
     }
+  void FetchRMIBogus(void *, void *, int, int)
+    {
+    }
 
   unsigned long vtkCountNumberOfRows(vtkDataObject* dobj)
     {
@@ -229,6 +232,11 @@ vtkSpreadSheetView::vtkSpreadSheetView()
     {
     this->RMICallbackTag = this->SynchronizedWindows->AddRMICallback(
       ::FetchRMI, this, FETCH_BLOCK_TAG);
+    }
+  else
+    {
+    this->RMICallbackTag = this->SynchronizedWindows->AddRMICallback(
+      ::FetchRMIBogus, this, FETCH_BLOCK_TAG);
     }
 }
 
@@ -367,6 +375,7 @@ vtkTable* vtkSpreadSheetView::FetchBlock(vtkIdType blockindex)
 //----------------------------------------------------------------------------
 void vtkSpreadSheetView::FetchBlockCallback(vtkIdType blockindex)
 {
+  cout << "FetchBlockCallback" << endl;
   vtkMultiProcessStream stream;
   stream << this->Identifier << static_cast<int>(blockindex);
   this->SynchronizedWindows->TriggerRMI(stream, FETCH_BLOCK_TAG);

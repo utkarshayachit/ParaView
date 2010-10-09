@@ -1361,8 +1361,11 @@ void vtkPVSynchronizedRenderWindows::TriggerRMI(
     return;
     }
 
+  // don't use this->GetParallelController() since that only works on rendering
+  // nodes.
   vtkMultiProcessController* parallelController =
-    this->GetParallelController();
+    vtkMultiProcessController::GetGlobalController();
+
   vtkMultiProcessController* c_rs_controller =
     this->GetClientServerController();
   // c_ds_controller is non-null only in client-dataserver-renderserver
@@ -1400,8 +1403,11 @@ void vtkPVSynchronizedRenderWindows::TriggerRMI(
 unsigned long vtkPVSynchronizedRenderWindows::AddRMICallback(
   vtkRMIFunctionType callback, void* localArg, int tag)
 {
+  // don't use this->GetParallelController() since that only works on rendering
+  // nodes.
   vtkMultiProcessController* parallelController =
-    this->GetParallelController();
+    vtkMultiProcessController::GetGlobalController();
+
   vtkMultiProcessController* c_rs_controller =
     this->GetClientServerController();
   // c_ds_controller is non-null only in client-dataserver-renderserver
