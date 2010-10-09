@@ -145,7 +145,6 @@ SET(Filters_SRCS
   vtkPVExtentTranslator.cxx
   vtkPVExtractSelection.cxx
   vtkPVExtractVOI.cxx
-  vtkPVFetchDataFilter.cxx
   vtkPVFrustumActor.cxx
   vtkPVGenericRenderWindowInteractor.cxx
   vtkPVGeometryFilter.cxx
