@@ -63,7 +63,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkCommand.h"
 
-#include "QVTKWidget.h"
+#include "pqQVTKWidget.h"
 
 #include <QList>
 #include <QVariant>
@@ -131,7 +131,8 @@ pqContextView::~pqContextView()
 //-----------------------------------------------------------------------------
 QWidget* pqContextView::createWidget()
 {
-  QVTKWidget* vtkwidget = new QVTKWidget();
+  pqQVTKWidget* vtkwidget = new pqQVTKWidget();
+  vtkwidget->setViewProxy(this->getProxy());
 
   // do image caching for performance
   // For now, we are doing this only on Apple because it can render
