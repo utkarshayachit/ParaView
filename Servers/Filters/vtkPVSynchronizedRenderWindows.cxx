@@ -581,6 +581,15 @@ void vtkPVSynchronizedRenderWindows::SetWindowSize(unsigned int id,
 {
   this->Internals->RenderWindows[id].Size[0] = width;
   this->Internals->RenderWindows[id].Size[1] = height;
+  if (this->Mode == BUILTIN)
+    {
+    vtkRenderWindow* window = this->GetRenderWindow(id);
+    if (window && (window->GetSize()[0] != width ||
+        window->GetSize()[1] != height) )
+      {
+      window->SetSize(width, height);
+      }
+    }
 }
 
 //----------------------------------------------------------------------------
