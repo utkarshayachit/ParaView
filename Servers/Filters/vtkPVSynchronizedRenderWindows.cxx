@@ -1116,7 +1116,7 @@ bool vtkPVSynchronizedRenderWindows::SynchronizeSize(unsigned long& size)
     }
 
   vtkMultiProcessController* parallelController =
-    this->GetParallelController();
+    vtkMultiProcessController::GetGlobalController();
   vtkMultiProcessController* c_rs_controller =
     this->GetClientServerController();
 
@@ -1202,7 +1202,8 @@ bool vtkPVSynchronizedRenderWindows::SynchronizeBounds(double bounds[6])
     }
 
   vtkMultiProcessController* parallelController =
-    this->GetParallelController();
+    vtkMultiProcessController::GetGlobalController();
+
   vtkMultiProcessController* c_rs_controller =
     this->GetClientServerController();
 
@@ -1219,9 +1220,9 @@ bool vtkPVSynchronizedRenderWindows::SynchronizeBounds(double bounds[6])
     double min_bounds[3] = {bounds[0], bounds[2], bounds[4]};
     double max_bounds[3] = {bounds[1], bounds[3], bounds[5]};
     double min_result[3], max_result[3];
-    this->ParallelController->Reduce(min_bounds, min_result, 3,
+    parallelController->Reduce(min_bounds, min_result, 3,
       vtkCommunicator::MIN_OP, 0);
-    this->ParallelController->Reduce(max_bounds, max_result, 3,
+    parallelController->Reduce(max_bounds, max_result, 3,
       vtkCommunicator::MAX_OP, 0);
     bounds[0] = min_result[0];
     bounds[2] = min_result[1];
