@@ -62,6 +62,9 @@ protected:
   // Mark the data information as invalid.
   virtual void InvalidateDataInformation();
 
+  // Overridden to restore this->Servers flag state.
+  virtual int LoadState(vtkPVXMLElement* element, vtkSMProxyLocator* locator);
+
 private:
   vtkSMRepresentationProxy(const vtkSMRepresentationProxy&); // Not implemented
   void operator=(const vtkSMRepresentationProxy&); // Not implemented

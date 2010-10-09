@@ -45,6 +45,7 @@ void vtkSMRepresentationProxy::CreateVTKObjects()
     {
     return;
     }
+
   this->Superclass::CreateVTKObjects();
 
   vtkMemberFunctionCommand<vtkSMRepresentationProxy>* observer =
@@ -54,6 +55,16 @@ void vtkSMRepresentationProxy::CreateVTKObjects()
   vtkObject::SafeDownCast(this->GetClientSideObject())->AddObserver(
     vtkCommand::UpdateDataEvent, observer);
   observer->Delete();
+}
+
+//---------------------------------------------------------------------------
+int vtkSMRepresentationProxy::LoadState(
+  vtkPVXMLElement* proxyElement, vtkSMProxyLocator* locator)
+{
+  vtkTypeUInt32 oldserver = this->Servers;
+  int ret = this->Superclass::LoadState(proxyElement, locator);
+  this->Servers = oldserver;
+  return ret;
 }
 
 //----------------------------------------------------------------------------

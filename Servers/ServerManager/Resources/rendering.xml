@@ -749,7 +749,8 @@
   </ProxyGroup>
 
   <ProxyGroup name="cameramanipulators">
-    <Proxy name="CameraManipulator" class="vtkCameraManipulator">
+    <Proxy name="CameraManipulator" class="vtkCameraManipulator"
+      processes="client|renderserver|dataserver" >
       <IntVectorProperty
         name="Button"
         command="SetButton"
@@ -783,7 +784,8 @@
     </Proxy>
 
     <Proxy name="JoystickFlyIn" class="vtkPVJoystickFlyIn" base_proxygroup="cameramanipulators"
-      base_proxyname="CameraManipulator" processes="client">
+      base_proxyname="CameraManipulator"
+      processes="client|renderserver|dataserver" >
       <DoubleVectorProperty
         name="FlySpeed"
         command="SetFlySpeed"
@@ -794,7 +796,8 @@
     </Proxy>
 
     <Proxy name="JoystickFlyOut" class="vtkPVJoystickFlyOut" base_proxygroup="cameramanipulators"
-      base_proxyname="CameraManipulator" processes="client">
+      base_proxyname="CameraManipulator"
+      processes="client|renderserver|dataserver" >
       <DoubleVectorProperty
         name="FlySpeed"
         command="SetFlySpeed"
@@ -805,26 +808,33 @@
     </Proxy>
 
     <Proxy name="TrackballMoveActor" class="vtkPVTrackballMoveActor" base_proxygroup="cameramanipulators"
-      base_proxyname="CameraManipulator" processes="client"/>
+      base_proxyname="CameraManipulator"
+      processes="client|renderserver|dataserver" />
 
     <Proxy name="TrackballPan1" class="vtkTrackballPan" base_proxygroup="cameramanipulators"
-      base_proxyname="CameraManipulator" processes="client"/>
+      base_proxyname="CameraManipulator"
+      processes="client|renderserver|dataserver" />
 
     <Proxy name="TrackballPan2" class="vtkPVTrackballPan" base_proxygroup="cameramanipulators"
-      base_proxyname="CameraManipulator" processes="client"/>
+      base_proxyname="CameraManipulator"
+      processes="client|renderserver|dataserver" />
 
     <Proxy name="TrackballRoll" class="vtkPVTrackballRoll" base_proxygroup="cameramanipulators"
-      base_proxyname="CameraManipulator" processes="client"/>
+      base_proxyname="CameraManipulator"
+      processes="client|renderserver|dataserver" />
 
     <Proxy name="TrackballRotate" class="vtkPVTrackballRotate" base_proxygroup="cameramanipulators"
-      base_proxyname="CameraManipulator" processes="client"/>
+      base_proxyname="CameraManipulator"
+      processes="client|renderserver|dataserver" />
 
     <Proxy name="TrackballZoom" class="vtkPVTrackballZoom" base_proxygroup="cameramanipulators"
-      base_proxyname="CameraManipulator" processes="client"/>
+      base_proxyname="CameraManipulator"
+      processes="client|renderserver|dataserver" />
 
     <Proxy name="TrackballMultiRotate" class="vtkPVTrackballMultiRotate"
            base_proxygroup="cameramanipulators"
-           base_proxyname="CameraManipulator" processes="client"/>
+           base_proxyname="CameraManipulator"
+           processes="client|renderserver|dataserver" />
   </ProxyGroup>
 
   <ProxyGroup name="PropPickers">
