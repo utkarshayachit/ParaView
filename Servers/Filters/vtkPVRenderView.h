@@ -362,6 +362,8 @@ public:
   void AddManipulator(vtkCameraManipulator* val);
   void RemoveAllManipulators();
 
+  vtkSetMacro(ForceRemoteRendering, bool);
+  vtkBooleanMacro(ForceRemoteRendering, bool);
 //BTX
 protected:
   vtkPVRenderView();
@@ -458,6 +460,7 @@ private:
   vtkPVRenderView(const vtkPVRenderView&); // Not implemented
   void operator=(const vtkPVRenderView&); // Not implemented
 
+  bool ForceRemoteRendering;
   void OnSelectionChangedEvent();
   void FinishSelection();
   void FinishSelection(vtkSelection*);

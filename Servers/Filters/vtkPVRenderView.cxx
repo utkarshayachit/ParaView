@@ -75,6 +75,7 @@ vtkPVRenderView::vtkPVRenderView()
 {
   vtkPVOptions* options = vtkProcessModule::GetProcessModule()->GetOptions();
 
+  this->ForceRemoteRendering = false;
   this->StillRenderImageReductionFactor = 1;
   this->InteractiveRenderImageReductionFactor = 2;
   this->GeometrySize = 0;
@@ -747,7 +748,7 @@ void vtkPVRenderView::GatherGeometrySizeInformation()
 //----------------------------------------------------------------------------
 bool vtkPVRenderView::GetUseDistributedRendering()
 {
-  if (this->InteractionMode == INTERACTION_MODE_SELECTION)
+  if (this->ForceRemoteRendering)
     {
     // force remote rendering when doing a surface selection.
     return true;
