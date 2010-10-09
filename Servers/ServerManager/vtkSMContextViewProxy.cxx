@@ -90,9 +90,9 @@ vtkChart* vtkSMContextViewProxy::GetChart()
 }
 
 //-----------------------------------------------------------------------------
-vtkImageData* vtkSMContextViewProxy::CaptureWindow(int magnification)
+vtkImageData* vtkSMContextViewProxy::CaptureWindowInternal(int magnification)
 {
-  this->InvokeCommand("StillRender");
+  this->StillRender();
 
   this->GetChartView()->Render();
 
@@ -106,32 +106,7 @@ vtkImageData* vtkSMContextViewProxy::CaptureWindow(int magnification)
   vtkImageData* capture = vtkImageData::New();
   capture->ShallowCopy(w2i->GetOutput());
   w2i->Delete();
-
-#ifdef FIXME
-  // Update image extents based on ViewPosition
-  int extents[6];
-  capture->GetExtent(extents);
-  for (int cc=0; cc < 4; cc++)
-    {
-    extents[cc] += this->ViewPosition[cc/2]*magnification;
-    }
-  capture->SetExtent(extents);
-#endif
   return capture;
-}
-
-//-----------------------------------------------------------------------------
-int vtkSMContextViewProxy::WriteImage(const char* filename,
-  const char* writerName, int magnification)
-{
-  if (!filename || !writerName)
-    {
-    return vtkErrorCode::UnknownError;
-    }
-
-  vtkSmartPointer<vtkImageData> shot;
-  shot.TakeReference(this->CaptureWindow(magnification));
-  return vtkSMUtilities::SaveImageOnProcessZero(shot, filename, writerName);
 }
 
 //----------------------------------------------------------------------------

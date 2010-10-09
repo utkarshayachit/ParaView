@@ -34,11 +34,6 @@ public:
   vtkTypeMacro(vtkSMContextViewProxy, vtkSMViewProxy);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Saves a screenshot of the view to disk.  The writerName argument specifies
-  // the vtkImageWriter subclass to use.
-  int WriteImage(const char* filename, const char* writerName, int magnification);
-
 //BTX
   // Description:
   // Provides access to the vtk chart view.
@@ -50,10 +45,6 @@ public:
 //ETX
 
   // Description:
-  // Capture the contents of the window at the specified magnification level.
-  vtkImageData* CaptureWindow(int magnification);
-
-  // Description:
   // Return the render window from which offscreen rendering and interactor can
   // be accessed
   vtkRenderWindow* GetRenderWindow();
@@ -62,6 +53,10 @@ public:
 protected:
   vtkSMContextViewProxy();
   ~vtkSMContextViewProxy();
+
+  // Description:
+  // Subclasses should override this method to do the actual image capture.
+  virtual vtkImageData* CaptureWindowInternal(int magnification);
 
   // Description:
   virtual void CreateVTKObjects();

@@ -16,6 +16,7 @@
 
 #include "vtkClientServerStream.h"
 #include "vtkCommand.h"
+#include "vtkErrorCode.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
@@ -25,6 +26,7 @@
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMRepresentationProxy.h"
+#include "vtkSMUtilities.h"
 
 vtkStandardNewMacro(vtkSMViewProxy);
 //----------------------------------------------------------------------------
@@ -256,6 +258,20 @@ vtkImageData* vtkSMViewProxy::CaptureWindow(int magnification)
     capture->SetExtent(extents);
     }
   return capture;
+}
+
+//-----------------------------------------------------------------------------
+int vtkSMViewProxy::WriteImage(const char* filename,
+  const char* writerName, int magnification)
+{
+  if (!filename || !writerName)
+    {
+    return vtkErrorCode::UnknownError;
+    }
+
+  vtkSmartPointer<vtkImageData> shot;
+  shot.TakeReference(this->CaptureWindow(magnification));
+  return vtkSMUtilities::SaveImageOnProcessZero(shot, filename, writerName);
 }
 
 //----------------------------------------------------------------------------

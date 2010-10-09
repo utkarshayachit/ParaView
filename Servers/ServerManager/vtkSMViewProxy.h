@@ -70,6 +70,11 @@ public:
   // Returns the client-side vtkView, if any.
   vtkView* GetClientSideView();
 
+  // Description:
+  // Saves a screenshot of the view to disk. The writerName argument specifies
+  // the vtkImageWriter subclass to use.
+  int WriteImage(const char* filename, const char* writerName, int magnification);
+
 //BTX
 protected:
   vtkSMViewProxy();
