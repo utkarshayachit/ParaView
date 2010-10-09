@@ -205,6 +205,18 @@ void vtkPVCompositeRepresentation::SetForcedCacheKey(double val)
 }
 
 //----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::SetPointFieldDataArrayName(const char* val)
+{
+  this->SelectionRepresentation->SetPointFieldDataArrayName(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::SetCellFieldDataArrayName(const char* val)
+{
+  this->SelectionRepresentation->SetCellFieldDataArrayName(val);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVCompositeRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

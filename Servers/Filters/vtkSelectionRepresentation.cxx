@@ -250,3 +250,15 @@ void vtkSelectionRepresentation::SetScale(double x, double y, double z)
   this->GeometryRepresentation->SetScale(x, y, z);
   this->LabelRepresentation->SetScale(x, y, z);
 }
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetPointFieldDataArrayName(const char* val)
+{
+  this->LabelRepresentation->SetPointFieldDataArrayName(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSelectionRepresentation::SetCellFieldDataArrayName(const char* val)
+{
+  this->LabelRepresentation->SetCellFieldDataArrayName(val);
+}

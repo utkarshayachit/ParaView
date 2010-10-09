@@ -1038,6 +1038,28 @@
         </EnumerationDomain>
       </IntVectorProperty>
 
+      <StringVectorProperty name="SelectionCellFieldDataArrayName"
+        command="SetCellFieldDataArrayName"
+        number_of_elements="1"
+        default_values="vtkOriginalCellIds" >
+        <ArrayListDomain name="array_list" input_domain_name="input_array_cell">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="SelectionPointFieldDataArrayName"
+        command="SetPointFieldDataArrayName"
+        number_of_elements="1"
+        default_values="vtkOriginalPointIds" >
+        <ArrayListDomain name="array_list" input_domain_name="input_array_point">
+          <RequiredProperties>
+             <Property name="Input" function="Input"/>
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
       <SubProxy>
         <Proxy name="SurfaceRepresentation"
           proxygroup="representations"
@@ -1158,7 +1180,6 @@
           <Exception name="PointSize" />
         </ShareProperties>
         <ExposedProperties>
-          <Property name="CellFieldDataArrayName" exposed_name="SelectionCellFieldDataArrayName" />
           <Property name="CellLabelBold" exposed_name="SelectionCellLabelBold" />
           <Property name="CellLabelColor" exposed_name="SelectionCellLabelColor" />
           <Property name="CellLabelFontFamily" exposed_name="SelectionCellLabelFontFamily" />
@@ -1171,7 +1192,6 @@
           <Property name="Color" exposed_name="SelectionColor" />
           <Property name="LineWidth" exposed_name="SelectionLineWidth" />
           <Property name="Opacity" exposed_name="SelectionOpacity" />
-          <Property name="PointFieldDataArrayName" exposed_name="SelectionPointFieldDataArrayName"/>
           <Property name="PointLabelBold" exposed_name="SelectionPointLabelBold" />
           <Property name="PointLabelColor" exposed_name="SelectionPointLabelColor" />
           <Property name="PointLabelFontFamily" exposed_name="SelectionPointLabelFontFamily" />
@@ -1203,6 +1223,12 @@
         <DataTypeDomain name="input_type" composite_data_supported="1">
           <DataType value="vtkDataSet"/>
         </DataTypeDomain>
+        <InputArrayDomain name="input_array_cell" attribute_type="cell"
+          optional="1">
+        </InputArrayDomain>
+        <InputArrayDomain name="input_array_point" attribute_type="point"
+          optional="1">
+        </InputArrayDomain>
         <Documentation>
           Set the input to the representation.
         </Documentation>
@@ -1226,9 +1252,15 @@
       <RepresentationType subproxy="VolumeRepresentation" text="Volume"/>
 
       <InputProperty name="Input" command="SetInputConnection">
-       <DataTypeDomain name="input_type" composite_data_supported="1">
-         <DataType value="vtkUnstructuredGrid"/>
-       </DataTypeDomain>
+        <DataTypeDomain name="input_type" composite_data_supported="1">
+          <DataType value="vtkUnstructuredGrid"/>
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array_cell" attribute_type="cell"
+          optional="1">
+        </InputArrayDomain>
+        <InputArrayDomain name="input_array_point" attribute_type="point"
+          optional="1">
+        </InputArrayDomain>
         <Documentation>
           Set the input to the representation.
         </Documentation>
@@ -1268,9 +1300,15 @@
       <RepresentationType subproxy="SliceRepresentation" text="Slice"/>
 
       <InputProperty name="Input" command="SetInputConnection">
-       <DataTypeDomain name="input_type" composite_data_supported="0">
-         <DataType value="vtkImageData"/>
-       </DataTypeDomain>
+        <DataTypeDomain name="input_type" composite_data_supported="0">
+          <DataType value="vtkImageData"/>
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array_cell" attribute_type="cell"
+          optional="1">
+        </InputArrayDomain>
+        <InputArrayDomain name="input_array_point" attribute_type="point"
+          optional="1">
+        </InputArrayDomain>
         <Documentation>
           Set the input to the representation.
         </Documentation>
@@ -2892,7 +2930,7 @@
         name="PointLabelColor"
         command="SetPointLabelColor"
         number_of_elements="3"
-        default_values="1.0 1.0 1.0">
+        default_values="0.5 0.5 0.5">
         <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
       </DoubleVectorProperty>
 
@@ -2969,7 +3007,7 @@
       <IntVectorProperty name="PointLabelMode"
         command="SetPointLabelMode"
         number_of_elements="1"
-        default_values="0">
+        default_values="6">
         <EnumerationDomain name="enum">
           <Entry value="0" text="IDs" />
           <Entry value="1" text="Scalars" />
@@ -2996,7 +3034,7 @@
         name="CellLabelColor"
         command="SetCellLabelColor"
         number_of_elements="3"
-        default_values="1.0 1.0 1.0">
+        default_values="0.0 1.0 0.0">
         <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
       </DoubleVectorProperty>
 
@@ -3073,7 +3111,7 @@
       <IntVectorProperty name="CellLabelMode"
         command="SetCellLabelMode"
         number_of_elements="1"
-        default_values="0">
+        default_values="6">
         <EnumerationDomain name="enum">
           <Entry value="0" text="IDs" />
           <Entry value="1" text="Scalars" />

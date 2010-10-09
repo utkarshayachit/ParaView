@@ -85,6 +85,11 @@ public:
   void SetPosition(double, double, double);
   void SetScale(double, double, double);
 
+  // Description:
+  // Forwarded to vtkDataLabelRepresentation.
+  virtual void SetPointFieldDataArrayName(const char* val);
+  virtual void SetCellFieldDataArrayName(const char* val);
+
 //BTX
 protected:
   vtkSelectionRepresentation();

@@ -72,6 +72,11 @@ public:
   virtual void SetForceUseCache(bool val);
   virtual void SetForcedCacheKey(double val);
 
+  // Description:
+  // Forwarded to vtkSelectionRepresentation.
+  virtual void SetPointFieldDataArrayName(const char*);
+  virtual void SetCellFieldDataArrayName(const char*);
+
 //BTX
 protected:
   vtkPVCompositeRepresentation();
