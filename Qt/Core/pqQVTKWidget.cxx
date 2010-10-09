@@ -33,8 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QResizeEvent>
 #include <QMoveEvent>
-#include "vtkSMProxy.h"
+#include "pqUndoStack.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
 
 //----------------------------------------------------------------------------
 pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WFlags f)
@@ -67,6 +68,8 @@ QWidget* pqQVTKWidget::positionReference() const
 void pqQVTKWidget::resizeEvent(QResizeEvent* e)
 {
   this->Superclass::resizeEvent(e);
+
+  BEGIN_UNDO_EXCLUDE();
   int view_size[2];
   view_size[0] = e->size().width();
   view_size[1] = e->size().height();
@@ -79,6 +82,7 @@ void pqQVTKWidget::resizeEvent(QResizeEvent* e)
   vtkSMPropertyHelper(this->ViewProxy, "ViewPosition").Set(view_position, 2);
   this->ViewProxy->UpdateProperty("ViewSize");
   this->ViewProxy->UpdateProperty("ViewPosition");
+  END_UNDO_EXCLUDE();
 }
 
 //----------------------------------------------------------------------------
