@@ -52,6 +52,8 @@ vtkPVView::vtkPVView()
 
   this->RequestInformation = vtkInformation::New();
   this->ReplyInformationVector = vtkInformationVector::New();
+
+  this->LastRenderOneViewAtATime = false;
 }
 
 //----------------------------------------------------------------------------
@@ -145,6 +147,8 @@ void vtkPVView::PrepareForScreenshot()
 {
   if (!this->InTileDisplayMode())
     {
+    this->LastRenderOneViewAtATime =
+      this->SynchronizedWindows->GetRenderOneViewAtATime();
     this->SynchronizedWindows->RenderOneViewAtATimeOn();
     }
 }
@@ -155,6 +159,8 @@ void vtkPVView::CleanupAfterScreenshot()
   if (!this->InTileDisplayMode())
     {
     this->SynchronizedWindows->RenderOneViewAtATimeOff();
+    this->SynchronizedWindows->SetRenderOneViewAtATime(
+      this->LastRenderOneViewAtATime);
     }
 }
 

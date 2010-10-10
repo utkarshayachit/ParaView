@@ -439,19 +439,33 @@ bool vtkSMAnimationSceneImageWriter::CreateWriter()
 //-----------------------------------------------------------------------------
 void vtkSMAnimationSceneImageWriter::UpdateImageSize()
 {
-  //int gui_size[2] = {1, 1};
-  //vtkSMViewProxy* view = this->AnimationScene->GetViewModule(0);
-  //if (view)
-  //  {
-  //  view->GetGUISize(gui_size);
-  //  }
-  //else
-  //  {
-  //  vtkErrorMacro("AnimationScene has no view modules added to it.");
-  //  }
-  //gui_size[0] *= this->Magnification;
-  //gui_size[1] *= this->Magnification;
-  //this->SetActualSize(gui_size);
+  unsigned int num_modules = this->AnimationScene->GetNumberOfViewModules();
+  int gui_size[2] = {1, 1};
+  for (unsigned int cc=0; cc < num_modules; cc++)
+    {
+    vtkSMViewProxy* view = this->AnimationScene->GetViewModule(cc);
+    if (!view)
+      {
+      continue;
+      }
+    vtkSMPropertyHelper size(view, "ViewSize");
+    vtkSMPropertyHelper position(view, "ViewPosition");
+    if (gui_size[0] < size.GetAsInt(0) + position.GetAsInt(0))
+      {
+      gui_size[0] = size.GetAsInt(0) + position.GetAsInt(0);
+      }
+    if (gui_size[1] < size.GetAsInt(1) + position.GetAsInt(1))
+      {
+      gui_size[1] = size.GetAsInt(1) + position.GetAsInt(1);
+      }
+    }
+  if (num_modules==0)
+    {
+    vtkErrorMacro("AnimationScene has no view modules added to it.");
+    }
+  gui_size[0] *= this->Magnification;
+  gui_size[1] *= this->Magnification;
+  this->SetActualSize(gui_size);
 }
 
 //-----------------------------------------------------------------------------

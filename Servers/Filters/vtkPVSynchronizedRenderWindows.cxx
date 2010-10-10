@@ -279,6 +279,7 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
   if (pm->GetOptions()->GetProcessType() == vtkPVOptions::PVBATCH)
     {
     this->Mode = BATCH;
+    this->RenderOneViewAtATime = true;
     }
   else if (pm->GetActiveRemoteConnection() == NULL)
     {
