@@ -30,6 +30,9 @@
 #include "vtkSynchronizedRenderers.h"
 #include "vtkIceTCompositePass.h" // needed for inline methods.
 
+class vtkImageProcessingPass;
+class vtkMyImagePasterPass;
+
 class VTK_EXPORT vtkIceTSynchronizedRenderers : public vtkSynchronizedRenderers
 {
 public:
@@ -92,6 +95,11 @@ public:
     this->IceTCompositePass->SetController(cont);
     }
 
+  // Description:
+  // Get/Set an image processing pass to process the rendered images.
+  void SetImageProcessingPass(vtkImageProcessingPass*);
+  vtkGetObjectMacro(ImageProcessingPass, vtkImageProcessingPass);
+
 //BTX
 protected:
   vtkIceTSynchronizedRenderers();
@@ -106,6 +114,8 @@ protected:
   // We use vtkIceTCompositePass internally.
   vtkRenderPass* RenderPass;
   vtkIceTCompositePass* IceTCompositePass;
+  vtkImageProcessingPass * ImageProcessingPass;
+  vtkMyImagePasterPass* ImagePastingPass;
 
 private:
   vtkIceTSynchronizedRenderers(const vtkIceTSynchronizedRenderers&); // Not implemented
