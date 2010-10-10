@@ -115,10 +115,6 @@ vtkPVRenderView::vtkPVRenderView()
     this->Interactor->Initialize();
     }
 
-  // FIXME: vtkPVRenderView mucks with interactor shifting it around when a
-  // render window is set and so forth which is totally buggy. It results in
-  // seg-faults on my linux box. Need to fix it. This code will then cleanup a
-  // bit.
   vtkRenderWindow* window = this->SynchronizedWindows->NewRenderWindow();
   window->SetMultiSamples(0);
   window->SetOffScreenRendering(this->UseOffscreenRendering? 1 : 0);

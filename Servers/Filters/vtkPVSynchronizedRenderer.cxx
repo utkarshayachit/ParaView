@@ -156,7 +156,7 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
       static_cast<vtkIceTSynchronizedRenderers*>(this->ParallelSynchronizer)->SetTileMullions(
         tile_mullions[0], tile_mullions[1]);
 #else
-      // FIXME: need to add support for compositing.
+      // FIXME: need to add support for compositing when not using IceT
       this->ParallelSynchronizer = vtkSynchronizedRenderers::New();
 #endif
       this->ParallelSynchronizer->SetParallelController(
