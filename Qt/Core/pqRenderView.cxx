@@ -665,7 +665,6 @@ void pqRenderView::emitSelectionSignal(QList<pqOutputPort*> opPorts)
 void pqRenderView::pick(int pos[2])
 {
   vtkSMRenderViewProxy* renderView = this->getRenderViewProxy();
-#ifdef FIXME
   vtkSMRepresentationProxy* repr = renderView->Pick(pos[0], pos[1]);
   if (repr)
     {
@@ -676,7 +675,6 @@ void pqRenderView::pick(int pos[2])
       emit this->picked(pq_repr->getOutputPortFromInput());
       }
     }
-#endif
 }
 
 //-----------------------------------------------------------------------------

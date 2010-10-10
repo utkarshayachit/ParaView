@@ -56,6 +56,11 @@ public:
     bool multiple_selections=false);
 
   // Description:
+  // Convenience method to pick a location. Internally uses SelectSurfaceCells
+  // to locate the picked object. In future, we can make this faster.
+  vtkSMRepresentationProxy* Pick(int x, int y);
+
+  // Description:
   // Checks if color depth is sufficient to support selection.
   // If not, will return 0 and any calls to SelectVisibleCells will
   // quietly return an empty selection.

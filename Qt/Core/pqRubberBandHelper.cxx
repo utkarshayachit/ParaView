@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QPointer>
 #include <QTimer>
 #include <QWidget>
+#include <QMouseEvent>
 
 // ParaView includes.
 #include "vtkPVRenderView.h"
@@ -58,12 +59,14 @@ public:
   // Current render view.
   QPointer<pqRenderView> RenderView;
   vtkSmartPointer<vtkCommand> Observer;
+  int StartPosition[2];
 
   QCursor ZoomCursor;
 
   pqInternal(pqRubberBandHelper*) :
     ZoomCursor(QPixmap(zoom_xpm), 11, 11)
     {
+    this->StartPosition[0] = this->StartPosition[1] = -1000;
     }
 
   ~pqInternal()
@@ -195,6 +198,13 @@ int pqRubberBandHelper::setRubberBandOn(int selectionMode)
       this->Internal->RenderView->getWidget()->setCursor(Qt::CrossCursor);
       }
     }
+  else
+    {
+    // we don't use render-window-interactor for picking-on-clicking since we
+    // don't want to change the default interaction style. Instead we install an
+    // event filter to listen to mouse click events.
+    this->Internal->RenderView->getWidget()->installEventFilter(this);
+    }
 
   this->Mode = selectionMode;
   emit this->selectionModeChanged(this->Mode);
@@ -224,6 +234,8 @@ int pqRubberBandHelper::setRubberBandOff()
   rmp->UpdateVTKObjects();
   rmp->RemoveObserver(this->Internal->Observer);
 
+  this->Internal->RenderView->getWidget()->removeEventFilter(this);
+
   // set the interaction cursor
   this->Internal->RenderView->getWidget()->setCursor(QCursor());
   this->Mode = INTERACT;
@@ -231,6 +243,36 @@ int pqRubberBandHelper::setRubberBandOff()
   emit this->interactionModeChanged(true);
   emit this->stopSelection();
   return 1;
+}
+
+//-----------------------------------------------------------------------------
+bool pqRubberBandHelper::eventFilter(QObject *watched, QEvent *_event)
+{
+  if (this->Mode == PICK_ON_CLICK &&
+    watched == this->Internal->RenderView->getWidget())
+    {
+    if (_event->type() == QEvent::MouseButtonPress)
+      {
+      QMouseEvent& mouseEvent = (*static_cast<QMouseEvent*>(_event));
+      this->Internal->StartPosition[0] = mouseEvent.x();
+      this->Internal->StartPosition[1] = mouseEvent.y();
+      }
+    else if (_event->type() == QEvent::MouseButtonRelease)
+      {
+      QMouseEvent& mouseEvent = (*static_cast<QMouseEvent*>(_event));
+      if (this->Internal->StartPosition[0] == mouseEvent.x() &&
+        this->Internal->StartPosition[1] == mouseEvent.y())
+        {
+        int region[4] = {mouseEvent.x(), mouseEvent.y(), mouseEvent.x(),
+          mouseEvent.y()};
+        this->onSelectionChanged(NULL, 0, region);
+        }
+      this->Internal->StartPosition[0] = -1000;
+      this->Internal->StartPosition[1] = -1000;
+      }
+    }
+
+  return this->Superclass::eventFilter(watched, _event);
 }
 
 //-----------------------------------------------------------------------------

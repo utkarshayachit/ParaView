@@ -420,6 +420,28 @@ void vtkSMRenderViewProxy::ResetCamera(double bounds[6])
   pm->SendStream(this->ConnectionID, this->Servers, stream);
 }
 
+//-----------------------------------------------------------------------------
+vtkSMRepresentationProxy* vtkSMRenderViewProxy::Pick(int x, int y)
+{
+  // 1) Create surface selection.
+  //   Will returns a surface selection in terms of cells selected on the
+  //   visible props from all representations.
+  vtkSMRepresentationProxy* repr = NULL;
+  vtkCollection* reprs = vtkCollection::New();
+  vtkCollection* sources = vtkCollection::New();
+  int region[4] = {x,y,x,y};
+  if (this->SelectSurfaceCells(region, reprs, sources, false))
+    {
+    if (reprs->GetNumberOfItems() > 0)
+      {
+      repr = vtkSMRepresentationProxy::SafeDownCast(reprs->GetItemAsObject(0));
+      }
+    }
+  reprs->Delete();
+  sources->Delete();
+  return repr;
+}
+
 //----------------------------------------------------------------------------
 bool vtkSMRenderViewProxy::SelectSurfaceCells(int region[4],
   vtkCollection* selectedRepresentations,

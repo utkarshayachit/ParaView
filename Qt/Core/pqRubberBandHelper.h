@@ -50,6 +50,7 @@ class vtkObject;
 class PQCORE_EXPORT pqRubberBandHelper : public QObject
 {
   Q_OBJECT
+  typedef QObject Superclass;
 public:
   pqRubberBandHelper(QObject* parent=NULL);
   virtual ~pqRubberBandHelper();
@@ -75,6 +76,9 @@ public:
   // sets up observer to call "pick" when user clicks.
   //ETX
 
+  /// Used in PICK_ON_CLICK mode to capture click events from the rendering
+  /// widget.
+  virtual bool eventFilter(QObject *watched, QEvent *event);
 
 public slots:
   /// Set active view. If a view has been set previously, this method ensures
@@ -147,7 +151,6 @@ protected:
 
 private:
   class pqInternal;
-
   pqInternal* Internal;
 };
 
