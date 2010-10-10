@@ -358,8 +358,6 @@ static const char* pqRenderViewModuleLightSettings [] = {
 static const char* pqGlobalRenderViewModuleMiscSettings [] = {
   "LODThreshold",
   "LODResolution",
-  "UseImmediateMode",
-  "UseTriangleStrips",
   "RenderInterruptsEnabled",
   "RemoteRenderThreshold",
   "TileDisplayCompositeThreshold",

@@ -2387,12 +2387,12 @@
     <!-- End of GlobalProperties -->
     </Proxy>
 
-    <Proxy name="CoincidentTopologyResolution"
+    <Proxy name="GlobalMapperProperties"
            class="vtkPolyDataMapper"
            processes="client|renderserver">
       <Documentation>
-        This proxy is useful for changing the coincident topology resolution
-        setting on all rendering proceses.
+        This proxy is useful for changing gloabal mapper settings such as
+        the coincident topology resolution setting on all rendering proceses.
       </Documentation>
       <IntVectorProperty name="Mode"
         command="SetResolveCoincidentTopology"
@@ -2440,7 +2440,21 @@
         </Documentation>
       </DoubleVectorProperty>
 
-      <!-- End of CoincidentTopologyResolution -->
+      <IntVectorProperty name="GlobalImmediateModeRendering"
+        command="SetGlobalImmediateModeRendering"
+        number_of_elements="1"
+        default_values="none">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Turn on/off flag to control whether data is rendered using immediate
+          mode or note. Immediate mode rendering tends to be slower but it can
+          handle larger datasets.  The default value is immediate mode off. If
+          you are having problems rendering a large dataset you might want to
+          consider using immediate more rendering.
+        </Documentation>
+      </IntVectorProperty>
+
+      <!-- End of GlobalMapperProperties -->
     </Proxy>
 
     <!-- End of group "misc" -->
