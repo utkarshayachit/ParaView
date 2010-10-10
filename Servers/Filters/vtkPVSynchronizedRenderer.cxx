@@ -47,7 +47,11 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
     abort();
     }
 
-  if (pm->GetActiveRemoteConnection() == NULL)
+  if (pm->GetOptions()->GetProcessType() == vtkPVOptions::PVBATCH)
+    {
+    this->Mode = BATCH;
+    }
+  else if (pm->GetActiveRemoteConnection() == NULL)
     {
     this->Mode = BUILTIN;
     if (pm->GetNumberOfLocalPartitions() > 1)
@@ -76,7 +80,7 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
   int tile_dims[2] = {0, 0};
   int tile_mullions[2] = {0, 0};
   vtkPVServerInformation* server_info = NULL;
-  if (pm->GetActiveRemoteConnection())
+  if (pm->GetActiveRemoteConnection() && this->Mode != BATCH)
     {
     vtkIdType connectionID = pm->GetConnectionID(
       pm->GetActiveRemoteConnection());

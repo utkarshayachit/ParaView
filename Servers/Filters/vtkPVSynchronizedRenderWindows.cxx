@@ -276,7 +276,11 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
     abort();
     }
 
-  if (pm->GetActiveRemoteConnection() == NULL)
+  if (pm->GetOptions()->GetProcessType() == vtkPVOptions::PVBATCH)
+    {
+    this->Mode = BATCH;
+    }
+  else if (pm->GetActiveRemoteConnection() == NULL)
     {
     this->Mode = BUILTIN;
     if (pm->GetNumberOfLocalPartitions() > 1)
