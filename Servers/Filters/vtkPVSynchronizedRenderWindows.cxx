@@ -260,6 +260,7 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
   this->ClientServerRMITag = 0;
   this->ParallelRMITag = 0;
   this->Internals = new vtkInternals();
+  this->Internals->ActiveId = 0;
   this->Observer = vtkObserver::New();
   this->Observer->Target = this;
   this->Enabled = true;
@@ -322,6 +323,10 @@ vtkPVSynchronizedRenderWindows::vtkPVSynchronizedRenderWindows()
 
   case BATCH:
     this->SetParallelController(vtkMultiProcessController::GetGlobalController());
+    if (pm->GetOptions()->GetSymmetricMPIMode())
+      {
+      this->RenderEventPropagation = false;
+      }
     break;
 
   case RENDER_SERVER:
@@ -487,7 +492,7 @@ vtkRenderWindow* vtkPVSynchronizedRenderWindows::NewRenderWindow()
       }
     else
       {
-      cout << "Using shared render window" << endl;
+      // cout << "Using shared render window" << endl;
       }
     this->Internals->SharedRenderWindow->Register(this);
     return this->Internals->SharedRenderWindow;
@@ -627,7 +632,7 @@ const int *vtkPVSynchronizedRenderWindows::GetWindowPosition(unsigned int id)
 //----------------------------------------------------------------------------
 void vtkPVSynchronizedRenderWindows::Render(unsigned int id)
 {
-  //cout << "Rendering: " << id << endl;
+  // cout << "Rendering: " << id << endl;
   vtkInternals::RenderWindowsMap::iterator iter =
     this->Internals->RenderWindows.find(id);
   if (iter == this->Internals->RenderWindows.end())
@@ -748,7 +753,13 @@ void vtkPVSynchronizedRenderWindows::ClientStartRender(vtkRenderWindow* renWin)
 
   this->UpdateWindowLayout();
 
-  this->Internals->ActiveId = -1;
+  this->Internals->ActiveId = 0;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSynchronizedRenderWindows::BeginRender(unsigned int id)
+{
+  this->Internals->ActiveId = id;
 }
 
 //----------------------------------------------------------------------------

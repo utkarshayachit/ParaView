@@ -139,6 +139,11 @@ public:
   vtkSetMacro(RenderOneViewAtATime, bool);
   vtkGetMacro(RenderOneViewAtATime, bool);
   vtkBooleanMacro(RenderOneViewAtATime, bool);
+
+  // Description:
+  // Called before starting render. This is needed in batch mode since all views
+  // share the same render window.
+  void BeginRender(unsigned int id);
 protected:
   vtkPVSynchronizedRenderWindows();
   ~vtkPVSynchronizedRenderWindows();

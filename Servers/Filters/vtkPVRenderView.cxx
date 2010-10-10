@@ -636,6 +636,12 @@ void vtkPVRenderView::Render(bool interactive, bool skip_rendering)
     return;
     }
 
+  // When in batch mode, we are using the same render window for all views. That
+  // makes it impossible for vtkPVSynchronizedRenderWindows to identify which
+  // view is being rendered. We explicitly mark the view being rendered using
+  // this HACK.
+  this->SynchronizedWindows->BeginRender(this->GetIdentifier());
+
   // Call Render() on local render window only if
   // 1: Local process is the driver OR
   // 2: RenderEventPropagation is Off and we are doing distributed rendering.
@@ -751,6 +757,13 @@ bool vtkPVRenderView::GetUseDistributedRendering()
   if (this->ForceRemoteRendering)
     {
     // force remote rendering when doing a surface selection.
+    return true;
+    }
+
+  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetProcessType()
+    == vtkPVOptions::PVBATCH)
+    {
+    // currently, we only support parallel rendering in batch mode.
     return true;
     }
 
