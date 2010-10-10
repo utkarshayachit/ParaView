@@ -127,22 +127,9 @@
 
   <ProxyGroup name="mappers">
 
-    <SourceProxy name="ProjectedTetrahedraMapper"
+    <Proxy name="ProjectedTetrahedraMapper"
       class="vtkProjectedTetrahedraMapper"
       processes="client|renderserver|dataserver">
-      <InputProperty
-        name="Input"
-        command="SetInputConnection">
-        <!--
-        <ProxyGroupDomain name="groups">
-          <Group name="sources"/>
-          <Group name="filters"/>
-        </ProxyGroupDomain>
-        -->
-        <DataTypeDomain name="input_type">
-          <DataType value="vtkUnstructuredGrid"/>
-        </DataTypeDomain>
-      </InputProperty>
       <IntVectorProperty
         name="ScalarMode"
         command="SetScalarMode"
@@ -168,24 +155,11 @@
           </RequiredProperties>
         </ArrayListDomain>
       </StringVectorProperty>
-    </SourceProxy>
+    </Proxy>
 
-    <SourceProxy name="HAVSVolumeMapper"
+    <Proxy name="HAVSVolumeMapper"
       class="vtkHAVSVolumeMapper"
       processes="client|renderserver|dataserver">
-      <InputProperty
-        name="Input"
-        command="SetInputConnection">
-        <!--
-        <ProxyGroupDomain name="groups">
-          <Group name="sources"/>
-          <Group name="filters"/>
-        </ProxyGroupDomain>
-        -->
-        <DataTypeDomain name="input_type">
-          <DataType value="vtkUnstructuredGrid"/>
-        </DataTypeDomain>
-      </InputProperty>
       <IntVectorProperty
         name="ScalarMode"
         command="SetScalarMode"
@@ -211,7 +185,7 @@
           </RequiredProperties>
         </ArrayListDomain>
       </StringVectorProperty>
-    </SourceProxy>
+    </Proxy>
 
     <Proxy name="DummyVolumeMapper">
       <IntVectorProperty
@@ -246,23 +220,9 @@
       </ProxyProperty>
     </Proxy>
 
-    <SourceProxy name="UnstructuredGridVolumeRayCastMapper"
+    <Proxy name="UnstructuredGridVolumeRayCastMapper"
       class="vtkUnstructuredGridVolumeRayCastMapper"
       processes="client|renderserver|dataserver">
-      <InputProperty
-        name="Input"
-        command="SetInputConnection">
-        <!--
-        <ProxyGroupDomain name="groups">
-          <Group name="sources"/>
-          <Group name="filters"/>
-        </ProxyGroupDomain>
-        -->
-        <DataTypeDomain name="input_type">
-          <DataType value="vtkUnstructuredGrid"/>
-        </DataTypeDomain>
-      </InputProperty>
-
       <IntVectorProperty
         name="ScalarMode"
         command="SetScalarMode"
@@ -295,24 +255,11 @@
           <Group name="ugrid_raycast_functions"/>
         </ProxyGroupDomain>
       </ProxyProperty>
-    </SourceProxy>
+    </Proxy>
 
-    <SourceProxy name="UnstructuredGridVolumeZSweepMapper"
+    <Proxy name="UnstructuredGridVolumeZSweepMapper"
       class="vtkUnstructuredGridVolumeZSweepMapper"
       processes="client|renderserver|dataserver">
-      <InputProperty
-        name="Input"
-        command="SetInputConnection">
-        <!--
-        <ProxyGroupDomain name="groups">
-          <Group name="sources"/>
-          <Group name="filters"/>
-        </ProxyGroupDomain>
-        -->
-        <DataTypeDomain name="input_type">
-          <DataType value="vtkUnstructuredGrid"/>
-        </DataTypeDomain>
-      </InputProperty>
       <IntVectorProperty
         name="ScalarMode"
         command="SetScalarMode"
@@ -338,21 +285,14 @@
           </RequiredProperties>
         </ArrayListDomain>
       </StringVectorProperty>
-    </SourceProxy>
+    </Proxy>
 
-    <SourceProxy name="GPUVolumeRayCastMapper"
+    <Proxy name="GPUVolumeRayCastMapper"
       class="vtkGPUVolumeRayCastMapper"
       processes="client|renderserver|dataserver">
       <Documentation>
         This is the proxy for GPU based volume rendering.
       </Documentation>
-      <InputProperty
-        name="Input"
-        command="SetInputConnection">
-        <DataTypeDomain name="input_type">
-          <DataType value="vtkImageData"/>
-        </DataTypeDomain>
-      </InputProperty>
       <StringVectorProperty
         name="SelectScalarArray"
         command="SelectScalarArray"
@@ -422,18 +362,11 @@
         </Documentation>
       </DoubleVectorProperty>
       <!-- End of GPUVolumeRayCastMapper -->
-    </SourceProxy>
+    </Proxy>
 
-    <SourceProxy name="FixedPointVolumeRayCastMapper"
+    <Proxy name="FixedPointVolumeRayCastMapper"
       class="vtkFixedPointVolumeRayCastMapper"
       processes="client|renderserver|dataserver">
-      <InputProperty
-        name="Input"
-        command="SetInputConnection">
-        <DataTypeDomain name="input_type">
-          <DataType value="vtkImageData"/>
-        </DataTypeDomain>
-      </InputProperty>
       <StringVectorProperty
         name="SelectScalarArray"
         command="SelectScalarArray"
@@ -485,7 +418,7 @@
         <BooleanDomain name="bool" />
       </IntVectorProperty>
       <!-- End of FixedPointVolumeRayCastMapper -->
-    </SourceProxy>
+    </Proxy>
 
   <!-- End of "mappers" -->
   </ProxyGroup>
