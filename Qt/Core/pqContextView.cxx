@@ -133,6 +133,7 @@ QWidget* pqContextView::createWidget()
 {
   pqQVTKWidget* vtkwidget = new pqQVTKWidget();
   vtkwidget->setViewProxy(this->getProxy());
+  vtkwidget->setObjectName("Viewport");
 
   // do image caching for performance
   // For now, we are doing this only on Apple because it can render
