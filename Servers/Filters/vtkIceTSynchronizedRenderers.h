@@ -114,7 +114,7 @@ protected:
   // We use vtkIceTCompositePass internally.
   vtkRenderPass* RenderPass;
   vtkIceTCompositePass* IceTCompositePass;
-  vtkImageProcessingPass * ImageProcessingPass;
+  vtkImageProcessingPass *ImageProcessingPass;
   vtkMyImagePasterPass* ImagePastingPass;
 
 private:

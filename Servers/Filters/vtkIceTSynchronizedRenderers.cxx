@@ -27,7 +27,6 @@
 #include "vtkTilesHelper.h"
 #include "vtkTimerLog.h"
 
-#define SOBEL
 #ifdef SOBEL
 # include "vtkSobelGradientMagnitudePass.h"
 #endif

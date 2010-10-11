@@ -22,10 +22,11 @@
 
 #include "vtkObject.h"
 
-class vtkSynchronizedRenderers;
 class vtkIceTSynchronizedRenderers;
-class vtkRenderer;
+class vtkImageProcessingPass;
 class vtkPKdTree;
+class vtkRenderer;
+class vtkSynchronizedRenderers;
 
 class VTK_EXPORT vtkPVSynchronizedRenderer : public vtkObject
 {
@@ -62,6 +63,11 @@ public:
   void SetDataReplicatedOnAllProcesses(bool);
   vtkBooleanMacro(DataReplicatedOnAllProcesses, bool);
 
+  // Description:
+  // Get/Set an image processing pass to process the rendered images.
+  void SetImageProcessingPass(vtkImageProcessingPass*);
+  vtkGetObjectMacro(ImageProcessingPass, vtkImageProcessingPass);
+
 //BTX
 protected:
   vtkPVSynchronizedRenderer();
@@ -69,6 +75,7 @@ protected:
 
   vtkSynchronizedRenderers* CSSynchronizer;
   vtkSynchronizedRenderers* ParallelSynchronizer;
+  vtkImageProcessingPass *ImageProcessingPass;
 
   enum ModeEnum
     {
