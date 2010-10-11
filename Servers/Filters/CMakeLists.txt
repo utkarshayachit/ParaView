@@ -136,6 +136,7 @@ SET(Filters_SRCS
   vtkPVCompositeRepresentation.cxx
   vtkPVDataRepresentation.cxx
   vtkPVDataRepresentationPipeline.cxx
+  vtkPVDefaultPass.cxx
   vtkPVDesktopDeliveryClient.cxx
   vtkPVDesktopDeliveryServer.cxx
   vtkPVDReader.cxx
@@ -164,6 +165,7 @@ SET(Filters_SRCS
   vtkPVRecoverGeometryWireframe.cxx
   vtkPV2DRenderView.cxx
   vtkPVRenderView.cxx
+  vtkPVRenderViewWithShadowMap.cxx
   vtkPVRenderViewWithSobel.cxx
   vtkPVRenderViewProxy.cxx
   vtkPVRepresentedDataInformation.cxx

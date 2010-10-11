@@ -20,6 +20,7 @@
 #include "vtkImageProcessingPass.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVDefaultPass.h"
 #include "vtkRenderer.h"
 #include "vtkRenderState.h"
 #include "vtkRenderWindow.h"
@@ -27,10 +28,7 @@
 #include "vtkTilesHelper.h"
 #include "vtkTimerLog.h"
 
-#ifdef SOBEL
-# include "vtkSobelGradientMagnitudePass.h"
-#endif
-
+#include <assert.h>
 #include <vtkgl.h>
 #include <GL/ice-t.h>
 
@@ -72,19 +70,23 @@ vtkStandardNewMacro(vtkMyImagePasterPass);
 
 namespace
 {
-  void IceTDrawCallback();
-
   class vtkMyCameraPass : public vtkCameraPass
   {
+  vtkIceTCompositePass* IceTCompositePass;
 public:
   vtkTypeMacro(vtkMyCameraPass, vtkCameraPass);
   static vtkMyCameraPass* New();
+
+  // Description:
+  // Set the icet composite pass.
+  vtkSetObjectMacro(IceTCompositePass, vtkIceTCompositePass);
 
   virtual void GetTiledSizeAndOrigin(
     const vtkRenderState* render_state,
     int* width, int* height, int *originX,
     int* originY)
     {
+    assert (this->IceTCompositePass != NULL);
     int tile_dims[2];
     this->IceTCompositePass->GetTileDimensions(tile_dims);
     if (tile_dims[0] > 1 || tile_dims[1]  > 1)
@@ -117,35 +119,28 @@ public:
       this->Superclass::GetTiledSizeAndOrigin(render_state, width, height, originX, originY);
       }
     }
-
-  vtkIceTCompositePass* IceTCompositePass;
+protected:
+  vtkMyCameraPass() {this->IceTCompositePass = NULL; }
+  ~vtkMyCameraPass() { this->SetIceTCompositePass(0); }
   };
-
   vtkStandardNewMacro(vtkMyCameraPass);
 
-  class vtkInitialPass : public vtkRenderPass
+  // vtkPVIceTCompositePass extends vtkIceTCompositePass to add some ParaView
+  // specific rendering tweaks eg.
+  // * render to full viewport
+  // * don't let IceT paste back rendered images to the active frame buffer.
+  class vtkPVIceTCompositePass : public vtkIceTCompositePass
   {
 public:
-  vtkTypeMacro(vtkInitialPass, vtkRenderPass);
-  static vtkInitialPass* New();
-  virtual void Render(const vtkRenderState *s)
+  vtkTypeMacro(vtkPVIceTCompositePass, vtkIceTCompositePass);
+  static vtkPVIceTCompositePass* New();
+
+  // Description:
+  // Updates some IceT context parameters to suit ParaView's need esp. in
+  // multi-view configuration.
+  virtual void SetupContext(const vtkRenderState* render_state)
     {
-    vtkRenderer* renderer = s->GetRenderer();
-    vtkRenderWindow* window = renderer->GetRenderWindow();
-
-    // CODE COPIED FROM vtkOpenGLRenderer.
-    // Oh! How I hate such kind of copying, sigh :(.
-    vtkTimerLog::MarkStartEvent("vtkInitialPass::Render");
-
-    // Do not remove this MakeCurrent! Due to Start / End methods on
-    // some objects which get executed during a pipeline update,
-    // other windows might get rendered since the last time
-    // a MakeCurrent was called.
-    window->MakeCurrent();
-
-    // Don't do any geometry-related rendering just yet. That needs to be done
-    // in the icet callback.
-    this->IceTCompositePass->SetupContext(s);
+    this->Superclass::SetupContext(render_state);
 
     // Don't make icet render the composited image to the screen. We'll paste it
     // explicitly if needed. This is required since IceT/Viewport interactions
@@ -155,74 +150,26 @@ public:
     icetDisable(ICET_DISPLAY_INFLATE);
     icetDisable(ICET_CORRECT_COLORED_BACKGROUND);
 
+    vtkRenderWindow* window = render_state->GetRenderer()->GetRenderWindow();
     int *size = window->GetActualSize();
     glViewport(0, 0, size[0], size[1]);
     glDisable(GL_SCISSOR_TEST);
     glClearColor(0, 0, 0, 0);
-
-    icetDrawFunc(IceTDrawCallback);
-    vtkInitialPass::ActiveRenderer = renderer;
-    vtkInitialPass::ActivePass = this;
-    icetDrawFrame();
-    vtkInitialPass::ActiveRenderer = NULL;
-    vtkInitialPass::ActivePass = NULL;
-
-    this->IceTCompositePass->CleanupContext(s);
-    vtkTimerLog::MarkEndEvent("vtkInitialPass::Render");
     }
-
-  static void Draw()
-    {
-    if (vtkInitialPass::ActiveRenderer && vtkInitialPass::ActivePass)
-      {
-      vtkInitialPass::ActivePass->DrawInternal(vtkInitialPass::ActiveRenderer);
-      }
-    }
-
-  vtkIceTSynchronizedRenderers* IceTSynchronizedRenderers;
-  vtkSetObjectMacro(IceTCompositePass, vtkIceTCompositePass);
 protected:
-  static vtkInitialPass* ActivePass;
-  static vtkRenderer* ActiveRenderer;
 
-  vtkInitialPass()
+  vtkPVIceTCompositePass()
     {
-    this->IceTCompositePass = 0;
-    this->IceTSynchronizedRenderers = 0;
+    vtkPVDefaultPass* defaultPass = vtkPVDefaultPass::New();
+    this->SetRenderPass(defaultPass);
+    defaultPass->Delete();
     }
 
-  ~vtkInitialPass()
+  ~vtkPVIceTCompositePass()
     {
-    this->SetIceTCompositePass(0);
-    this->IceTSynchronizedRenderers = 0;
     }
-
-  void DrawInternal(vtkRenderer* ren)
-    {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    this->ClearLights(ren);
-    this->UpdateLightGeometry(ren);
-    this->UpdateLights(ren);
-
-    //// set matrix mode for actors
-    glMatrixMode(GL_MODELVIEW);
-
-    this->UpdateGeometry(ren);
-    }
-
-  vtkIceTCompositePass* IceTCompositePass;
   };
-
-  vtkInitialPass* vtkInitialPass::ActivePass = NULL;
-  vtkRenderer* vtkInitialPass::ActiveRenderer = NULL;
-  vtkStandardNewMacro(vtkInitialPass);
-
-
-  void IceTDrawCallback()
-    {
-    vtkInitialPass::Draw();
-    }
+  vtkStandardNewMacro(vtkPVIceTCompositePass);
 
   // We didn't want to have a singleton for vtkIceTSynchronizedRenderers to
   // manage multi-view configurations. But, in tile-display mode, after each
@@ -280,39 +227,49 @@ vtkIceTSynchronizedRenderers::vtkIceTSynchronizedRenderers()
   // First thing we do is create the ice-t render pass. This is essential since
   // most methods calls on this class simply forward it to the ice-t render
   // pass.
-  this->IceTCompositePass = vtkIceTCompositePass::New();
-
-  vtkInitialPass* initPass = vtkInitialPass::New();
-  initPass->IceTSynchronizedRenderers = this;
-  initPass->SetIceTCompositePass(this->IceTCompositePass);
+  this->IceTCompositePass = vtkPVIceTCompositePass::New();
 
   vtkMyCameraPass* cameraPass = vtkMyCameraPass::New();
-  cameraPass->IceTCompositePass = this->IceTCompositePass;
-  cameraPass->SetDelegatePass(initPass);
-  initPass->Delete();
-  this->RenderPass = cameraPass;
+  cameraPass->SetDelegatePass(this->IceTCompositePass);
+  cameraPass->SetIceTCompositePass(this->IceTCompositePass);
+  this->CameraRenderPass = cameraPass;
   this->SetParallelController(vtkMultiProcessController::GetGlobalController());
 
-  this->ImageProcessingPass = NULL;
   this->ImagePastingPass = vtkMyImagePasterPass::New();
 
-#ifdef SOBEL
-  vtkSobelGradientMagnitudePass* sobel =vtkSobelGradientMagnitudePass::New();
-  this->SetImageProcessingPass(sobel);
-  sobel->Delete();
-#endif
+  this->ImageProcessingPass = NULL;
+  this->RenderPass = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkIceTSynchronizedRenderers::~vtkIceTSynchronizedRenderers()
 {
-  this->SetImageProcessingPass(0);
   this->ImagePastingPass->Delete();
-
   this->IceTCompositePass->Delete();
   this->IceTCompositePass = 0;
-  this->RenderPass->Delete();
-  this->RenderPass = 0;
+  this->CameraRenderPass->Delete();
+  this->CameraRenderPass = 0;
+  this->SetImageProcessingPass(0);
+  this->SetRenderPass(0);
+}
+
+//----------------------------------------------------------------------------
+void vtkIceTSynchronizedRenderers::SetRenderPass(vtkRenderPass *pass)
+{
+  vtkSetObjectBodyMacro(RenderPass, vtkRenderPass, pass);
+  if (this->IceTCompositePass)
+    {
+    if (pass)
+      {
+      this->IceTCompositePass->SetRenderPass(pass);
+      }
+    else
+      {
+      vtkPVDefaultPass* defaultPass = vtkPVDefaultPass::New();
+      this->IceTCompositePass->SetRenderPass(defaultPass);
+      defaultPass->Delete();
+      }
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -349,18 +306,19 @@ void vtkIceTSynchronizedRenderers::HandleEndRender()
 //----------------------------------------------------------------------------
 void vtkIceTSynchronizedRenderers::SetRenderer(vtkRenderer* ren)
 {
-  if (this->Renderer && this->Renderer->GetPass() == this->RenderPass)
+  if (this->Renderer && this->Renderer->GetPass() == this->CameraRenderPass)
     {
     this->Renderer->SetPass(NULL);
     }
   this->Superclass::SetRenderer(ren);
   if (ren)
     {
-    ren->SetPass(this->RenderPass);
+    ren->SetPass(this->CameraRenderPass);
     // icet cannot work correctly in tile-display mode is software culling is
-    // applied in vtkRenderer inself. vtkInitialPass will cull out-of-frustum
+    // applied in vtkRenderer inself. vtkPVIceTCompositePass will cull out-of-frustum
     // props using icet-model-view matrix later.
     ren->GetCullers()->RemoveAllItems();
+
     }
 }
 
@@ -389,7 +347,7 @@ vtkIceTSynchronizedRenderers::CaptureRenderedImage()
     this->IceTCompositePass->GetLastRenderedTile(rawImage);
     if (!rawImage.IsValid())
       {
-      cout << "no image captured " << endl;
+      // cout << "no image captured " << endl;
       //vtkErrorMacro("IceT couldn't provide a tile on this process.");
       }
     else if (this->ImageProcessingPass)

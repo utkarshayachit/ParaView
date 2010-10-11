@@ -17,23 +17,16 @@
 #include "vtkBoundingBox.h"
 #include "vtkCameraPass.h"
 #include "vtkClientServerSynchronizedRenderers.h"
-#include "vtkDepthPeelingPass.h"
 #include "vtkImageProcessingPass.h"
-#include "vtkLightsPass.h"
 #include "vtkObjectFactory.h"
-#include "vtkOpaquePass.h"
-#include "vtkOverlayPass.h"
 #include "vtkProcessModule.h"
 #include "vtkPVConfig.h"
+#include "vtkPVDefaultPass.h"
 #include "vtkPVOptions.h"
 #include "vtkPVServerInformation.h"
 #include "vtkRemoteConnection.h"
 #include "vtkRenderer.h"
-#include "vtkRenderPassCollection.h"
-#include "vtkSequencePass.h"
 #include "vtkSocketController.h"
-#include "vtkTranslucentPass.h"
-#include "vtkVolumetricPass.h"
 
 #ifdef PARAVIEW_USE_ICE_T
 # include "vtkIceTSynchronizedRenderers.h"
@@ -45,6 +38,7 @@ vtkCxxRevisionMacro(vtkPVSynchronizedRenderer, "$Revision$");
 vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
 {
   this->ImageProcessingPass = NULL;
+  this->RenderPass = NULL;
   this->Enabled = true;
   this->ImageReductionFactor = 1;
   this->Renderer = 0;
@@ -201,7 +195,6 @@ vtkPVSynchronizedRenderer::vtkPVSynchronizedRenderer()
 //----------------------------------------------------------------------------
 vtkPVSynchronizedRenderer::~vtkPVSynchronizedRenderer()
 {
-  this->SetImageProcessingPass(0);
   this->SetRenderer(0);
   if (this->ParallelSynchronizer)
     {
@@ -213,6 +206,8 @@ vtkPVSynchronizedRenderer::~vtkPVSynchronizedRenderer()
     this->CSSynchronizer->Delete();
     this->CSSynchronizer = 0;
     }
+  this->SetImageProcessingPass(0);
+  this->SetRenderPass(0);
 }
 
 //----------------------------------------------------------------------------
@@ -225,53 +220,62 @@ void vtkPVSynchronizedRenderer::SetImageProcessingPass(
     }
 
   vtkSetObjectBodyMacro(ImageProcessingPass, vtkImageProcessingPass, pass);
+  this->SetupPasses();
+}
 
+//----------------------------------------------------------------------------
+void vtkPVSynchronizedRenderer::SetRenderPass(vtkRenderPass* pass)
+{
+  if (this->RenderPass == pass)
+    {
+    return;
+    }
+
+  vtkSetObjectBodyMacro(RenderPass, vtkRenderPass, pass);
+  this->SetupPasses();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSynchronizedRenderer::SetupPasses()
+{
 #ifdef PARAVIEW_USE_ICE_T
   vtkIceTSynchronizedRenderers* iceTRen =
     vtkIceTSynchronizedRenderers::SafeDownCast(this->ParallelSynchronizer);
   if (iceTRen)
     {
-    iceTRen->SetImageProcessingPass(pass);
+    iceTRen->SetRenderPass(this->RenderPass);
+    iceTRen->SetImageProcessingPass(this->ImageProcessingPass);
+    return;
+    }
+#endif
+
+  if (!this->Renderer)
+    {
+    return;
+    }
+
+  vtkCameraPass* cameraPass = vtkCameraPass::New();
+  if (this->ImageProcessingPass)
+    {
+    this->Renderer->SetPass(this->ImageProcessingPass);
+    this->ImageProcessingPass->SetDelegatePass(cameraPass);
     }
   else
-#endif
-    if (this->Renderer)
     {
-    this->Renderer->SetPass(pass);
-    // ensure that the default rendering pipeline is built.
-    if (pass)
-      {
-      vtkCameraPass *cameraP=vtkCameraPass::New();
-      vtkSequencePass *seq=vtkSequencePass::New();
-      vtkOpaquePass *opaque=vtkOpaquePass::New();
-      vtkDepthPeelingPass *peeling=vtkDepthPeelingPass::New();
-      peeling->SetMaximumNumberOfPeels(200);
-      peeling->SetOcclusionRatio(0.1);
-      vtkTranslucentPass *translucent=vtkTranslucentPass::New();
-      peeling->SetTranslucentPass(translucent);
-      vtkVolumetricPass *volume=vtkVolumetricPass::New();
-      vtkOverlayPass *overlay=vtkOverlayPass::New();
-      vtkLightsPass *lights=vtkLightsPass::New();
-      vtkRenderPassCollection *passes=vtkRenderPassCollection::New();
-      passes->AddItem(lights);
-      passes->AddItem(opaque);
-      passes->AddItem(peeling);
-      passes->AddItem(volume);
-      passes->AddItem(overlay);
-      seq->SetPasses(passes);
-      cameraP->SetDelegatePass(seq);
-      pass->SetDelegatePass(cameraP);
-      passes->Delete();
-      lights->Delete();
-      overlay->Delete();
-      volume->Delete();
-      peeling->Delete();
-      translucent->Delete();
-      opaque->Delete();
-      seq->Delete();
-      cameraP->Delete();
-      }
+    this->Renderer->SetPass(cameraPass);
     }
+
+  if (this->RenderPass)
+    {
+    cameraPass->SetDelegatePass(this->RenderPass);
+    }
+  else
+    {
+    vtkPVDefaultPass* defaultPass = vtkPVDefaultPass::New();
+    cameraPass->SetDelegatePass(defaultPass);
+    defaultPass->Delete();
+    }
+  cameraPass->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -300,6 +304,7 @@ void vtkPVSynchronizedRenderer::SetRenderer(vtkRenderer* ren)
     this->CSSynchronizer->SetRenderer(ren);
     }
   vtkSetObjectBodyMacro(Renderer, vtkRenderer, ren);
+  this->SetupPasses();
 }
 
 //----------------------------------------------------------------------------

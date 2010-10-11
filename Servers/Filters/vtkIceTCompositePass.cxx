@@ -158,14 +158,6 @@ void vtkIceTCompositePass::ReleaseGraphicsResources(vtkWindow* window)
 //----------------------------------------------------------------------------
 void vtkIceTCompositePass::SetupContext(const vtkRenderState* render_state)
 {
-  this->IceTContext->SetController(this->Controller);
-  if (!this->IceTContext->IsValid())
-    {
-    vtkErrorMacro("Could not initialize IceT context.");
-    return;
-    }
-
-  this->IceTContext->MakeCurrent();
   //icetDiagnostics(ICET_DIAG_DEBUG | ICET_DIAG_ALL_NODES);
 
   // Irrespective of whether we are rendering in tile/display mode or not, we
@@ -347,6 +339,7 @@ void vtkIceTCompositePass::Render(const vtkRenderState* render_state)
     return;
     }
 
+  this->IceTContext->MakeCurrent();
   this->SetupContext(render_state);
 
   icetDrawFunc(IceTDrawCallback);
@@ -536,6 +529,12 @@ void vtkIceTCompositePass::GetLastRenderedTile(
   vtkSynchronizedRenderers::vtkRawImage& tile)
 {
   tile.MarkInValid();
+
+  if (!this->IceTContext->IsValid())
+    {
+    return;
+    }
+  this->IceTContext->MakeCurrent();
 
   // get the dimension of the buffer
   GLint id;

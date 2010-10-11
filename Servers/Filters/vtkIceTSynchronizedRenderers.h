@@ -100,6 +100,15 @@ public:
   void SetImageProcessingPass(vtkImageProcessingPass*);
   vtkGetObjectMacro(ImageProcessingPass, vtkImageProcessingPass);
 
+  // Description:
+  // Get/Set geometry rendering pass. This pass is used to render the geometry.
+  // If none specified then default rendering pipeline is used. This is
+  // typically the render-pass pipeline after the CameraPass. The CameraPass is
+  // setup by ParaView specially since ParaView needs some customizations for
+  // multiviews/icet etc.
+  void SetRenderPass(vtkRenderPass*);
+  vtkGetObjectMacro(RenderPass, vtkRenderPass);
+
 //BTX
 protected:
   vtkIceTSynchronizedRenderers();
@@ -112,10 +121,13 @@ protected:
   virtual vtkRawImage& CaptureRenderedImage();
 
   // We use vtkIceTCompositePass internally.
-  vtkRenderPass* RenderPass;
+  vtkRenderPass* CameraRenderPass;
   vtkIceTCompositePass* IceTCompositePass;
-  vtkImageProcessingPass *ImageProcessingPass;
   vtkMyImagePasterPass* ImagePastingPass;
+
+  // User specified custom passes
+  vtkRenderPass* RenderPass;
+  vtkImageProcessingPass *ImageProcessingPass;
 
 private:
   vtkIceTSynchronizedRenderers(const vtkIceTSynchronizedRenderers&); // Not implemented

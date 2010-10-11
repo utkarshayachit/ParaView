@@ -195,6 +195,11 @@ vtkPVRenderView::vtkPVRenderView()
 //----------------------------------------------------------------------------
 vtkPVRenderView::~vtkPVRenderView()
 {
+  // this ensure that the renderer releases graphics resources before the window
+  // is destroyed.
+  this->GetNonCompositedRenderer()->SetRenderWindow(0);
+  this->GetRenderer()->SetRenderWindow(0);
+
   this->SetLastSelection(NULL);
   this->Selector->Delete();
   this->SynchronizedRenderers->Delete();

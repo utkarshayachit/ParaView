@@ -26,6 +26,7 @@ class vtkIceTSynchronizedRenderers;
 class vtkImageProcessingPass;
 class vtkPKdTree;
 class vtkRenderer;
+class vtkRenderPass;
 class vtkSynchronizedRenderers;
 
 class VTK_EXPORT vtkPVSynchronizedRenderer : public vtkObject
@@ -68,14 +69,30 @@ public:
   void SetImageProcessingPass(vtkImageProcessingPass*);
   vtkGetObjectMacro(ImageProcessingPass, vtkImageProcessingPass);
 
+  // Description:
+  // Get/Set geometry rendering pass. This pass is used to render the geometry.
+  // If none specified then default rendering pipeline is used. This is
+  // typically the render-pass pipeline after the CameraPass. The CameraPass is
+  // setup by ParaView specially since ParaView needs some customizations for
+  // multiviews/icet etc.
+  void SetRenderPass(vtkRenderPass*);
+  vtkGetObjectMacro(RenderPass, vtkRenderPass);
+
 //BTX
 protected:
   vtkPVSynchronizedRenderer();
   ~vtkPVSynchronizedRenderer();
 
+  // Description:
+  // Sets up the render passes on the renderer. This won't get called on
+  // processes where vtkIceTSynchronizedRenderers is used. In that case the
+  // passes are forwarded to the vtkIceTSynchronizedRenderers instance.
+  virtual void SetupPasses();
+
   vtkSynchronizedRenderers* CSSynchronizer;
   vtkSynchronizedRenderers* ParallelSynchronizer;
   vtkImageProcessingPass *ImageProcessingPass;
+  vtkRenderPass* RenderPass;
 
   enum ModeEnum
     {
