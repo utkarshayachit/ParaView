@@ -59,7 +59,7 @@ namespace
     vtkShadowMapBakerPass *shadowsBaker=vtkShadowMapBakerPass::New();
     shadowsBaker->SetOpaquePass(opaqueCameraPass);
     opaqueCameraPass->Delete();
-    shadowsBaker->SetResolution(1024);
+    shadowsBaker->SetResolution(256);
     // To cancel self-shadowing.
     shadowsBaker->SetPolygonOffsetFactor(3.1f);
     shadowsBaker->SetPolygonOffsetUnits(10.0f);

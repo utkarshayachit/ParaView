@@ -34,6 +34,7 @@
 #include "vtkSelectionConverter.h"
 #include "vtkSelection.h"
 #include "vtkSelectionNode.h"
+#include "vtkShadowMapBakerPass.h"
 #include "vtkUnstructuredDataDeliveryFilter.h"
 
 //*****************************************************************************
@@ -127,6 +128,12 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->SuppressLOD = false;
   this->DebugString = 0;
   this->SetDebugString(this->GetClassName());
+
+  // Not insanely trilled about this API on vtkProp about properties, but oh
+  // well. We have to live with it.
+  vtkInformation* keys = vtkInformation::New();
+  this->Actor->SetPropertyKeys(keys);
+  keys->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -398,6 +405,20 @@ void vtkGeometryRepresentation::UpdateColoringParameters()
   default:
     this->Property->SetEdgeVisibility(0);
     this->Property->SetRepresentation(this->Representation);
+    }
+
+  // Update shadow map properties, in case we are using shadow maps.
+  if (this->Representation == SURFACE ||
+    this->Representation == SURFACE_WITH_EDGES)
+    {
+    // just add these keys, their values don't matter.
+    this->Actor->GetPropertyKeys()->Set(vtkShadowMapBakerPass::OCCLUDER(), 0);
+    this->Actor->GetPropertyKeys()->Set(vtkShadowMapBakerPass::RECEIVER(), 0);
+    }
+  else
+    {
+    this->Actor->GetPropertyKeys()->Set(vtkShadowMapBakerPass::OCCLUDER(), 0);
+    this->Actor->GetPropertyKeys()->Remove(vtkShadowMapBakerPass::RECEIVER());
     }
 }
 
