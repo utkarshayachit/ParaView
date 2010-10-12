@@ -212,6 +212,9 @@ void pqSpreadSheetViewModel::forceUpdate()
   vtkIdType &rows = this->Internal->LastRowCount;
   vtkIdType &columns = this->Internal->LastColumnCount;
 
+  // We force a reset only when the rows/columns counts have changed, otherwise
+  // we simply say the data changed. This avoid flickers on the screen when user
+  // clicks on the view or apply a filter change etc.
   if (this->rowCount() != rows || this->columnCount() != columns)
     {
     rows = this->rowCount();
@@ -227,46 +230,6 @@ void pqSpreadSheetViewModel::forceUpdate()
       emit this->dataChanged(this->index(0, 0), this->index(rows-1, columns-1));
       }
     }
-
-#ifdef FIXME
-  this->Internal->Dirty = false;
-  // Note that this method is called after the representation has already been
-  // updated.
-  int old_rows = this->Internal->NumberOfRows;
-  int old_columns = this->Internal->NumberOfColumns;
-
-  this->Internal->NumberOfRows = 0;
-  this->Internal->NumberOfColumns = 0;
-  vtkSMSpreadSheetRepresentationProxy* repr = this->Internal->Representation;
-  if (repr)
-    {
-    if (this->Internal->ActiveBlockNumber >= repr->GetNumberOfRequiredBlocks() &&
-      this->Internal->ActiveBlockNumber != 0)
-      {
-      // Ensure that the active block number if within range.
-      this->Internal->ActiveBlockNumber = 0;
-      }
-
-    this->Internal->NumberOfRows = this->Internal->getNumberOfRows();
-    this->Internal->NumberOfColumns = this->Internal->getNumberOfColumns();
-    }
-
-  this->Internal->SelectionModel.clear();
-  emit this->selectionChanged(this->Internal->SelectionModel.selection());
-
-  if (old_rows == this->Internal->NumberOfRows &&
-    old_columns == this->Internal->NumberOfColumns)
-    {
-    this->Internal->Timer.start();
-    }
-  else
-    {
-    this->reset();
-    }
-
-  // We do not fetch any data just yet. All data fetches happen when we want to
-  // show the data on the GUI.
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -456,21 +419,6 @@ QVariant pqSpreadSheetViewModel::headerData (
 {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
-#ifdef FIXME
-    if (!repr->IsAvailable(this->Internal->ActiveBlockNumber))
-      {
-      // Generally, this case doesn't arise since header data is invalidated in
-      // forceUpdate() only after the data for the active block has been
-      // fetched.
-      // However, when progress bar is begin painted, Qt may call this method 
-      // to paint the header on this view. In that case this method would have 
-      // been called before the this->forceUpdate() was called which will 
-      // ensure that the data is available.  
-      // This skips such cases.
-      return QVariant("...");
-      }
-#endif
-
     // No need to get updated data, simply get the current data.
     vtkSpreadSheetView* view = this->Internal->VTKView;
     if (view->GetNumberOfColumns() > section)
