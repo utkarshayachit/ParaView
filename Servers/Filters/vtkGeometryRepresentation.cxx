@@ -129,7 +129,7 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   this->DebugString = 0;
   this->SetDebugString(this->GetClassName());
 
-  // Not insanely trilled about this API on vtkProp about properties, but oh
+  // Not insanely thrilled about this API on vtkProp about properties, but oh
   // well. We have to live with it.
   vtkInformation* keys = vtkInformation::New();
   this->Actor->SetPropertyKeys(keys);

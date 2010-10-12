@@ -92,27 +92,12 @@ void vtkSMRepresentationProxy::UpdatePipelineInternal(
 {
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkClientServerStream stream;
-#ifdef FIXME
-  stream << vtkClientServerStream::Invoke
-         << this->GetProducerID() << "UpdateInformation"
-         << vtkClientServerStream::End;
-
-  stream << vtkClientServerStream::Invoke
-         << pm->GetProcessModuleID() << "GetPartitionId"
-         << vtkClientServerStream::End
-         << vtkClientServerStream::Invoke
-         << this->GetExecutiveID() << "SetUpdateExtent" << this->PortIndex
-         << vtkClientServerStream::LastResult
-         << pm->GetNumberOfPartitions(this->ConnectionID) << 0
-         << vtkClientServerStream::End;
   if (doTime)
     {
     stream << vtkClientServerStream::Invoke
-           << this->GetExecutiveID() << "SetUpdateTimeStep"
-           << this->PortIndex << time
-           << vtkClientServerStream::End;
+      << this->GetID() << "SetUpdateTime" << time
+      << vtkClientServerStream::End;
     }
-#endif
   stream << vtkClientServerStream::Invoke
          << this->GetID() << "Update"
          << vtkClientServerStream::End;
@@ -128,7 +113,7 @@ void vtkSMRepresentationProxy::MarkDirty(vtkSMProxy* modifiedProxy)
     {
     if (!this->MarkedModified)
       {
-      cout << "MarkModified" << endl;
+      //cout << "MarkModified" << endl;
       this->MarkedModified = true;
       vtkClientServerStream stream;
       stream << vtkClientServerStream::Invoke
@@ -136,8 +121,7 @@ void vtkSMRepresentationProxy::MarkDirty(vtkSMProxy* modifiedProxy)
         << "MarkModified"
         << vtkClientServerStream::End;
       vtkProcessModule::GetProcessModule()->SendStream(
-        this->ConnectionID,
-        this->Servers, stream);
+        this->ConnectionID, this->Servers, stream);
       }
     }
   this->Superclass::MarkDirty(modifiedProxy);
@@ -146,7 +130,7 @@ void vtkSMRepresentationProxy::MarkDirty(vtkSMProxy* modifiedProxy)
 //----------------------------------------------------------------------------
 void vtkSMRepresentationProxy::RepresentationUpdated()
 {
-  cout << "RepresentationUpdated" << endl;
+  ///cout << "RepresentationUpdated" << endl;
   this->MarkedModified = false;
   this->PostUpdateData();
   // PostUpdateData will call InvalidateDataInformation() which will mark
