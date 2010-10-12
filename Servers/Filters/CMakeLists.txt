@@ -53,8 +53,6 @@ SET(Filters_SRCS
   vtkCubeAxesRepresentation.cxx
   vtkDataLabelRepresentation.cxx
   vtkDataSetToRectilinearGrid.cxx
-  vtkDesktopDeliveryClient.cxx
-  vtkDesktopDeliveryServer.cxx
   vtkEnzoReader.cxx
   vtkEquivalenceSet.cxx
   vtkExodusFileSeriesReader.cxx
@@ -127,7 +125,6 @@ SET(Filters_SRCS
   vtkPVCacheKeeper.cxx
   vtkPVCacheKeeperPipeline.cxx
   vtkPVCenterAxesActor.cxx
-  vtkPVClientServerRenderManager.cxx
   vtkPVClipClosedSurface.cxx
   vtkPVClipDataSet.cxx
   vtkPVConnectivityFilter.cxx
@@ -137,8 +134,6 @@ SET(Filters_SRCS
   vtkPVDataRepresentation.cxx
   vtkPVDataRepresentationPipeline.cxx
   vtkPVDefaultPass.cxx
-  vtkPVDesktopDeliveryClient.cxx
-  vtkPVDesktopDeliveryServer.cxx
   vtkPVDReader.cxx
   vtkPVEnSightMasterServerReader.cxx
   vtkPVEnSightMasterServerReader2.cxx
@@ -269,7 +264,6 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkCameraManipulatorGUIHelper.cxx
   vtkImageCompressor.cxx
   vtkPEnSightReader.cxx
-  vtkPVClientServerRenderManager.cxx
   vtkPVContextView.cxx
   vtkPVDataRepresentation.cxx
   vtkPVJoystickFly.cxx
@@ -315,11 +309,9 @@ IF (PARAVIEW_USE_ICE_T)
   IF(VTK_USE_MPI)
     SET(Filters_SRCS
       ${Filters_SRCS}
-      vtkCaveRenderManager.cxx
+      #vtkCaveRenderManager.cxx
       vtkIceTCompositePass.cxx
       vtkIceTContext.cxx
-      vtkIceTRenderer.cxx
-      vtkIceTRenderManager.cxx
       vtkIceTSynchronizedRenderers.cxx
       )
   ENDIF(VTK_USE_MPI)
