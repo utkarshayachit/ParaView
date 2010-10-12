@@ -52,6 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMSourceProxy.h"
+#include "vtkSMViewProxy.h"
 
 #include <QList>
 
@@ -61,7 +62,7 @@ public:
   QList<pqQueryClauseWidget*> Clauses;
   pqSpreadSheetViewModel* DataModel;
   pqPropertyLinks Links;
-  vtkSmartPointer<vtkSMProxy> ViewProxy;
+  vtkSmartPointer<vtkSMViewProxy> ViewProxy;
   vtkSmartPointer<vtkSMProxy> RepresentationProxy;
 
   pqPropertyLinks LabelColorLinks;
@@ -123,26 +124,6 @@ pqQueryDialog::pqQueryDialog(
 
   // Setup the spreadsheet view.
   this->setupSpreadSheet();
-#ifdef FIXME
-  this->Internals->spreadsheet->setModel(&this->Internals->DataModel);
-
-  // Create representation to show the producer.
-  vtkSMSpreadSheetRepresentationProxy* repr = 
-    vtkSMSpreadSheetRepresentationProxy::SafeDownCast(
-    vtkSMProxyManager::GetProxyManager()->NewProxy("representations",
-      "SpreadSheetRepresentation"));
-  repr->SetConnectionID(_producer->getServer()->GetConnectionID());
-  vtkSMPropertyHelper(repr, "Input").Set(
-    _producer->getSource()->getProxy(), _producer->getPortNumber());
-
-  // we always want to show all the blocks in the dataset, since we don't have a
-  // block chooser widget in this dialog.
-  vtkSMPropertyHelper(repr, "CompositeDataSetIndex").Set(0);
-  vtkSMPropertyHelper(repr, "SelectionOnly").Set(1);
-  repr->UpdateVTKObjects();
-  this->Internals->DataModel.setRepresentationProxy(repr);
-  repr->Delete();
-#endif
 
   // Link the selection color to the global selection color so that it will
   // affect all views, otherwise user may be get confused ;).
@@ -213,14 +194,15 @@ void pqQueryDialog::setupSpreadSheet()
     this->Producer->getSource()->getProxy(), this->Producer->getPortNumber());
   repr->UpdateVTKObjects();
 
-  vtkSMProxy* view = pxm->NewProxy("views", "SpreadSheetView");
+  vtkSMViewProxy* view = vtkSMViewProxy::SafeDownCast(
+    pxm->NewProxy("views", "SpreadSheetView"));
   view->SetConnectionID(cid);
   vtkSMPropertyHelper(view, "SelectionOnly").Set(1);
   vtkSMPropertyHelper(view, "Representations").Set(repr);
   vtkSMPropertyHelper(view, "ViewSize").Set(0, 1);
   vtkSMPropertyHelper(view, "ViewSize").Set(1, 1);
   view->UpdateVTKObjects();
-  view->InvokeCommand("StillRender");
+  view->StillRender();;
 
   this->Internals->ViewProxy.TakeReference(view);
   this->Internals->RepresentationProxy.TakeReference(repr);
@@ -360,7 +342,7 @@ void pqQueryDialog::runQuery()
   // points etc. based on what was selected.
   vtkSMPropertyHelper(repr, "FieldAssociation").Set(attr_type);
   repr->UpdateVTKObjects();
-  this->Internals->ViewProxy->InvokeCommand("StillRender");
+  this->Internals->ViewProxy->StillRender();
 
   // Once a query has been made, we enable components of the GUI that use the
   // selection
