@@ -85,7 +85,6 @@ public:
 };
 
 vtkStandardNewMacro(vtkSMRenderViewProxy);
-vtkCxxRevisionMacro(vtkSMRenderViewProxy, "$Revision$");
 //----------------------------------------------------------------------------
 vtkSMRenderViewProxy::vtkSMRenderViewProxy()
 {

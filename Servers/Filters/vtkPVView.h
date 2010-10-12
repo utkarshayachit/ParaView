@@ -24,7 +24,7 @@
 #define __vtkPVView_h
 
 #include "vtkView.h"
-#include "vtkWeakPointer.h"
+#include "vtkWeakPointer.h" // needed for vtkWeakPointer.
 
 class vtkInformation;
 class vtkInformationRequestKey;

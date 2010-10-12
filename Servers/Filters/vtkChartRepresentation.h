@@ -27,7 +27,7 @@
 #define __vtkChartRepresentation_h
 
 #include "vtkPVDataRepresentation.h"
-#include "vtkWeakPointer.h"
+#include "vtkWeakPointer.h" // needed for vtkWeakPointer
 
 class vtkAnnotationLink;
 class vtkBlockDeliveryPreprocessor;
