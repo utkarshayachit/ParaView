@@ -203,7 +203,6 @@ int pqSpreadSheetViewModel::getFieldType() const
 //-----------------------------------------------------------------------------
 void pqSpreadSheetViewModel::forceUpdate()
 {
-  cout << "forceUpdate" << endl;
   this->Internal->ActiveRegion[0] = -1;
   this->Internal->ActiveRegion[1] = -1;
   this->Internal->SelectionModel.clear();
@@ -218,13 +217,11 @@ void pqSpreadSheetViewModel::forceUpdate()
     rows = this->rowCount();
     columns = this->columnCount();
     this->reset();
-    cout << "reset" << endl;
     }
   else
     {
     if (rows && columns)
       {
-      cout << "datachanged" << endl;
       // we always invalidate header data, just to be on a safe side.
       emit this->headerDataChanged(Qt::Horizontal, 0, columns-1);
       emit this->dataChanged(this->index(0, 0), this->index(rows-1, columns-1));

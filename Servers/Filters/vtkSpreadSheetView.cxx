@@ -375,7 +375,7 @@ vtkTable* vtkSpreadSheetView::FetchBlock(vtkIdType blockindex)
 //----------------------------------------------------------------------------
 void vtkSpreadSheetView::FetchBlockCallback(vtkIdType blockindex)
 {
-  cout << "FetchBlockCallback" << endl;
+  //cout << "FetchBlockCallback" << endl;
   vtkMultiProcessStream stream;
   stream << this->Identifier << static_cast<int>(blockindex);
   this->SynchronizedWindows->TriggerRMI(stream, FETCH_BLOCK_TAG);
