@@ -286,8 +286,7 @@
       <!-- End of CubeAxesRepresentation -->
     </PrismCubeAxesRepresentationProxy>
  </ProxyGroup>
-
- <ProxyGroup name="PrismFilters">
+ <ProxyGroup name="filters">
    <SourceProxy name="PrismFilter"
                 class="vtkPrismFilter">
      <OutputPort name="SESAME Surface" index="0" />
