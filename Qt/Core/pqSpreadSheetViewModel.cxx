@@ -210,19 +210,21 @@ void pqSpreadSheetViewModel::forceUpdate()
   this->Internal->Timer.stop();
   this->Internal->SelectionTimer.stop();
 
-  vtkIdType rows = this->Internal->LastRowCount;
-  vtkIdType columns = this->Internal->LastColumnCount;
+  vtkIdType &rows = this->Internal->LastRowCount;
+  vtkIdType &columns = this->Internal->LastColumnCount;
 
   if (this->rowCount() != rows || this->columnCount() != columns)
     {
     rows = this->rowCount();
     columns = this->columnCount();
     this->reset();
+    cout << "reset" << endl;
     }
   else
     {
     if (rows && columns)
       {
+      cout << "datachanged" << endl;
       // we always invalidate header data, just to be on a safe side.
       emit this->headerDataChanged(Qt::Horizontal, 0, columns-1);
       emit this->dataChanged(this->index(0, 0), this->index(rows-1, columns-1));
