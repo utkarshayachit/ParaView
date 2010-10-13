@@ -224,6 +224,7 @@ void vtkChartRepresentation::MarkModified()
 {
   this->ReductionFilter->Modified();
   this->DeliveryFilter->Modified();
+  this->SelectionDeliveryFilter->Modified();
   if (!this->GetUseCache())
     {
     // Cleanup caches when not using cache.

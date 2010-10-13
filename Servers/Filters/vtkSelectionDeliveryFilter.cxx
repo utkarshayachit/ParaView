@@ -76,8 +76,10 @@ int vtkSelectionDeliveryFilter::RequestData(vtkInformation*,
     {
     this->DeliveryFilter->RemoveAllInputs();
     }
+  this->DeliveryFilter->Modified();
   this->DeliveryFilter->Update();
   output->ShallowCopy(this->DeliveryFilter->GetOutputDataObject(0));
+  this->DeliveryFilter->RemoveAllInputs();
   return 1;
 }
 
