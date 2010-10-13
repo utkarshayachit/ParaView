@@ -254,18 +254,24 @@ bool pqRubberBandHelper::eventFilter(QObject *watched, QEvent *_event)
     if (_event->type() == QEvent::MouseButtonPress)
       {
       QMouseEvent& mouseEvent = (*static_cast<QMouseEvent*>(_event));
-      this->Internal->StartPosition[0] = mouseEvent.x();
-      this->Internal->StartPosition[1] = mouseEvent.y();
+      if (mouseEvent.button() == Qt::LeftButton)
+        {
+        this->Internal->StartPosition[0] = mouseEvent.x();
+        this->Internal->StartPosition[1] = mouseEvent.y();
+        }
       }
     else if (_event->type() == QEvent::MouseButtonRelease)
       {
       QMouseEvent& mouseEvent = (*static_cast<QMouseEvent*>(_event));
-      if (this->Internal->StartPosition[0] == mouseEvent.x() &&
-        this->Internal->StartPosition[1] == mouseEvent.y())
+      if (mouseEvent.button() == Qt::LeftButton)
         {
-        int region[4] = {mouseEvent.x(), mouseEvent.y(), mouseEvent.x(),
-          mouseEvent.y()};
-        this->onSelectionChanged(NULL, 0, region);
+        if (this->Internal->StartPosition[0] == mouseEvent.x() &&
+          this->Internal->StartPosition[1] == mouseEvent.y())
+          {
+          int region[4] = {mouseEvent.x(), mouseEvent.y(), mouseEvent.x(),
+            mouseEvent.y()};
+          this->onSelectionChanged(NULL, 0, region);
+          }
         }
       this->Internal->StartPosition[0] = -1000;
       this->Internal->StartPosition[1] = -1000;
