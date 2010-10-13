@@ -101,7 +101,7 @@ bool vtkSMRenderViewProxy::IsSelectionAvailable()
   const char* msg = this->IsSelectVisibleCellsAvailable();
   if (msg)
     {
-    vtkErrorMacro(<< msg);
+    //vtkErrorMacro(<< msg);
     return false;
     }
 
@@ -111,6 +111,11 @@ bool vtkSMRenderViewProxy::IsSelectionAvailable()
 //-----------------------------------------------------------------------------
 const char* vtkSMRenderViewProxy::IsSelectVisibleCellsAvailable()
 {
+  if (vtkProcessModule::GetProcessModule()->GetRenderClientMode(this->ConnectionID))
+    {
+    return "Cannot support selection in render-server mode";
+    }
+
   //check if we don't have enough color depth to do color buffer selection
   //if we don't then disallow selection
   int rgba[4];
