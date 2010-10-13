@@ -1459,8 +1459,11 @@ unsigned long vtkPVSynchronizedRenderWindows::AddRMICallback(
 //----------------------------------------------------------------------------
 bool vtkPVSynchronizedRenderWindows::RemoveRMICallback(unsigned long id)
 {
+  // don't use this->GetParallelController() since that only works on rendering
+  // nodes.
   vtkMultiProcessController* parallelController =
-    this->GetParallelController();
+    vtkMultiProcessController::GetGlobalController();
+
   vtkMultiProcessController* c_rs_controller =
     this->GetClientServerController();
   // c_ds_controller is non-null only in client-dataserver-renderserver
