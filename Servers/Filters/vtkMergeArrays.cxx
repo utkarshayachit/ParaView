@@ -23,11 +23,27 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 
+#include <vtkstd/set>
+#include <vtkstd/string>
+#include <vtksys/ios/sstream>
+
 vtkStandardNewMacro(vtkMergeArrays);
+
+namespace
+{
+  struct vtkMyValue;
+    {
+    vtkAbstractArray* Array;
+    vtkstd::string ArrayName;
+    int InputNumber;
+    };
+  typedef vtkstd::map<vtkstd::string, vtkMyValue> MyValuesMap;
+};
 
 //----------------------------------------------------------------------------
 vtkMergeArrays::vtkMergeArrays()
 {
+  this->MangleArraysWithDuplicateNames = true;
 }
 
 //----------------------------------------------------------------------------
@@ -51,7 +67,6 @@ int vtkMergeArrays::RequestData(vtkInformation *vtkNotUsed(request),
                                 vtkInformationVector **inputVector,
                                 vtkInformationVector *outputVector)
 {
-  int idx;
   int numCells, numPoints;
   int numArrays, arrayIdx;
   vtkDataSet *input;
@@ -74,42 +89,62 @@ int vtkMergeArrays::RequestData(vtkInformation *vtkNotUsed(request),
   numCells = input->GetNumberOfCells();
   numPoints = input->GetNumberOfPoints();
   output->CopyStructure(input);
-  output->GetPointData()->PassData(input->GetPointData());
-  output->GetCellData()->PassData(input->GetCellData());
-  output->GetFieldData()->PassData(input->GetFieldData());
-
-  for (idx = 1; idx < num; ++idx)
+  for (int attributeType = 0;
+    attributeType < vtkDataObject::NUMBER_OF_ATTRIBUTE_TYPES;
+    attributeType++)
     {
-    inInfo = inputVector[0]->GetInformationObject(idx);
-    input = vtkDataSet::SafeDownCast(
-      inInfo->Get(vtkDataObject::DATA_OBJECT()));
-
-    if (output->GetNumberOfPoints() == numPoints &&
-        output->GetNumberOfCells() == numCells)
+    MyValuesMap array_map;
+    for (int idx = 0; idx < num; ++idx)
       {
-      numArrays = input->GetPointData()->GetNumberOfArrays();
-      for (arrayIdx = 0; arrayIdx < numArrays; ++arrayIdx)
+      input = vtkDataSet::GetData(inputVector[0], idx);
+      if (input->GetNumberOfPoints() == numPoints &&
+        input->GetNumberOfCells() == numCells)
         {
-        array = input->GetPointData()->GetArray(arrayIdx);
-        // What should we do about arrays with the same name?
-        output->GetPointData()->AddArray(array);
-        }
-      numArrays = input->GetCellData()->GetNumberOfArrays();
-      for (arrayIdx = 0; arrayIdx < numArrays; ++arrayIdx)
-        {
-        array = input->GetCellData()->GetArray(arrayIdx);
-        // What should we do about arrays with the same name?
-        output->GetCellData()->AddArray(array);
-        }
-      numArrays = input->GetFieldData()->GetNumberOfArrays();
-      for (arrayIdx = 0; arrayIdx < numArrays; ++arrayIdx)
-        {
-        array = input->GetFieldData()->GetArray(arrayIdx);
-        // What should we do about arrays with the same name?
-        output->GetFieldData()->AddArray(array);
+        vtkFieldData* inDsa = input->GetAttributesAsFieldData(attributeType);
+        if (!inDsa)
+          {
+          continue;
+          }
+        for (int cc=0; cc < inDsa->GetNumberOfArrays(); cc++)
+          {
+          vtkAbstractArray* array = inDsa->GetAbstractArray(cc);
+          if (array == NULL || !array->GetName())
+            {
+            vtkDebugMacro("Skipping arrays with no name");
+            continue;
+            }
+          vtkMyValue value;
+          value.Array= array;
+          value.ArrayName = array->GetName();
+          value.InputNumber = cc;
+
+          MyValuesMap::iterator iter = array_map.find(array->GetName());
+          if (iter == array_map.end())
+            {
+            }
+          else if (this->MangleArraysWithDuplicateNames)
+            {
+            vtksys_ios::ostringstream stream;
+            stream << array->GetName() << "_" << cc;
+            value.ArrayName = stream.str();
+            array_map[value.ArrayName] = value;
+
+            // FIXME: change the name of the original hit as well.
+            }
+          array_map[value.ArrayName] = value;
+          }
         }
       }
-    } 
+
+    input = vtkDataSet::GetData(inputVector[0], 0);
+    vtkFieldData* inDsa = input->GetAttributesAsFieldData(attributeType);
+    vtkFieldData* outDsa = output->GetAttributesAsFieldData(attributeType);
+    if (!inDsa || !outDsa)
+      {
+      continue;
+      }
+    outDsa->PassData(inDsa);
+    }
 
   return 1;
 }
@@ -118,4 +153,6 @@ int vtkMergeArrays::RequestData(vtkInformation *vtkNotUsed(request),
 void vtkMergeArrays::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+  os << indent << "MangleArraysWithDuplicateNames: " <<
+    this->MangleArraysWithDuplicateNames << endl;
 }

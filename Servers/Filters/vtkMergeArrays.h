@@ -35,6 +35,14 @@ public:
   vtkTypeMacro(vtkMergeArrays,vtkDataSetAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  // Description:
+  // Get/Set if array with same name should be mangled i.e. if two inputs have
+  // an array with the same name, the filter will only pass the first
+  // array, unless this flag is set, in which case, the array will be named as
+  // <arrayname>_<input_num>.
+  vtkSetMacro(MangleArraysWithDuplicateNames, bool);
+  vtkGetMacro(MangleArraysWithDuplicateNames, bool);
+  vtkSetBooleanMacro(MangleArraysWithDuplicateNames, bool);
 protected:
   vtkMergeArrays();
   ~vtkMergeArrays();
@@ -46,6 +54,7 @@ protected:
   // see algorithm for more info
   virtual int FillInputPortInformation(int port, vtkInformation* info);
 
+  bool MangleArraysWithDuplicateNames;
 private:
   vtkMergeArrays(const vtkMergeArrays&);  // Not implemented.
   void operator=(const vtkMergeArrays&);  // Not implemented.
