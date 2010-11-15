@@ -212,6 +212,7 @@ SET(Filters_SRCS
   vtkZlibImageCompressor.cxx
   vtkSurfaceVectors.cxx
   vtkTextSourceRepresentation.cxx
+  vtkTileDisplayHelper.cxx
   vtkTilesHelper.cxx
   vtkTableFFT.cxx
 #  vtkTemporalCacheFilter.cxx
@@ -272,6 +273,7 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkPVRenderViewProxy.cxx
   vtkPVView.cxx
   vtkSciVizStatistics.cxx
+  vtkTileDisplayHelper.cxx
   vtkTransferFunctionEditorRepresentation1D.cxx
   vtkTransferFunctionEditorRepresentation.cxx
   vtkTransferFunctionEditorWidget1D.cxx
