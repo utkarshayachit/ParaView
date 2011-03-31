@@ -14,16 +14,17 @@
 =========================================================================*/
 #include "vtkPVXYChartView.h"
 
-#include "vtkObjectFactory.h"
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
-#include "vtkChartXY.h"
-#include "vtkChartParallelCoordinates.h"
 #include "vtkAxis.h"
-#include "vtkPen.h"
-#include "vtkTextProperty.h"
+#include "vtkChartParallelCoordinates.h"
+#include "vtkChartXY.h"
+#include "vtkContextScene.h"
+#include "vtkContextView.h"
 #include "vtkDoubleArray.h"
+#include "vtkObjectFactory.h"
+#include "vtkPen.h"
+#include "vtkPVPlotTime.h"
 #include "vtkStringArray.h"
+#include "vtkTextProperty.h"
 
 #include "vtkstd/string"
 #include "vtksys/ios/sstream"
@@ -101,6 +102,10 @@ void vtkPVXYChartView::SetChartType(const char *type)
     // Default to empty axis titles
     this->SetAxisTitle(0, "");
     this->SetAxisTitle(1, "");
+
+    vtkPVPlotTime* timePlot = vtkPVPlotTime::New();
+    this->Chart->AddPlot(timePlot);
+    timePlot->FastDelete();
 
     this->Chart->AddObserver(vtkCommand::SelectionChangedEvent, this->Command);
     this->ContextView->GetScene()->AddItem(this->Chart);
