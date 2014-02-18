@@ -57,6 +57,14 @@ public:
   vtkSMProxy* GetOpacityTransferFunction(const char* arrayName, int numComponents,
     vtkSMSessionProxyManager* pxm);
 
+  // Description:
+  // Returns the scalar-bar (color-legend) representation corresponding to the
+  // transfer function for the view (currently only render-views are supported).
+  // Thus returns an existing proxy, if present, otherwise a new one is created,
+  // if possible.
+  vtkSMProxy* GetScalarBarRepresentation(
+    vtkSMProxy* colorTransferFunctionProxy, vtkSMProxy* view);
+
 //BTX
 protected:
   vtkSMTransferFunctionManager();

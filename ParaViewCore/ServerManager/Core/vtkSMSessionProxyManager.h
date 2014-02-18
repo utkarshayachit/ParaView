@@ -221,6 +221,11 @@ public:
     vtkStringList* names);
 
   // Description:
+  // Given a group, returns a name not already used for proxies registered in
+  // the given group. The prefix is used to come up with a new name.
+  vtkStdString GetUniqueProxyName(const char* groupname, const char* prefix);
+
+  // Description:
   // Is the proxy is in the given group, return it's name, otherwise
   // return null. NOTE: Any following call to proxy manager might make
   // the returned pointer invalid.

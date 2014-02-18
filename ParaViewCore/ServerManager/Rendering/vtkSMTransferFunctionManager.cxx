@@ -20,6 +20,7 @@
 #include "vtkSMProxy.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMSessionProxyManager.h"
+#include "vtkSMTransferFunctionProxy.h"
 
 #include <assert.h>
 #include <vtksys/ios/sstream>
@@ -125,6 +126,48 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetOpacityTransferFunction(
   proxy->FastDelete();
   proxy->UpdateVTKObjects();
   return proxy;
+}
+
+//----------------------------------------------------------------------------
+vtkSMProxy* vtkSMTransferFunctionManager::GetScalarBarRepresentation(
+  vtkSMProxy* colorTransferFunction, vtkSMProxy* view)
+{
+  if (colorTransferFunction == NULL || view == NULL ||
+      !colorTransferFunction->IsA("vtkSMTransferFunctionProxy"))
+    {
+    return NULL;
+    }
+
+  vtkSMProxy* scalarBarProxy =
+    vtkSMTransferFunctionProxy::FindScalarBarRepresentation(
+      colorTransferFunction, view);
+  if (scalarBarProxy)
+    {
+    return scalarBarProxy;
+    }
+
+  // Create a new scalar bar representation.
+  vtkSMSessionProxyManager* pxm =
+    colorTransferFunction->GetSessionProxyManager();
+  scalarBarProxy = pxm->NewProxy("representations", "ScalarBarWidgetRepresentation");
+  if (!scalarBarProxy)
+    {
+    vtkErrorMacro("Failed to create ScalarBarWidgetRepresentation proxy.");
+    return NULL;
+    }
+
+  vtkSMPropertyHelper(scalarBarProxy, "LookupTable").Set(colorTransferFunction);
+  scalarBarProxy->ResetPropertiesToDefault();
+  scalarBarProxy->UpdateVTKObjects();
+ 
+  pxm->RegisterProxy("scalar_bars",
+    pxm->GetUniqueProxyName("scalar_bars", "ScalarBarWidgetRepresentation").c_str(),
+    scalarBarProxy);
+  scalarBarProxy->FastDelete();
+
+  vtkSMPropertyHelper(view, "Representations").Add(scalarBarProxy);
+  view->UpdateVTKObjects();
+  return scalarBarProxy;
 }
 
 //----------------------------------------------------------------------------

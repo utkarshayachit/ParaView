@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqObjectBuilder.h"
 
+#include "vtkNew.h"
 #include "vtkProcessModule.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSmartPointer.h"
@@ -45,6 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
+#include "vtkSMTransferFunctionManager.h"
 
 #include <QApplication>
 #include <QFileInfo>
@@ -618,25 +620,17 @@ pqScalarBarRepresentation* pqObjectBuilder::createScalarBarDisplay(
     return 0;
     }
 
-  pqServer* server = view->getServer();
-  vtkSMProxy* scalarBarProxy = this->createProxyInternal(
-    "representations", "ScalarBarWidgetRepresentation", server, "scalar_bars",
-    QString(), QMap<QString,QVariant>());
-
+  vtkNew<vtkSMTransferFunctionManager> mgr;
+  vtkSMProxy* scalarBarProxy = mgr->GetScalarBarRepresentation(
+    lookupTable->getProxy(), view->getProxy());
   if (!scalarBarProxy)
     {
     return 0;
     }
+
   pqScalarBarRepresentation* scalarBar = 
     pqApplicationCore::instance()->getServerManagerModel()->
     findItem<pqScalarBarRepresentation*>(scalarBarProxy);
-  pqSMAdaptor::setProxyProperty(scalarBarProxy->GetProperty("LookupTable"),
-    lookupTable->getProxy());
-  scalarBarProxy->UpdateVTKObjects();
-
-  pqSMAdaptor::addProxyProperty(view->getProxy()->GetProperty("Representations"),
-    scalarBarProxy);
-  view->getProxy()->UpdateVTKObjects();
   scalarBar->setDefaultPropertyValues();
 
   emit this->scalarBarDisplayCreated(scalarBar);

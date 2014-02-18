@@ -16,11 +16,14 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkInitializationHelper.h"
 #include "vtkNew.h"
 #include "vtkProcessModule.h"
-#include "vtkSMSession.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
+#include "vtkSMSession.h"
+#include "vtkSMSessionProxyManager.h"
 #include "vtkSMTransferFunctionManager.h"
 
 #include <vtksys/ios/sstream>
+#include <assert.h>
 
 int main(int argc, char* argv[])
 {
@@ -77,6 +80,31 @@ int main(int argc, char* argv[])
     cerr << "ERROR: Failed at line " << __LINE__ << endl;
     return EXIT_FAILURE;
     }
+
+
+  // **** Test scalar bar API ****
+
+  // Create a view.
+  vtkSMProxy* view = pxm->NewProxy("views", "RenderView");
+  view->UpdateVTKObjects();
+
+  vtkSMProxy* sbProxy = mgr->GetScalarBarRepresentation(NULL, NULL);
+  assert(sbProxy == NULL);
+
+  sbProxy = mgr->GetScalarBarRepresentation(colorTF, view);
+  if (sbProxy == NULL)
+    {
+    cerr << "ERROR: Failed at line " << __LINE__ << endl;
+    return EXIT_FAILURE;
+    }
+
+  if (sbProxy != mgr->GetScalarBarRepresentation(colorTF, view))
+    {
+    cerr << "ERROR: Failed at line " << __LINE__ << endl;
+    return EXIT_FAILURE;
+    }
+  view->Delete();
+
   session->Delete();
   vtkInitializationHelper::Finalize();
   return EXIT_SUCCESS;
