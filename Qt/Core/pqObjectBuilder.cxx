@@ -606,39 +606,6 @@ void pqObjectBuilder::destroy(pqRepresentation* repr)
 }
 
 //-----------------------------------------------------------------------------
-pqScalarBarRepresentation* pqObjectBuilder::createScalarBarDisplay(
-    pqScalarsToColors* lookupTable, pqView* view)
-{
-  if (!lookupTable || !view)
-    {
-    return 0;
-    }
-
-  if (lookupTable->getServer() != view->getServer())
-    {
-    qCritical() << "LUT and View are on different servers!";
-    return 0;
-    }
-
-  vtkNew<vtkSMTransferFunctionManager> mgr;
-  vtkSMProxy* scalarBarProxy = mgr->GetScalarBarRepresentation(
-    lookupTable->getProxy(), view->getProxy());
-  if (!scalarBarProxy)
-    {
-    return 0;
-    }
-
-  pqScalarBarRepresentation* scalarBar = 
-    pqApplicationCore::instance()->getServerManagerModel()->
-    findItem<pqScalarBarRepresentation*>(scalarBarProxy);
-  scalarBar->setDefaultPropertyValues();
-
-  emit this->scalarBarDisplayCreated(scalarBar);
-  emit this->proxyCreated(scalarBar);
-  return scalarBar;
-}
-
-//-----------------------------------------------------------------------------
 pqAnimationScene* pqObjectBuilder::createAnimationScene(pqServer* server)
 {
   vtkSMSessionProxyManager* pxm = server->proxyManager();

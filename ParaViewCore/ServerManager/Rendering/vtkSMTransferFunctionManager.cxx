@@ -159,8 +159,11 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetScalarBarRepresentation(
     return NULL;
     }
 
+  // this for some reason destroys the scalar bar properties all together.
+  // What's going on ???
+  //scalarBarProxy->ResetPropertiesToDefault();
+
   vtkSMPropertyHelper(scalarBarProxy, "LookupTable").Set(colorTransferFunction);
-  scalarBarProxy->ResetPropertiesToDefault();
   scalarBarProxy->UpdateVTKObjects();
  
   pxm->RegisterProxy("scalar_bars",

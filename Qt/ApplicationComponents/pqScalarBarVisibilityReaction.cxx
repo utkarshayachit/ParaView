@@ -127,12 +127,7 @@ void pqScalarBarVisibilityReaction::setScalarBarVisibility(bool visible)
     }
 
   BEGIN_UNDO_SET( "Toggle Color Legend Visibility");
-  pqScalarBarRepresentation* scalar_bar =
-    lut_mgr->setScalarBarVisibility(repr, visible);
+  lut_mgr->setScalarBarVisibility(repr, visible);
   END_UNDO_SET();
-  
-  if (scalar_bar)
-    {
-    scalar_bar->renderViewEventually();
-    }
+  view->render();
 }

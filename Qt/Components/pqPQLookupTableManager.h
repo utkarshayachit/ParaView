@@ -47,33 +47,6 @@ public:
   pqPQLookupTableManager(QObject* parent=0);
   virtual ~pqPQLookupTableManager();
 
-  /// Get a LookupTable for the array with name \c arrayname
-  /// and component. component = -1 represents magnitude.
-  /// This subclass associates a LUT with arrayname:component
-  /// pair. If  none exists, a new one will be created.
-  virtual pqScalarsToColors* getLookupTable(pqServer* server, const QString& arrayname,
-    int number_of_components, int component);
-    
-  /// Returns the pqScalarOpacityFunction object for the piecewise
-  /// function used to map scalars to opacity.
-  virtual pqScalarOpacityFunction* getScalarOpacityFunction(pqServer* server, 
-    const QString& arrayname, int number_of_components, int component);
-
-  /// Saves the state of the lut/opacity-function so that the next time a new 
-  /// LUT/opacity-function is created, it
-  /// will have the same state as this one.
-  virtual void saveLUTAsDefault(pqScalarsToColors*);
-  virtual void saveOpacityFunctionAsDefault(pqScalarOpacityFunction*);
-
-  /// save the state of the scalar bar, so that the next time a new scalar bar
-  /// is created its properties are setup using the defaults specified.
-  virtual void saveScalarBarAsDefault(pqScalarBarRepresentation*);
-
-  /// Used to get the array the \c lut is associated with.
-  /// Return false if no such association exists.
-  virtual bool getLookupTableProperties(pqScalarsToColors* lut,
-    QString& arrayname, int &numComponents, int &component);
-
   /// Setting key used to save the default lookup table.
   static const char* DEFAULT_LOOKUPTABLE_SETTING_KEY()
     {
@@ -92,52 +65,9 @@ public:
     return "/lookupTable/DefaultScalarBar";
     }
 
-public slots:
-  /// Called to update scalar ranges of all lookup tables.
-  virtual void updateLookupTableScalarRanges();
-
-protected:
-  /// Called when a new LUT pq object is created.
-  /// This happens as a result of either the GUI or python
-  /// registering a LUT proxy.
-  virtual void onAddLookupTable(pqScalarsToColors* lut);
-
-  /// Called when a LUT is removed.
-  virtual void onRemoveLookupTable(pqScalarsToColors* lut);
-
-  /// set default property values for LUT.
-  void setLUTDefaultState(vtkSMProxy* lut);
-  
-  /// Called when a new ScalarOpacityFunction pq object is created.
-  /// This happens as a result of either the GUI or python
-  /// registering a ScalarOpacityFunction proxy.
-  virtual void onAddOpacityFunction(pqScalarOpacityFunction* opFunc);
-  
-  /// Called when a ScalarOpacityFunction is removed.
-  virtual void onRemoveOpacityFunction(pqScalarOpacityFunction* opFunc);
-  
-  /// set default property values for ScalarOpacityFunction.
-  void setOpacityFunctionDefaultState(vtkSMProxy* opFunc);
-
-  /// creates a new LUT.
-  pqScalarsToColors* createLookupTable(pqServer* server,
-    const QString& arrayname, int number_of_components, int component);
-    
-  /// Returns the proxy for the piecewise function used to
-  /// map scalars to opacity.
-  pqScalarOpacityFunction* createOpacityFunction(pqServer* server,
-    const QString& arrayname, int number_of_components, int component);
-
-  /// called when a new scalar is created so that subclasses have a chance to
-  /// change the default values as needed.
-  virtual void initialize(pqScalarBarRepresentation*);
-  
 private:
   pqPQLookupTableManager(const pqPQLookupTableManager&); // Not implemented.
   void operator=(const pqPQLookupTableManager&); // Not implemented.
-
-  class pqInternal;
-  pqInternal* Internal;
 };
 
 #endif

@@ -142,12 +142,6 @@ public:
   /// view modules it is added to and then unregister it.
   virtual void destroy(pqRepresentation* repr);
 
-  /// Creates a scalar bar display to show a lookup table
-  /// in the view.
-  virtual pqScalarBarRepresentation* createScalarBarDisplay(
-    pqScalarsToColors* lookupTable, pqView* view);
-
-
   /// Creates an animation scene on the given server connection.
   virtual pqAnimationScene* createAnimationScene(pqServer* server);
 
@@ -245,14 +239,8 @@ signals:
   /// creates the source or when state is loaded or on undo/redo. 
   void dataRepresentationCreated(pqDataRepresentation*);
 
-  /// Fired on successful completion of createScalarBarDisplay().
-  /// Remember that this signal is fired only when the creation of the object
-  /// is requested by the GUI. It wont be triggered when the python client
-  /// creates the source or when state is loaded or on undo/redo. 
-  void scalarBarDisplayCreated(pqScalarBarRepresentation*);
-
   /// Fired on successful completion of any method that creates a pqProxy
-  /// or subclass including createScalarBarDisplay, createDataRepresentation,
+  /// or subclass including createDataRepresentation,
   /// createView, createFilter, createSource,
   /// createReader etc.
   void proxyCreated(pqProxy*);

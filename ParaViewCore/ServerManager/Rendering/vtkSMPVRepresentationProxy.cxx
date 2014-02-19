@@ -368,14 +368,8 @@ bool vtkSMPVRepresentationProxy::SetScalarColoring(const char* arrayname, int at
 
   if (arrayname == NULL || arrayname[0] == '\0')
     {
-    if (lutProperty)
-      {
-      vtkSMPropertyHelper(lutProperty).RemoveAllValues();
-      }
-    if (sofProperty)
-      {
-      vtkSMPropertyHelper(sofProperty).RemoveAllValues();
-      }
+    vtkSMPropertyHelper(this, "LookupTable", true).RemoveAllValues();
+    vtkSMPropertyHelper(this, "ScalarOpacityFunction", true).RemoveAllValues();
     this->UpdateVTKObjects();
     return true;
     }
@@ -397,6 +391,73 @@ bool vtkSMPVRepresentationProxy::SetScalarColoring(const char* arrayname, int at
     }
 
   this->UpdateVTKObjects();
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMPVRepresentationProxy::SetScalarBarVisibility(vtkSMProxy* view, bool visibile)
+{
+  if (!view)
+    {
+    return false;
+    }
+
+  vtkSMProperty* lutProperty = this->GetProperty("LookupTable");
+  if (!lutProperty)
+    {
+    vtkWarningMacro("Missing 'LookupTable' property.");
+    return false;
+    }
+
+  vtkSMPropertyHelper lutPropertyHelper(lutProperty);
+  if (lutPropertyHelper.GetNumberOfElements() == 0 ||
+    lutPropertyHelper.GetAsProxy(0) == NULL)
+    {
+    vtkWarningMacro("Failed to determine the LookupTable being used.");
+    return false;
+    }
+
+  vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy(0);
+
+  // if hiding the Scalar Bar, just look if there's a LUT and then hide the
+  // corresponding scalar bar. We won't worry too much about whether scalar
+  // coloring is currently enabled for this.
+  if (!visibile)
+    {
+    if (vtkSMProxy* sbProxy = vtkSMTransferFunctionProxy::FindScalarBarRepresentation(
+        lutPropertyHelper.GetAsProxy(), view))
+      {
+      vtkSMPropertyHelper(sbProxy, "Visibility").Set(0);
+      vtkSMPropertyHelper(sbProxy, "Enabled").Set(0);
+      sbProxy->UpdateVTKObjects();
+      }
+    return true;
+    }
+
+  if (!this->GetUsingScalarColoring())
+    {
+    return false;
+    }
+
+  vtkNew<vtkSMTransferFunctionManager> mgr;
+  vtkSMProxy* sbProxy = mgr->GetScalarBarRepresentation(lutProxy, view);
+  if (!sbProxy)
+    {
+    vtkWarningMacro("Failed to locate/create ScalarBar representation.");
+    return false;
+    }
+
+  vtkSMPropertyHelper(sbProxy, "Enabled").Set(1);
+  vtkSMPropertyHelper(sbProxy, "Visibility").Set(1);
+
+  vtkSMPropertyHelper titleHelper (sbProxy, "Title");
+  if (strcmp(titleHelper.GetAsString(0),"") == 0)
+    {
+    // FIXME: set title properly.
+    titleHelper.Set(
+      vtkSMPropertyHelper(this->GetProperty("ColorArrayName")).GetAsString(0));
+    }
+  sbProxy->UpdateVTKObjects();
   return true;
 }
 

@@ -35,25 +35,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqApplicationCore.h"
 #include "pqDataRepresentation.h"
-#include "pqObjectBuilder.h"
 #include "pqRenderViewBase.h"
-#include "pqScalarBarRepresentation.h"
 #include "pqScalarOpacityFunction.h"
 #include "pqScalarsToColors.h"
+#include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "pqUndoStack.h"
+#include "vtkNew.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMPVRepresentationProxy.h"
+#include "vtkSMTransferFunctionManager.h"
 #include "vtkSMTransferFunctionProxy.h"
 
 //-----------------------------------------------------------------------------
 pqLookupTableManager::pqLookupTableManager(QObject* _parent/*=0*/)
   : QObject(_parent)
 {
-  pqServerManagerModel* smmodel = 
-    pqApplicationCore::instance()->getServerManagerModel();
-  QObject::connect(smmodel, SIGNAL(proxyAdded(pqProxy*)),
-    this, SLOT(onAddProxy(pqProxy*)));
-  QObject::connect(smmodel, SIGNAL(proxyRemoved(pqProxy*)),
-    this, SLOT(onRemoveProxy(pqProxy*)));
 }
 
 //-----------------------------------------------------------------------------
@@ -62,118 +59,54 @@ pqLookupTableManager::~pqLookupTableManager()
 }
 
 //-----------------------------------------------------------------------------
-void pqLookupTableManager::onAddProxy(pqProxy* proxy)
+pqScalarsToColors* pqLookupTableManager::getLookupTable(pqServer* server, 
+  const QString& arrayname, int number_of_components, int)
 {
-  if (pqScalarsToColors* lut = qobject_cast<pqScalarsToColors*>(proxy))
+  Q_UNUSED(number_of_components);
+  vtkNew<vtkSMTransferFunctionManager> mgr;
+  vtkSMProxy* proxy = mgr->GetColorTransferFunction(
+    arrayname.toAscii().data(), server->proxyManager());
+  if (proxy)
     {
-    this->onAddLookupTable(lut);
+    pqApplicationCore* core = pqApplicationCore::instance();
+    pqServerManagerModel* smmodel = core->getServerManagerModel();
+    return smmodel->findItem<pqScalarsToColors*>(proxy);
     }
-  else if (pqScalarOpacityFunction* opf = qobject_cast<pqScalarOpacityFunction*>(proxy))
-    {
-    this->onAddOpacityFunction(opf);
-    }
+
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
-void pqLookupTableManager::onRemoveProxy(pqProxy* proxy)
+pqScalarOpacityFunction* pqLookupTableManager::getScalarOpacityFunction(
+  pqServer* server, const QString& arrayname, int number_of_components, int)
 {
-  if (pqScalarsToColors* lut = qobject_cast<pqScalarsToColors*>(proxy))
+  Q_UNUSED(number_of_components);
+  vtkNew<vtkSMTransferFunctionManager> mgr;
+  vtkSMProxy* proxy = mgr->GetOpacityTransferFunction(
+    arrayname.toAscii().data(), server->proxyManager());
+  if (proxy)
     {
-    this->onRemoveLookupTable(lut);
+    pqApplicationCore* core = pqApplicationCore::instance();
+    pqServerManagerModel* smmodel = core->getServerManagerModel();
+    return smmodel->findItem<pqScalarOpacityFunction*>(proxy);
     }
-  else if (pqScalarOpacityFunction* opf = qobject_cast<pqScalarOpacityFunction*>(proxy))
-    {
-    this->onRemoveOpacityFunction(opf);
-    }
+
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
-pqScalarBarRepresentation* pqLookupTableManager::setScalarBarVisibility(
-  pqDataRepresentation* repr,  bool visible)
+void pqLookupTableManager::setScalarBarVisibility(pqDataRepresentation* repr,  bool visible)
 {
-
-  pqView *view = repr->getView();  
-  pqScalarsToColors* stc = repr->getLookupTable();  
-  if (!stc || !view)
+  if (visible)
     {
-    qCritical() << "Arguments  to pqLookupTableManager::setScalarBarVisibility "
-      "cannot be null";
-    return NULL;
-    }
-
-  pqRenderViewBase* renderView = qobject_cast<pqRenderViewBase*>(view);
-  if (!renderView)
-    {
-    qWarning() << "Scalar bar cannot be created for the view specified";
-    return NULL;
-    }
-
-  pqScalarBarRepresentation* sb = stc->getScalarBar(renderView);
-  if (!sb && !visible)
-    {
-    // nothing to do, scalar bar already invisible.
-    return NULL;
-    }
-
-  if (!sb)
-    {
-    // No scalar bar exists currently, so we create a new one.
-    pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-    sb = builder->createScalarBarDisplay(stc, renderView);
-    this->initialize(sb);
-    
-    //fill the proper component name into the label
-    QString arrayName;    
-    int numComponents;
-    int component;    
-    if ( this->getLookupTableProperties( stc, arrayName, numComponents, component ) )
-      {  
-      int field = repr->getProxyScalarMode( );
-      QString compName = repr->getComponentName( arrayName.toLatin1(), field, component );
-      sb->setTitle( arrayName, compName );
-      }
-    }
-
-  if (sb)
-    {
-    sb->setVisible(visible);
+    BEGIN_UNDO_SET("Show scalar bar");
     }
   else
     {
-    qDebug() << "Failed to locate/create scalar bar.";
+    BEGIN_UNDO_SET("Hide scalar bar");
     }
-  return sb;
-}
-
-//-----------------------------------------------------------------------------
-void pqLookupTableManager::saveAsDefault(vtkSMProxy* lutProxy, vtkSMProxy* viewProxy)
-{
-  pqServerManagerModel* smmodel=
-    pqApplicationCore::instance()->getServerManagerModel();
-  if (lutProxy)
-    {
-    pqScalarsToColors* stc = smmodel->findItem<pqScalarsToColors*>(lutProxy);
-    if (stc)
-      {
-      this->saveLUTAsDefault(stc);
-      }
-
-    vtkSMProxy* pwf = vtkSMPropertyHelper(lutProxy,
-      "ScalarOpacityFunction").GetAsProxy();
-    pqScalarOpacityFunction* sof = pwf?
-      smmodel->findItem<pqScalarOpacityFunction*>(pwf) : NULL;
-    if (sof)
-      {
-      this->saveOpacityFunctionAsDefault(sof);
-      }
-
-    vtkSMProxy* scalarBarProxy =
-      vtkSMTransferFunctionProxy::FindScalarBarRepresentation(viewProxy, lutProxy);
-    pqScalarBarRepresentation* sbr = scalarBarProxy?
-      smmodel->findItem<pqScalarBarRepresentation*>(scalarBarProxy) : NULL;
-    if (sbr)
-      {
-      this->saveScalarBarAsDefault(sbr);
-      }
-    }
+  pqView *view = repr->getView();  
+  vtkSMPVRepresentationProxy::SetScalarBarVisibility(
+    repr->getProxy(), view->getProxy(), visible);
+  END_UNDO_SET();
 }

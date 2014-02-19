@@ -42,20 +42,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkEventQtSlotConnect.h"
 #include "vtkGeometryRepresentation.h"
 #include "vtkMath.h"
+#include "vtkProcessModule.h"
+#include "vtkProperty.h"
 #include "vtkPVArrayInformation.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVDataSetAttributesInformation.h"
 #include "vtkPVTemporalDataInformation.h"
-#include "vtkProcessModule.h"
-#include "vtkProperty.h"
-#include "vtkSMDoubleVectorProperty.h"
-#include "vtkSMGlobalPropertiesManager.h"
-#include "vtkSMPVRepresentationProxy.h"
-#include "vtkSMPropertyHelper.h"
-#include "vtkSMSessionProxyManager.h"
-#include "vtkSMProxyProperty.h"
 #include "vtkScalarsToColors.h"
 #include "vtkSmartPointer.h"
+#include "vtkSMDoubleVectorProperty.h"
+#include "vtkSMGlobalPropertiesManager.h"
+#include "vtkSMPropertyHelper.h"
+#include "vtkSMProxyProperty.h"
+#include "vtkSMPVRepresentationProxy.h"
+#include "vtkSMSessionProxyManager.h"
+#include "vtkSMTransferFunctionProxy.h"
 
 // Qt includes.
 #include <QList>
@@ -607,6 +608,33 @@ void pqPipelineRepresentation::colorByArray(const char* arrayname, int fieldtype
     return;
     }
 
+  // before changing coloring mode, get the visibility status of the scalar bar
+  // for current array, if any.
+  bool sb_visibility = false;
+  QPointer<pqScalarsToColors> lut = this->getLookupTable();
+  pqView* view = this->getView();
+  vtkSMProxy* sbProxy = NULL;
+  if (lut && view)
+    {
+    sbProxy = vtkSMTransferFunctionProxy::FindScalarBarRepresentation(
+      lut->getProxy(), this->getView()->getProxy());
+    if (sbProxy && vtkSMPropertyHelper(sbProxy, "Visibility").GetAsInt() == 1)
+      {
+      sb_visibility = true;
+      }
+    }
+
+  vtkSMPVRepresentationProxy::SetScalarColoring(repr, arrayname, fieldtype);
+  if (arrayname && arrayname[0])
+    {
+    this->resetLookupTableScalarRange();
+    if (sb_visibility && view)
+      {
+      vtkSMPVRepresentationProxy::SetScalarBarVisibility(repr, view->getProxy(), true);
+      }
+    }
+
+#if 0
   if(!arrayname || !arrayname[0])
     {
     pqSMAdaptor::setElementProperty(
@@ -729,6 +757,7 @@ void pqPipelineRepresentation::colorByArray(const char* arrayname, int fieldtype
     lut_mgr->setScalarBarVisibility(this,
       current_scalar_bar_visibility);
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
