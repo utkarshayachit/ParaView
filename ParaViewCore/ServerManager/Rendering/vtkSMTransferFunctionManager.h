@@ -44,17 +44,17 @@ public:
 
   // Description:
   // Returns a color transfer function proxy instance for mapping a data array
-  // with the given name and number-of-components. If none exists in the given
+  // with the given name. If none exists in the given
   // session, a new instance will be created and returned.
-  vtkSMProxy* GetColorTransferFunction(const char* arrayName, int numComponents,
+  vtkSMProxy* GetColorTransferFunction(const char* arrayName, 
     vtkSMSessionProxyManager* pxm);
 
   // Description:
   // Returns a opacity transfer function proxy (aka Piecewise Function) instance
-  // for mapping a data array with the given name and number-of-components. If
+  // for mapping a data array with the given name. If
   // none exists in the given session, a new instance will be created and
   // returned.
-  vtkSMProxy* GetOpacityTransferFunction(const char* arrayName, int numComponents,
+  vtkSMProxy* GetOpacityTransferFunction(const char* arrayName,
     vtkSMSessionProxyManager* pxm);
 
   // Description:

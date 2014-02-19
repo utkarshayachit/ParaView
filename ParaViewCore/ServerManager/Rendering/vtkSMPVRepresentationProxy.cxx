@@ -15,6 +15,7 @@
 #include "vtkSMPVRepresentationProxy.h"
 
 #include "vtkCommand.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVArrayInformation.h"
 #include "vtkPVDataInformation.h"
@@ -24,6 +25,7 @@
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSessionProxyManager.h"
+#include "vtkSMTransferFunctionManager.h"
 #include "vtkSMTransferFunctionProxy.h"
 
 #include <set>
@@ -331,6 +333,71 @@ bool vtkSMPVRepresentationProxy::RescaleTransferFunctionToDataRange(
 
     }
   return false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMPVRepresentationProxy::SetScalarColoring(const char* arrayname, int attribute_type)
+{
+  if (!this->GetUsingScalarColoring() && (arrayname==NULL ||arrayname[0]==0))
+    {
+    // scalar coloring already off. Nothing to do.
+    return true;
+    }
+
+  vtkSMProperty* colorArray = this->GetProperty("ColorArrayName");
+  vtkSMProperty* colorAttr = this->GetProperty("ColorAttributeType");
+  if (!colorArray || !colorAttr)
+    {
+    vtkWarningMacro("No 'ColorArrayName' or 'ColorAttributeType' property found.");
+    return false;
+    }
+
+  vtkSMPropertyHelper colorArrayHelper(colorArray);
+  vtkSMPropertyHelper colorAttrHelper(colorAttr);
+
+  if (arrayname && colorArrayHelper.GetAsString() &&
+    strcmp(arrayname, colorArrayHelper.GetAsString()) == 0 &&
+    colorArrayHelper.GetAsInt() == attribute_type)
+    {
+    // nothing to do since nothing changed.
+    return true;
+    }
+
+  colorArrayHelper.Set(arrayname? arrayname : "");
+  colorAttrHelper.Set(attribute_type);
+
+  if (arrayname == NULL || arrayname[0] == '\0')
+    {
+    if (lutProperty)
+      {
+      vtkSMPropertyHelper(lutProperty).RemoveAllValues();
+      }
+    if (sofProperty)
+      {
+      vtkSMPropertyHelper(sofProperty).RemoveAllValues();
+      }
+    this->UpdateVTKObjects();
+    return true;
+    }
+  
+  // Now, setup transfer functions.
+  vtkNew<vtkSMTransferFunctionManager> mgr;
+  if (vtkSMProperty* lutProperty = this->GetProperty("LookupTable"))
+    {
+    vtkSMProxy* lutProxy =
+      mgr->GetColorTransferFunction(arrayname, this->GetSessionProxyManager());
+    vtkSMPropertyHelper(lutProperty).Set(lutProxy);
+    }
+  
+  if (vtkSMProperty* sofProperty = this->GetProperty("ScalarOpacityFunction"))
+    {
+    vtkSMProxy* sofProxy =
+      mgr->GetOpacityTransferFunction(arrayname, this->GetSessionProxyManager());
+    vtkSMPropertyHelper(sofProperty).Set(sofProxy);
+    }
+
+  this->UpdateVTKObjects();
+  return true;
 }
 
 //----------------------------------------------------------------------------

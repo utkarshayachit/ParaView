@@ -29,12 +29,15 @@
 namespace
 {
   vtkSMProxy* FindProxy(const char* groupName,
-    const char* arrayName, int numComponents,
+    const char* arrayName,
     vtkSMSessionProxyManager* pxm)
     {
-    // proxies are registered as (numComps).(arrayName).(ProxyXMLName)
+    // Proxies are registered as  (arrayName).(ProxyXMLName).
+    // In previous versions, they were registered as
+    // (numComps).(arrayName).(ProxyXMLName). We dropped the numComps, but this
+    // lookup should still match those old LUTs loaded from state.
     vtksys_ios::ostringstream expr;
-    expr << "^" << numComponents << "\\." << arrayName << "\\.";
+    expr << "^[0-9.]*" << arrayName << "\\.";
     vtksys::RegularExpression regExp(expr.str().c_str());
     vtkNew<vtkSMProxyIterator> iter;
     iter->SetSessionProxyManager(pxm);
@@ -65,11 +68,11 @@ vtkSMTransferFunctionManager::~vtkSMTransferFunctionManager()
 
 //----------------------------------------------------------------------------
 vtkSMProxy* vtkSMTransferFunctionManager::GetColorTransferFunction(
-  const char* arrayName, int numComponents, vtkSMSessionProxyManager* pxm)
+  const char* arrayName, vtkSMSessionProxyManager* pxm)
 {
-  assert(arrayName != NULL && numComponents >=0 && pxm != NULL);
+  assert(arrayName != NULL && pxm != NULL);
 
-  vtkSMProxy* proxy = FindProxy("lookup_tables", arrayName, numComponents, pxm);
+  vtkSMProxy* proxy = FindProxy("lookup_tables", arrayName, pxm);
   if (proxy)
     {
     return proxy;
@@ -84,10 +87,10 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetColorTransferFunction(
     }
 
   vtksys_ios::ostringstream proxyName;
-  proxyName << numComponents << "." << arrayName << ".PVLookupTable";
+  proxyName << arrayName << ".PVLookupTable";
   if (proxy->GetProperty("ScalarOpacityFunction"))
     {
-    vtkSMProxy* sof = this->GetOpacityTransferFunction(arrayName, numComponents, pxm);
+    vtkSMProxy* sof = this->GetOpacityTransferFunction(arrayName, pxm);
     if (sof)
       {
       sof->UpdateVTKObjects();
@@ -102,11 +105,11 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetColorTransferFunction(
 
 //----------------------------------------------------------------------------
 vtkSMProxy* vtkSMTransferFunctionManager::GetOpacityTransferFunction(
-  const char* arrayName, int numComponents, vtkSMSessionProxyManager* pxm)
+  const char* arrayName, vtkSMSessionProxyManager* pxm)
 {
-  assert(arrayName != NULL && numComponents >=0 && pxm != NULL);
+  assert(arrayName != NULL && pxm != NULL);
 
-  vtkSMProxy* proxy = FindProxy("piecewise_functions", arrayName, numComponents, pxm);
+  vtkSMProxy* proxy = FindProxy("piecewise_functions", arrayName, pxm);
   if (proxy)
     {
     return proxy;
@@ -121,7 +124,7 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetOpacityTransferFunction(
     }
 
   vtksys_ios::ostringstream proxyName;
-  proxyName << numComponents << "." << arrayName << ".PiecewiseFunction";
+  proxyName << arrayName << ".PiecewiseFunction";
   pxm->RegisterProxy("piecewise_functions", proxyName.str().c_str(), proxy);
   proxy->FastDelete();
   proxy->UpdateVTKObjects();

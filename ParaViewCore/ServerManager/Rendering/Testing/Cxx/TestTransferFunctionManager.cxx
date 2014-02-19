@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
   vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
 
   vtkNew<vtkSMTransferFunctionManager> mgr;
-  vtkSMProxy* colorTF = mgr->GetColorTransferFunction("arrayOne", 3, pxm);
+  vtkSMProxy* colorTF = mgr->GetColorTransferFunction("arrayOne", pxm);
   if (colorTF == NULL)
     {
     cerr << "ERROR: Failed at line " << __LINE__ << endl;
@@ -42,33 +42,31 @@ int main(int argc, char* argv[])
     }
 
   // colorTF must match on multiple calls.
-  if (colorTF != mgr->GetColorTransferFunction("arrayOne", 3, pxm))
+  if (colorTF != mgr->GetColorTransferFunction("arrayOne", pxm))
     {
     cerr << "ERROR: Failed at line " << __LINE__ << endl;
     return EXIT_FAILURE;
     }
 
   // colorTF must be different for different arrays.
-  if (colorTF == mgr->GetColorTransferFunction("arrayOne", 1, pxm) ||
-      colorTF == mgr->GetColorTransferFunction("arrayTwo", 3, pxm))
+  if (colorTF == mgr->GetColorTransferFunction("arrayTwo", pxm))
     {
     cerr << "ERROR: Failed at line " << __LINE__ << endl;
     return EXIT_FAILURE;
     }
 
-  vtkSMProxy* opacityTF = mgr->GetOpacityTransferFunction("arrayOne", 3, pxm);
+  vtkSMProxy* opacityTF = mgr->GetOpacityTransferFunction("arrayOne", pxm);
   if (!opacityTF)
     {
     cerr << "ERROR: Failed at line " << __LINE__ << endl;
     return EXIT_FAILURE;
     }
-  if (opacityTF != mgr->GetOpacityTransferFunction("arrayOne", 3, pxm))
+  if (opacityTF != mgr->GetOpacityTransferFunction("arrayOne", pxm))
     {
     cerr << "ERROR: Failed at line " << __LINE__ << endl;
     return EXIT_FAILURE;
     }
-  if (opacityTF == mgr->GetOpacityTransferFunction("arrayOne", 1, pxm) ||
-     opacityTF == mgr->GetOpacityTransferFunction("arrayTwo", 3, pxm))
+  if (opacityTF == mgr->GetOpacityTransferFunction("arrayTwo", pxm))
     {
     cerr << "ERROR: Failed at line " << __LINE__ << endl;
     return EXIT_FAILURE;
