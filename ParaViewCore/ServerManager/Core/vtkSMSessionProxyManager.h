@@ -178,6 +178,11 @@ public:
   void RegisterProxy(const char* groupname, const char* name, vtkSMProxy* proxy);
 
   // Description:
+  // This overload register the proxy using an unique name returned by
+  // GetUniqueProxyName() and returns the name used.
+  vtkStdString RegisterProxy(const char* groupname, vtkSMProxy* proxy);
+
+  // Description:
   // Given its name (and group) returns a proxy. If not a managed proxy,
   // returns 0.
   vtkSMProxy* GetProxy(const char* groupname, const char* name);
