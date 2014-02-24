@@ -68,7 +68,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ParaView includes.
 #include "pqApplicationCore.h"
 #include "pqDisplayPolicy.h"
-#include "pqLookupTableManager.h"
 #include "pqObjectBuilder.h"
 #include "pqOutputPort.h"
 #include "pqPipelineFilter.h"
@@ -289,10 +288,6 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
     // don't worry about invisible displays.
     return;
     }
-
-  // The HelperProxy is not needed any more since now the OpacityFunction is 
-  // created from LookupTableManager (Bug# 0008876)
-  // this->createHelperProxies();
 
   // For some view all the default representation names may not exist
   // therefore we need to filter them to match existing ones.
@@ -633,131 +628,6 @@ void pqPipelineRepresentation::colorByArray(const char* arrayname, int fieldtype
       vtkSMPVRepresentationProxy::SetScalarBarVisibility(repr, view->getProxy(), true);
       }
     }
-
-#if 0
-  if(!arrayname || !arrayname[0])
-    {
-    pqSMAdaptor::setElementProperty(
-      repr->GetProperty("ColorArrayName"), "");
-    repr->UpdateVTKObjects();
-
-    // BUG #6818. If user switched to solid color, we need to update the lut
-    // visibility.
-    pqScalarsToColors* lut = this->getLookupTable();
-    if (lut)
-      {
-      lut->hideUnusedScalarBars();
-      }
-    return;
-    }
-
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqLookupTableManager* lut_mgr = core->getLookupTableManager();
-  vtkSMProxy* lut = 0;
-  vtkSMProxy* opf = 0;
-  if (lut_mgr)
-    {
-    int number_of_components = this->getNumberOfComponents(
-      arrayname, fieldtype);
-    pqScalarsToColors* pqlut = lut_mgr->getLookupTable(
-      this->getServer(), arrayname, number_of_components, 0);
-    lut = (pqlut)? pqlut->getProxy() : 0;
-    pqScalarOpacityFunction* pqOPF = lut_mgr->getScalarOpacityFunction(
-      this->getServer(), arrayname, number_of_components, 0);
-    opf = (pqOPF)? pqOPF->getProxy() : 0;
-    }
-  else
-    {
-    // When lookup table manager is not available,
-    // we simply create new lookup tables for each display.
-
-    vtkSMProxyProperty* pp = vtkSMProxyProperty::SafeDownCast(
-      repr->GetProperty("LookupTable"));
-    if (pp->GetNumberOfProxies() == 0)
-      {
-      pqObjectBuilder* builder = core->getObjectBuilder();
-      lut = builder->createProxy("lookup_tables", "PVLookupTable", 
-        this->getServer(), "lookup_tables");
-      // Setup default LUT to go from Blue to Red.
-      QList<QVariant> values;
-      values << 0.0 << 0.0 << 0.0 << 1.0
-        << 1.0 << 1.0 << 0.0 << 0.0;
-      pqSMAdaptor::setMultipleElementProperty(
-        lut->GetProperty("RGBPoints"), values);
-      pqSMAdaptor::setEnumerationProperty(
-        lut->GetProperty("ColorSpace"), "HSV");
-      pqSMAdaptor::setEnumerationProperty(
-        lut->GetProperty("VectorMode"), "Magnitude");
-      lut->UpdateVTKObjects();
-      }
-    else
-      {
-      lut = pp->GetProxy(0);
-      }
-      
-    opf = this->createOpacityFunctionProxy(repr);
-    }
-
-  if (!lut)
-    {
-    qDebug() << "Failed to create/locate Lookup Table.";
-    pqSMAdaptor::setElementProperty(
-      repr->GetProperty("ColorArrayName"), "");
-    repr->UpdateVTKObjects();
-    return;
-    }
-
-  // Locate pqScalarsToColors for the old LUT and update 
-  // it's scalar bar visibility.
-  pqScalarsToColors* old_stc = this->getLookupTable();
-  pqSMAdaptor::setProxyProperty(
-    repr->GetProperty("LookupTable"), lut);
-    
-  // set the opacity function
-  if(opf)
-    {
-    pqSMAdaptor::setProxyProperty(
-      repr->GetProperty("ScalarOpacityFunction"), opf);
-    repr->UpdateVTKObjects();
-    }
-
-  bool current_scalar_bar_visibility = false;
-  // If old LUT was present update the visibility of the scalar bars
-  if (old_stc && old_stc->getProxy() != lut)
-      {
-      pqScalarBarRepresentation* scalar_bar = old_stc->getScalarBar(
-        qobject_cast<pqRenderViewBase*>(this->getView()));
-      if (scalar_bar)
-        {
-        current_scalar_bar_visibility = scalar_bar->isVisible();
-        }
-      old_stc->hideUnusedScalarBars();
-      }
-
-  if(fieldtype == vtkDataObject::FIELD_ASSOCIATION_CELLS)
-    {
-    pqSMAdaptor::setEnumerationProperty(
-      repr->GetProperty("ColorAttributeType"), "CELL_DATA");
-    }
-  else
-    {
-    pqSMAdaptor::setEnumerationProperty(
-      repr->GetProperty("ColorAttributeType"), "POINT_DATA");
-    }
-  pqSMAdaptor::setElementProperty(
-    repr->GetProperty("ColorArrayName"), arrayname);
-  lut->UpdateVTKObjects();
-  repr->UpdateVTKObjects();
-
-  this->updateLookupTableScalarRange();
-
-  
-  if (current_scalar_bar_visibility && lut_mgr && this->getLookupTable())
-    {
-    lut_mgr->setScalarBarVisibility(this,
-      current_scalar_bar_visibility);
-    }
-#endif
 }
 
 //-----------------------------------------------------------------------------
