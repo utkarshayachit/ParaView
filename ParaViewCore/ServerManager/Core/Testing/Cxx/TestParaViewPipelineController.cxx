@@ -57,6 +57,19 @@ int main(int argc, char* argv[])
     return EXIT_FAILURE;
     }
 
+
+  vtkSMProxy* exodusReader = pxm->NewProxy("sources", "ExodusIIReader");
+  controller->PreInitializePipelineProxy(exodusReader);
+  vtkSMPropertyHelper(exodusReader, "FileName").Set(
+    "/home/utkarsh/Kitware/ParaView3/ParaViewData/Data/can.ex2");
+  vtkSMPropertyHelper(exodusReader, "ApplyDisplacements").Set(0);
+  exodusReader->UpdateVTKObjects();
+
+  controller->PostInitializePipelineProxy(exodusReader);
+  exodusReader->Delete();
+
+  //pxm->SaveXMLState("/tmp/state.pvsm");
+
   session->Delete();
   vtkInitializationHelper::Finalize();
   return EXIT_SUCCESS;

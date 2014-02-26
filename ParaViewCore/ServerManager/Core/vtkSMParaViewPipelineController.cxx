@@ -14,27 +14,91 @@
 =========================================================================*/
 #include "vtkSMParaViewPipelineController.h"
 
+#include "vtkCommand.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVXMLElement.h"
 #include "vtkSmartPointer.h"
+#include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMProxy.h"
+#include "vtkSMPropertyIterator.h"
 #include "vtkSMProxyIterator.h"
+#include "vtkSMProxyListDomain.h"
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
+#include "vtkSMSourceProxy.h"
 
 #include <cassert>
+#include <map>
+#include <set>
+#include <vector>
+#include <vtksys/ios/sstream>
+
+class vtkSMParaViewPipelineController::vtkInternals
+{
+public:
+  typedef std::map<void*, vtkTimeStamp> TimeStampsMap;
+  TimeStampsMap InitializationTimeStamps;
+};
+
+namespace
+{
+  // Used to monitor properties whose domains change.
+  class vtkDomainObserver
+    {
+    std::vector<std::pair<vtkSMProperty*, unsigned long> > MonitoredProperties;
+    std::set<vtkSMProperty*> PropertiesWithModifiedDomains;
+
+    void DomainModified(vtkObject* sender, unsigned long, void*)
+      {
+      vtkSMProperty* prop = vtkSMProperty::SafeDownCast(sender);
+      if (prop)
+        {
+        this->PropertiesWithModifiedDomains.insert(prop);
+        }
+      }
+
+  public:
+    vtkDomainObserver()
+      {
+      }
+    ~vtkDomainObserver()
+      {
+      for (size_t cc=0; cc < this->MonitoredProperties.size(); cc++)
+        {
+        this->MonitoredProperties[cc].first->RemoveObserver(
+          this->MonitoredProperties[cc].second);
+        }
+      }
+    void Monitor(vtkSMProperty* prop)
+      {
+      assert(prop != NULL);
+      unsigned long oid = prop->AddObserver(vtkCommand::DomainModifiedEvent,
+        this, &vtkDomainObserver::DomainModified);
+      this->MonitoredProperties.push_back(
+        std::pair<vtkSMProperty*, unsigned long>(prop, oid));
+      }
+
+    const std::set<vtkSMProperty*>& GetPropertiesWithModifiedDomains() const
+      {
+      return this->PropertiesWithModifiedDomains;
+      }
+    };
+}
 
 vtkStandardNewMacro(vtkSMParaViewPipelineController);
 //----------------------------------------------------------------------------
 vtkSMParaViewPipelineController::vtkSMParaViewPipelineController()
+  : Internals(new vtkSMParaViewPipelineController::vtkInternals())
 {
 }
 
 //----------------------------------------------------------------------------
 vtkSMParaViewPipelineController::~vtkSMParaViewPipelineController()
 {
+  delete this->Internals;
+  this->Internals = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -58,6 +122,54 @@ vtkSMProxy* vtkSMParaViewPipelineController::FindProxy(
       }
     }
   return NULL;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::CreateProxiesForProxyListDomains(
+  vtkSMProxy* proxy)
+{
+  assert(proxy != NULL);
+  vtkSmartPointer<vtkSMPropertyIterator> iter;
+  iter.TakeReference(proxy->NewPropertyIterator());
+  for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
+    {
+    vtkSMProxyListDomain* pld = iter->GetProperty()?
+      vtkSMProxyListDomain::SafeDownCast(iter->GetProperty()->FindDomain("vtkSMProxyListDomain"))
+      : NULL;
+    if (pld)
+      {
+      pld->CreateProxies(proxy->GetSessionProxyManager());
+      }
+    }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMParaViewPipelineController::RegisterProxiesForProxyListDomains(vtkSMProxy* proxy)
+{
+  assert(proxy != NULL);
+  vtkSMSessionProxyManager* pxm = proxy->GetSessionProxyManager();
+
+  vtksys_ios::ostringstream groupnamestr;
+  groupnamestr << "pq_helper_proxies." << proxy->GetGlobalIDAsString();
+  std::string groupname = groupnamestr.str();
+
+  vtkSmartPointer<vtkSMPropertyIterator> iter;
+  iter.TakeReference(proxy->NewPropertyIterator());
+  for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
+    {
+    vtkSMProxyListDomain* pld = iter->GetProperty()?
+      vtkSMProxyListDomain::SafeDownCast(iter->GetProperty()->FindDomain("vtkSMProxyListDomain"))
+      : NULL;
+    if (!pld)
+      {
+      continue;
+      }
+    for (unsigned int cc=0, max=pld->GetNumberOfProxies(); cc < max; cc++)
+      {
+      pxm->RegisterProxy(groupname.c_str(), iter->GetKey(), pld->GetProxy(cc));
+      }
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -264,6 +376,239 @@ vtkSMProxy* vtkSMParaViewPipelineController::GetTimeAnimationTrack(vtkSMProxy* s
   scene->UpdateVTKObjects();
 
   return cue;
+}
+
+//----------------------------------------------------------------------------
+vtkSMProxy* vtkSMParaViewPipelineController::CreateView(
+    vtkSMSession* session, const char* xmlgroup, const char* xmltype)
+{
+  if (!session)
+    {
+    return NULL;
+    }
+
+  vtkSmartPointer<vtkSMProxy> view;
+  view.TakeReference(session->GetSessionProxyManager()->NewProxy(xmlgroup, xmltype));
+  return this->InitializeView(view)? view : NULL;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::PreInitializeRepresentation(
+  vtkSMProxy* proxy)
+{
+  return proxy? this->PreInitializePipelineProxy(proxy) : false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::PostInitializeRepresentation(vtkSMProxy* proxy)
+{
+  if (!proxy)
+    {
+    return false;
+    }
+
+  vtkInternals::TimeStampsMap::iterator titer =
+    this->Internals->InitializationTimeStamps.find(proxy);
+  if (titer == this->Internals->InitializationTimeStamps.end())
+    {
+    vtkErrorMacro(
+      "PostInitializePipelineProxy must only be called after "
+      "PreInitializePipelineProxy");
+    return false;
+    }
+
+  this->PostInitializeProxyInternal(proxy);
+
+  // Now register the proxy itself.
+  proxy->GetSessionProxyManager()->RegisterProxy("representations", proxy);
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::PreInitializePipelineProxy(vtkSMProxy* proxy)
+{
+  return proxy? this->PreInitializePipelineProxy(proxy) : false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::PostInitializePipelineProxy(vtkSMProxy* proxy)
+{
+  if (!proxy)
+    {
+    return false;
+    }
+
+  vtkInternals::TimeStampsMap::iterator titer =
+    this->Internals->InitializationTimeStamps.find(proxy);
+  if (titer == this->Internals->InitializationTimeStamps.end())
+    {
+    vtkErrorMacro(
+      "PostInitializePipelineProxy must only be called after "
+      "PreInitializePipelineProxy");
+    return false;
+    }
+
+  this->PostInitializeProxyInternal(proxy);
+
+  // Now register the proxy itself.
+  proxy->GetSessionProxyManager()->RegisterProxy("sources", proxy);
+
+  // Register proxy with TimeKeeper.
+  vtkSMProxy* timeKeeper = this->FindTimeKeeper(proxy->GetSession());
+  vtkSMPropertyHelper(timeKeeper, "TimeSources").Add(proxy);
+  timeKeeper->UpdateVTKObjects();
+
+  // Make the proxy active.
+  vtkSMProxySelectionModel* selmodel =
+    proxy->GetSessionProxyManager()->GetSelectionModel("ActiveSources");
+  assert(selmodel != NULL);
+  selmodel->SetCurrentProxy(proxy, vtkSMProxySelectionModel::CLEAR_AND_SELECT);
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::InitializeView(vtkSMProxy* proxy)
+{
+  if (!proxy)
+    {
+    return false;
+    }
+
+  if (!this->PreInitializeProxyInternal(proxy) ||
+    !this->PostInitializeProxyInternal(proxy))
+    {
+    return false;
+    }
+
+  // Now register the proxy itself.
+  proxy->GetSessionProxyManager()->RegisterProxy("views", proxy);
+
+  // Register proxy with TimeKeeper.
+  vtkSMProxy* timeKeeper = this->FindTimeKeeper(proxy->GetSession());
+  vtkSMPropertyHelper(timeKeeper, "Views").Add(proxy);
+  timeKeeper->UpdateVTKObjects();
+
+  // Register proxy with AnimationScene (optional)
+  vtkSMProxy* scene = this->GetAnimationScene(proxy->GetSession());
+  if (scene)
+    {
+    vtkSMPropertyHelper(scene, "ViewModules").Add(proxy);
+    scene->UpdateVTKObjects();
+    }
+
+  // Make the proxy active.
+  vtkSMProxySelectionModel* selmodel =
+    proxy->GetSessionProxyManager()->GetSelectionModel("ActiveView");
+  assert(selmodel != NULL);
+  selmodel->SetCurrentProxy(proxy, vtkSMProxySelectionModel::CLEAR_AND_SELECT);
+  return true;  
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::PreInitializeProxy(vtkSMProxy* proxy)
+{
+  return proxy? this->PreInitializeProxyInternal(proxy) : false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
+{
+  return proxy? this->PostInitializeProxyInternal(proxy) : false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::PreInitializeProxyInternal(vtkSMProxy* proxy)
+{
+  assert(proxy != NULL);
+
+  // 1. Load XML defaults
+  //    (already done by NewProxy() call).
+
+  // 2. Create proxies for proxy-list domains.
+  if (!this->CreateProxiesForProxyListDomains(proxy))
+    {
+    return false;
+    }
+
+  // 3. Load property values from Settings (FIXME)
+
+  // proxy->LoadPropertyValuesFromSettings();
+
+  // Now, update the initialization time.
+  this->Internals->InitializationTimeStamps[proxy].Modified();
+
+  // Note: we need to be careful with *** vtkSMCompoundSourceProxy ***
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::PostInitializeProxyInternal(vtkSMProxy* proxy)
+{
+  assert(proxy != NULL);
+  vtkInternals::TimeStampsMap::iterator titer =
+    this->Internals->InitializationTimeStamps.find(proxy);
+  assert(titer != this->Internals->InitializationTimeStamps.end());
+
+  vtkTimeStamp& ts = titer->second;
+  this->Internals->InitializationTimeStamps.erase(titer);
+
+  // ensure everything is up-to-date.
+  proxy->UpdateVTKObjects();
+
+  // FIXME: need to figure out how we should really deal with this.
+  // We don't reset properties on custom filter.
+  if (!proxy->IsA("vtkSMCompoundSourceProxy"))
+    {
+    if (vtkSMSourceProxy* sourceProxy = vtkSMSourceProxy::SafeDownCast(proxy))
+      {
+      // Since domains depend on information properties, it's essential we update
+      // property information first.
+      sourceProxy->UpdatePipelineInformation();
+      }
+
+    // Reset property values using domains. However, this should only be done for
+    // properties that were not modified between the PreInitializePipelineProxy and
+    // PostInitializePipelineProxy calls.
+
+    vtkSmartPointer<vtkSMPropertyIterator> iter;
+    iter.TakeReference(proxy->NewPropertyIterator());
+
+    // iterate over properties and reset them to default. if any property says its
+    // domain is modified after we reset it, we need to reset it again since its
+    // default may have changed.
+    vtkDomainObserver observer;
+
+    for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
+      {
+      vtkSMProperty* smproperty = iter->GetProperty();
+
+      if ((smproperty->GetMTime() > ts) ||
+        !smproperty->GetInformationOnly())
+        {
+        vtkPVXMLElement* propHints = iter->GetProperty()->GetHints();
+        if (propHints && propHints->FindNestedElementByName("NoDefault"))
+          {
+          // Don't reset properties that request overriding of the default mechanism.
+          continue;
+          }
+
+        observer.Monitor(iter->GetProperty());
+        iter->GetProperty()->ResetToDomainDefaults();
+        }
+      }
+
+    const std::set<vtkSMProperty*> &props =
+      observer.GetPropertiesWithModifiedDomains();
+    for (std::set<vtkSMProperty*>::const_iterator iter = props.begin(); iter != props.end(); ++iter)
+      {
+      (*iter)->ResetToDomainDefaults();
+      }
+    proxy->UpdateVTKObjects();
+    }
+
+  // Register proxies created for proxy list domains.
+  this->RegisterProxiesForProxyListDomains(proxy);
+  return true;
 }
 
 //----------------------------------------------------------------------------

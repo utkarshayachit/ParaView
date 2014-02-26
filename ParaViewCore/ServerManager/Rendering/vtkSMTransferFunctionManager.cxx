@@ -16,6 +16,7 @@
 
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkSMParaViewPipelineController.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyIterator.h"
@@ -86,6 +87,9 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetColorTransferFunction(
     return NULL;
     }
 
+  vtkNew<vtkSMParaViewPipelineController> controller;
+  controller->PreInitializeProxy(proxy);
+
   vtksys_ios::ostringstream proxyName;
   proxyName << arrayName << ".PVLookupTable";
   if (proxy->GetProperty("ScalarOpacityFunction"))
@@ -97,9 +101,9 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetColorTransferFunction(
       vtkSMPropertyHelper(proxy, "ScalarOpacityFunction").Set(sof);
       }
     }
-  pxm->RegisterProxy("lookup_tables", proxyName.str().c_str(), proxy);
+  controller->PostInitializeProxy(proxy);
+  pxm->RegisterProxy("lookup_tables", proxy);
   proxy->FastDelete();
-  proxy->UpdateVTKObjects();
   return proxy;
 }
 
@@ -122,6 +126,10 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetOpacityTransferFunction(
     vtkErrorMacro("Failed to create PVLookupTable proxy.");
     return NULL;
     }
+  
+  vtkNew<vtkSMParaViewPipelineController> controller;
+  controller->PreInitializeProxy(proxy);
+  controller->PostInitializeProxy(proxy);
 
   vtksys_ios::ostringstream proxyName;
   proxyName << arrayName << ".PiecewiseFunction";
@@ -159,16 +167,17 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetScalarBarRepresentation(
     return NULL;
     }
 
+  
   // this for some reason destroys the scalar bar properties all together.
   // What's going on ???
   //scalarBarProxy->ResetPropertiesToDefault();
 
+  vtkNew<vtkSMParaViewPipelineController> controller;
+  controller->PreInitializeProxy(scalarBarProxy);
   vtkSMPropertyHelper(scalarBarProxy, "LookupTable").Set(colorTransferFunction);
-  scalarBarProxy->UpdateVTKObjects();
- 
-  pxm->RegisterProxy("scalar_bars",
-    pxm->GetUniqueProxyName("scalar_bars", "ScalarBarWidgetRepresentation").c_str(),
-    scalarBarProxy);
+  controller->PostInitializeProxy(scalarBarProxy);
+
+  pxm->RegisterProxy("scalar_bars", scalarBarProxy);
   scalarBarProxy->FastDelete();
 
   vtkSMPropertyHelper(view, "Representations").Add(scalarBarProxy);

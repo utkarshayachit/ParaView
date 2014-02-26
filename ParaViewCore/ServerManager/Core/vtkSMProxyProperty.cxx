@@ -764,3 +764,9 @@ bool vtkSMProxyProperty::IsValueDefault()
   // proxy properties are default only if they contain no proxies
   return this->GetNumberOfProxies() == 0;
 }
+
+//---------------------------------------------------------------------------
+void vtkSMProxyProperty::ResetToXMLDefaults()
+{
+  this->SetNumberOfProxies(0);
+}

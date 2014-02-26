@@ -42,11 +42,37 @@ public:
   virtual vtkSMProxy* FindTimeKeeper(vtkSMSession* session);
 
   //---------------------------------------------------------------------------
-  // *******  Methods for Pipeline processing objects *********
+  // ******* Methods for Pipeline objects like sources/filters/readers ********
 
   // Description:
-  // Begin creation of a source/reader/filter proxy.
+  // Initialize the property values using application settings.
+  virtual bool PreInitializePipelineProxy(vtkSMProxy* proxy);
 
+  // Description:
+  // Safely update property values for properties whose domain may have changed
+  // during the initialization process. If the property's value was manually
+  // changed by the user during the initialization process, it won't be changed
+  // based on the domain, even if the domain was updated.
+  // This method will also register the proxy in appropriate group.
+  virtual bool PostInitializePipelineProxy(vtkSMProxy* proxy);
+
+  //---------------------------------------------------------------------------
+  // *******  Methods for Views/Displays *********
+
+  // Description:
+  // Creates a new view of the given type and calls InitializeView() on it.
+  virtual vtkSMProxy* CreateView(
+    vtkSMSession* session, const char* xmlgroup, const char* xmltype);
+
+  // Description:
+  // Initialize a new view of the given type. Will register the newly created view
+  // with the animation scene and timekeeper.
+  virtual bool InitializeView(vtkSMProxy* proxy);
+
+  // Description:
+  // Pre/Post initialize a new representation proxy.
+  virtual bool PreInitializeRepresentation(vtkSMProxy* proxy);
+  virtual bool PostInitializeRepresentation(vtkSMProxy* proxy);
 
 
   //---------------------------------------------------------------------------
@@ -72,8 +98,10 @@ public:
   virtual vtkSMProxy* GetTimeAnimationTrack(vtkSMProxy* scene);
   //---------------------------------------------------------------------------
 
-
-
+  //---------------------------------------------------------------------------
+  // ****** Methods for arbitrary proxies ******
+  virtual bool PreInitializeProxy(vtkSMProxy* proxy);
+  virtual bool PostInitializeProxy(vtkSMProxy* proxy);
 
 //BTX
 protected:
@@ -86,10 +114,21 @@ protected:
   vtkSMProxy* FindProxy(vtkSMSessionProxyManager* pxm,
     const char* reggroup, const char* xmlgroup, const char* xmltype);
  
+  // Description:
+  // Creates new proxies for proxies referred in vtkSMProxyListDomain for any of
+  // the properties for the given proxy.
+  virtual bool CreateProxiesForProxyListDomains(vtkSMProxy* proxy);
+  virtual void RegisterProxiesForProxyListDomains(vtkSMProxy* proxy);
+
+  virtual bool PreInitializeProxyInternal(vtkSMProxy*);
+  virtual bool PostInitializeProxyInternal(vtkSMProxy*);
 
 private:
   vtkSMParaViewPipelineController(const vtkSMParaViewPipelineController&); // Not implemented
   void operator=(const vtkSMParaViewPipelineController&); // Not implemented
+
+  class vtkInternals;
+  vtkInternals* Internals;
 //ETX
 };
 
