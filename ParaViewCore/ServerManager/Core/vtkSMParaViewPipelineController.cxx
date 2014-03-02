@@ -139,6 +139,10 @@ bool vtkSMParaViewPipelineController::CreateProxiesForProxyListDomains(
     if (pld)
       {
       pld->CreateProxies(proxy->GetSessionProxyManager());
+      for (unsigned int cc=0, max=pld->GetNumberOfProxies(); cc < max; cc++)
+        {
+        this->InitializeProxy(pld->GetProxy(cc));
+        }
       }
     }
   return true;
@@ -170,6 +174,41 @@ void vtkSMParaViewPipelineController::RegisterProxiesForProxyListDomains(vtkSMPr
       pxm->RegisterProxy(groupname.c_str(), iter->GetKey(), pld->GetProxy(cc));
       }
     }
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::CreateAnimationHelpers(vtkSMProxy* proxy)
+{
+  vtkSMSourceProxy* source = vtkSMSourceProxy::SafeDownCast(proxy);
+  if (!source)
+    {
+    return false;
+    }
+  assert(proxy != NULL);
+  vtkSMSessionProxyManager* pxm = proxy->GetSessionProxyManager();
+
+  vtksys_ios::ostringstream groupnamestr;
+  groupnamestr << "pq_helper_proxies." << proxy->GetGlobalIDAsString();
+  std::string groupname = groupnamestr.str();
+
+  for (unsigned int cc=0, max=source->GetNumberOfOutputPorts(); cc < max; cc++)
+    {
+    vtkSmartPointer<vtkSMProxy> helper;
+    helper.TakeReference(pxm->NewProxy("misc", "RepresentationAnimationHelper"));
+    if (helper) // since this is optional
+      {
+      this->PreInitializeProxy(helper);
+      vtkSMPropertyHelper(helper, "Source").Set(proxy);
+      this->PostInitializeProxy(helper);
+      helper->UpdateVTKObjects();
+
+      // yup, all are registered under same name.
+      pxm->RegisterProxy(
+        groupname.c_str(), "RepresentationAnimationHelper", helper);
+      }
+    }
+
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -215,7 +254,7 @@ bool vtkSMParaViewPipelineController::InitializeSession(vtkSMSession* session)
       vtkErrorMacro("Failed to create 'TimeKeeper' proxy. ");
       return false;
       }
-    timeKeeper->ResetPropertiesToDefault();
+    this->InitializeProxy(timeKeeper);
     timeKeeper->UpdateVTKObjects();
 
     pxm->RegisterProxy("timekeeper", timeKeeper);
@@ -239,7 +278,7 @@ bool vtkSMParaViewPipelineController::InitializeSession(vtkSMSession* session)
   vtkSMProxy* proxy = pxm->NewProxy("misc", "GlobalMapperProperties");
   if (proxy)
     {
-    proxy->ResetPropertiesToDefault();
+    this->InitializeProxy(proxy);
     proxy->UpdateVTKObjects();
     proxy->Delete();
     }
@@ -248,7 +287,7 @@ bool vtkSMParaViewPipelineController::InitializeSession(vtkSMSession* session)
   proxy = pxm->NewProxy("misc", "StrictLoadBalancing");
   if (proxy)
     {
-    proxy->ResetPropertiesToDefault();
+    this->InitializeProxy(proxy);
     proxy->UpdateVTKObjects();
     proxy->Delete();
     }
@@ -298,7 +337,9 @@ vtkSMProxy* vtkSMParaViewPipelineController::GetAnimationScene(vtkSMSession* ses
     animationScene.TakeReference(pxm->NewProxy("animation", "AnimationScene"));
     if (animationScene)
       {
+      this->PreInitializeProxy(animationScene);
       vtkSMPropertyHelper(animationScene, "TimeKeeper").Set(timeKeeper);
+      this->PostInitializeProxy(animationScene);
       animationScene->UpdateVTKObjects();
       pxm->RegisterProxy("animation", animationScene);
       }
@@ -366,9 +407,10 @@ vtkSMProxy* vtkSMParaViewPipelineController::GetTimeAnimationTrack(vtkSMProxy* s
     return NULL;
     }
 
-  cue->ResetPropertiesToDefault();
+  this->PreInitializeProxy(cue);
   vtkSMPropertyHelper(cue, "AnimatedProxy").Set(timeKeeper);
   vtkSMPropertyHelper(cue, "AnimatedPropertyName").Set("Time");
+  this->PostInitializeProxy(cue);
   cue->UpdateVTKObjects();
   pxm->RegisterProxy("animation", cue);
 
@@ -396,7 +438,7 @@ vtkSMProxy* vtkSMParaViewPipelineController::CreateView(
 bool vtkSMParaViewPipelineController::PreInitializeRepresentation(
   vtkSMProxy* proxy)
 {
-  return proxy? this->PreInitializePipelineProxy(proxy) : false;
+  return proxy? this->PreInitializeProxyInternal(proxy) : false;
 }
 
 //----------------------------------------------------------------------------
@@ -427,7 +469,7 @@ bool vtkSMParaViewPipelineController::PostInitializeRepresentation(vtkSMProxy* p
 //----------------------------------------------------------------------------
 bool vtkSMParaViewPipelineController::PreInitializePipelineProxy(vtkSMProxy* proxy)
 {
-  return proxy? this->PreInitializePipelineProxy(proxy) : false;
+  return proxy? this->PreInitializeProxyInternal(proxy) : false;
 }
 
 //----------------------------------------------------------------------------
@@ -450,6 +492,9 @@ bool vtkSMParaViewPipelineController::PostInitializePipelineProxy(vtkSMProxy* pr
 
   this->PostInitializeProxyInternal(proxy);
 
+  // Create animation helpers for this proxy.
+  this->CreateAnimationHelpers(proxy);
+
   // Now register the proxy itself.
   proxy->GetSessionProxyManager()->RegisterProxy("sources", proxy);
 
@@ -469,13 +514,7 @@ bool vtkSMParaViewPipelineController::PostInitializePipelineProxy(vtkSMProxy* pr
 //----------------------------------------------------------------------------
 bool vtkSMParaViewPipelineController::InitializeView(vtkSMProxy* proxy)
 {
-  if (!proxy)
-    {
-    return false;
-    }
-
-  if (!this->PreInitializeProxyInternal(proxy) ||
-    !this->PostInitializeProxyInternal(proxy))
+  if (!this->InitializeProxy(proxy))
     {
     return false;
     }

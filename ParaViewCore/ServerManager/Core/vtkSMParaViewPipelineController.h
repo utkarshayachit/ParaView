@@ -102,6 +102,13 @@ public:
   // ****** Methods for arbitrary proxies ******
   virtual bool PreInitializeProxy(vtkSMProxy* proxy);
   virtual bool PostInitializeProxy(vtkSMProxy* proxy);
+  // Description:
+  // Convenience method, simply class PreInitializeProxy() and
+  // PostInitializeProxy().
+  bool InitializeProxy(vtkSMProxy* proxy)
+    {
+    return this->PreInitializeProxy(proxy) && this->PostInitializeProxy(proxy);
+    }
 
 //BTX
 protected:
@@ -119,6 +126,11 @@ protected:
   // the properties for the given proxy.
   virtual bool CreateProxiesForProxyListDomains(vtkSMProxy* proxy);
   virtual void RegisterProxiesForProxyListDomains(vtkSMProxy* proxy);
+
+  // Description:
+  // To help animation representation properties such as visibility, opacity, we
+  // create animation helpers.
+  virtual bool CreateAnimationHelpers(vtkSMProxy* proxy);
 
   virtual bool PreInitializeProxyInternal(vtkSMProxy*);
   virtual bool PostInitializeProxyInternal(vtkSMProxy*);

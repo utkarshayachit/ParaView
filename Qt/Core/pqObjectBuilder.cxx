@@ -47,6 +47,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMTransferFunctionManager.h"
+#include "vtkSMParaViewPipelineController.h"
 
 #include <QApplication>
 #include <QFileInfo>
@@ -111,15 +112,19 @@ pqObjectBuilder::~pqObjectBuilder()
 pqPipelineSource* pqObjectBuilder::createSource(const QString& sm_group,
     const QString& sm_name, pqServer* server)
 {
-  vtkSMProxy* proxy = 
-    this->createProxyInternal(sm_group, sm_name, server, "sources", QString(), QMap<QString,QVariant>());
-  if (proxy)
+  vtkNew<vtkSMParaViewPipelineController> controller;
+  vtkSMSessionProxyManager* pxm = server->proxyManager();
+  vtkSmartPointer<vtkSMProxy> proxy;
+  proxy.TakeReference(
+    pxm->NewProxy(sm_group.toAscii().data(), sm_name.toAscii().data()));
+  if (proxy &&
+    controller->PreInitializePipelineProxy(proxy))
     {
+    // since there are no properties to set, nothing to do here.
+    controller->PostInitializePipelineProxy(proxy);
+
     pqPipelineSource* source = pqApplicationCore::instance()->
       getServerManagerModel()->findItem<pqPipelineSource*>(proxy);
-
-    // initialize the source.
-    source->setDefaultPropertyValues();
     source->setModifiedState(pqProxy::UNINITIALIZED);
 
     // Manage Modified state in Undo/Redo only if not a collaborative server
@@ -136,7 +141,8 @@ pqPipelineSource* pqObjectBuilder::createSource(const QString& sm_group,
     emit this->proxyCreated(source);
     return source;
     }
-  return 0;
+
+  return NULL;
 }
 
 pqPipelineSource* pqObjectBuilder::createFilter(
@@ -317,7 +323,7 @@ pqPipelineSource* pqObjectBuilder::createReader(const QString& sm_group,
       }
     proxy->UpdateVTKObjects();
     }
-  reader->setDefaultPropertyValues();
+  //reader->setDefaultPropertyValues();
   reader->setModifiedState(pqProxy::UNINITIALIZED);
 
   // Manage Modified state in Undo/Redo only if not a collaborative server
