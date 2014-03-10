@@ -292,6 +292,15 @@ bool vtkSMParaViewPipelineController::InitializeSession(vtkSMSession* session)
     proxy->Delete();
     }
 
+  // Animation properties.
+  proxy = pxm->NewProxy("misc", "GlobalAnimationProperties");
+  if (proxy)
+    {
+    this->InitializeProxy(proxy);
+    proxy->UpdateVTKObjects();
+    proxy->Delete();
+    }
+
   return true;
 }
 

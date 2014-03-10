@@ -73,6 +73,7 @@ void vtkSMProxyListDomain::CreateProxies(vtkSMSessionProxyManager* pxm)
     if (proxy)
       {
       this->Internals->ProxyList.push_back(proxy);
+      proxy->FastDelete();
       }
     }
 }
