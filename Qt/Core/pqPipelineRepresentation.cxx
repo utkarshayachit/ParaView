@@ -347,67 +347,6 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
 
   dataInfo = this->getOutputPortFromInput()->getDataInformation();
 
-  // get data set type
-  // and set the default representation
-  if (dataInfo && repr->IsA("vtkSMPVRepresentationProxy"))
-    {
-    int dataSetType = dataInfo->GetDataSetType();
-    if(dataSetType == VTK_POLY_DATA ||
-       dataSetType == VTK_HYPER_OCTREE ||
-       dataSetType == VTK_GENERIC_DATA_SET)
-      {
-      pqSMAdaptor::setEnumerationProperty(repr->GetProperty("Representation"),
-        DEFAULT_SURFACE);
-      }
-    else if (dataSetType == VTK_UNSTRUCTURED_GRID)
-      {
-      if (static_cast<double>(dataInfo->GetNumberOfCells()) >= 
-        pqPipelineRepresentation::getUnstructuredGridOutlineThreshold()*1000000.0)
-        {
-        pqSMAdaptor::setEnumerationProperty(repr->GetProperty("Representation"),
-          DEFAULT_OUTLINE);
-        }
-      }
-    else if (dataSetType == VTK_IMAGE_DATA)
-      {
-      // Use slice representation by default for 2D image data.
-      int* ext = dataInfo->GetExtent();
-      if (
-        (ext[0] == ext[1] || ext[2] == ext[3] || ext[4] == ext[5]) &&
-        /* slice not supported for composite datasets */
-        (dataInfo->GetCompositeDataSetType()==-1 ))
-        {
-
-        pqSMAdaptor::setEnumerationProperty(repr->GetProperty("Representation"),
-          DEFAULT_SLICE);
-        }
-      else
-        {
-        pqSMAdaptor::setEnumerationProperty(repr->GetProperty("Representation"),
-          DEFAULT_OUTLINE);
-        }
-      }
-    else if(dataSetType == VTK_RECTILINEAR_GRID ||
-       dataSetType == VTK_STRUCTURED_GRID)
-      {
-      int* ext = dataInfo->GetExtent();
-      if (ext[0] == ext[1] || ext[2] == ext[3] || ext[4] == ext[5])
-        {
-        pqSMAdaptor::setEnumerationProperty(repr->GetProperty("Representation"),
-          DEFAULT_SURFACE);
-        }
-      else
-        {
-        pqSMAdaptor::setEnumerationProperty(repr->GetProperty("Representation"),
-          DEFAULT_OUTLINE);
-        }
-      }
-    else
-      {
-      pqSMAdaptor::setEnumerationProperty(repr->GetProperty("Representation"),
-        DEFAULT_OUTLINE);
-      }
-    }
   // Locate input display.
   pqPipelineRepresentation* upstreamDisplay =
     qobject_cast<pqPipelineRepresentation*>(
@@ -425,31 +364,6 @@ void pqPipelineRepresentation::setDefaultPropertyValues()
       }
     }
 
-
-  if (repr->GetProperty("ScalarOpacityUnitDistance"))
-    {
-    double bounds[6];
-    dataInfo->GetBounds(bounds);
-    double unitDistance = 1.0;
-    if(vtkMath::AreBoundsInitialized(bounds))
-      {
-      double diameter =
-        sqrt( (bounds[1] - bounds[0]) * (bounds[1] - bounds[0]) +
-          (bounds[3] - bounds[2]) * (bounds[3] - bounds[2]) +
-          (bounds[5] - bounds[4]) * (bounds[5] - bounds[4]) );
-
-      int numCells = dataInfo->GetNumberOfCells();
-      double linearNumCells = pow( (double) numCells, (1.0/3.0) );
-      unitDistance = diameter;
-      if (linearNumCells != 0.0)
-        {
-        unitDistance = diameter / linearNumCells;
-        }
-      }
-    pqSMAdaptor::setElementProperty(
-      repr->GetProperty("ScalarOpacityUnitDistance"),
-      unitDistance);
-    }
   repr->UpdateVTKObjects();
 
   if (pqSMAdaptor::getEnumerationProperty(repr->GetProperty("Representation"))

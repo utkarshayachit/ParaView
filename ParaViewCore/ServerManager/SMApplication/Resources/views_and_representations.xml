@@ -2065,7 +2065,15 @@
       <DoubleVectorProperty command="SetScalarOpacityUnitDistance"
                             default_values="1"
                             name="ScalarOpacityUnitDistance"
-                            number_of_elements="1"></DoubleVectorProperty>
+                            number_of_elements="1">
+        <BoundsDomain mode="approximate_cell_length"
+                      name="bounds" >
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </BoundsDomain>
+      </DoubleVectorProperty>
       <SubProxy>
         <Proxy name="VolumeDummyMapper"
                proxygroup="mappers"
@@ -2317,7 +2325,15 @@
       <DoubleVectorProperty command="SetScalarOpacityUnitDistance"
                             default_values="1"
                             name="ScalarOpacityUnitDistance"
-                            number_of_elements="1"></DoubleVectorProperty>
+                            number_of_elements="1">
+        <BoundsDomain mode="approximate_cell_length"
+                      name="bounds" >
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </BoundsDomain>
+      </DoubleVectorProperty>
       <!-- end of UniformGridVolumeRepresentation -->
     </RepresentationProxy>
 
@@ -6281,7 +6297,15 @@
       <DoubleVectorProperty command="SetScalarOpacityUnitDistance"
                             default_values="1"
                             name="ScalarOpacityUnitDistance"
-                            number_of_elements="1"></DoubleVectorProperty>
+                            number_of_elements="1">
+        <BoundsDomain mode="approximate_cell_length"
+                      name="bounds" >
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </BoundsDomain>
+      </DoubleVectorProperty>
       <!-- end of AMRVolumeRepresentation -->
     </RepresentationProxy>
 
