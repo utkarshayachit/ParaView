@@ -50,6 +50,7 @@ set (Module_SRCS
   vtkSMPVRepresentationProxy.cxx
   vtkSMRenderViewProxy.cxx
   vtkSMRepresentationProxy.cxx
+  vtkSMRepresentationTypeDomain.cxx
   vtkSMScalarBarWidgetRepresentationProxy.cxx
   vtkSMSelectionHelper.cxx
   vtkSMSpreadSheetRepresentationProxy.cxx

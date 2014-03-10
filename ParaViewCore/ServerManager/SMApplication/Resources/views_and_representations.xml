@@ -1296,12 +1296,14 @@
                             panel_visibility="default"
                             panel_widget="display_representation_selector" >
         <Documentation>Choose the type for the representation.</Documentation>
-        <StringListDomain name="list">
+        <RepresentationTypeDomain name="list">
           <RequiredProperties>
             <Property function="StringList"
                       name="RepresentationTypesInfo" />
+            <Property function="Input"
+                      name="Input" />
           </RequiredProperties>
-        </StringListDomain>
+        </RepresentationTypeDomain>
       </StringVectorProperty>
       <StringVectorProperty command="SetCellFieldDataArrayName"
                             default_values="vtkOriginalCellIds"
