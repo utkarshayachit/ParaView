@@ -907,6 +907,12 @@ pqServer* pqObjectBuilder::createServer(const pqServerResource& resource)
   if (id != 0)
     {
     server = smModel->findServer(id);
+
+    vtkNew<vtkSMParaViewPipelineController> controller;
+    if (server_resource.scheme() != "catalyst")
+      {
+      controller->InitializeSession(server->session());
+      }
     emit this->finishedAddingServer(server);
     }
   this->WaitingForConnection = false;
