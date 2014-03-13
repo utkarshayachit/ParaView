@@ -74,7 +74,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineSource.h"
 #include "pqRenderView.h"
 #include "pqScalarBarRepresentation.h"
-#include "pqScalarOpacityFunction.h"
 #include "pqScalarsToColors.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
@@ -88,12 +87,10 @@ class pqPipelineRepresentation::pqInternal
 public:
   vtkSmartPointer<vtkSMRepresentationProxy> RepresentationProxy;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKConnect;
-//  pqScalarOpacityFunction *Opacity;
 
   pqInternal()
     {
     this->VTKConnect = vtkSmartPointer<vtkEventQtSlotConnect>::New();
-//    this->Opacity = 0;
     }
 
   static vtkPVArrayInformation* getArrayInformation(const pqPipelineRepresentation* repr,
@@ -197,21 +194,6 @@ vtkSMProxy* pqPipelineRepresentation::getScalarOpacityFunctionProxy()
   // We may want to create a new proxy is none exists.
   return pqSMAdaptor::getProxyProperty(
     this->getProxy()->GetProperty("ScalarOpacityFunction"));
-}
-
-//-----------------------------------------------------------------------------
-pqScalarOpacityFunction* pqPipelineRepresentation::getScalarOpacityFunction()
-{
-  if (this->getRepresentationType().compare("Volume", Qt::CaseInsensitive) == 0)
-    {
-    pqServerManagerModel* smmodel =
-        pqApplicationCore::instance()->getServerManagerModel();
-    vtkSMProxy* opf = this->getScalarOpacityFunctionProxy();
-
-    return (opf? smmodel->findItem<pqScalarOpacityFunction*>(opf): 0);
-    }
-
-  return 0;
 }
 
 //-----------------------------------------------------------------------------
