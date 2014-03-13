@@ -20,7 +20,6 @@
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
-#include "vtkProcessModule.h"
 #include "vtkPVConfig.h" // for PARAVIEW_VERSION_*
 #include "vtkPVInstantiator.h"
 #include "vtkPVProxyDefinitionIterator.h"
@@ -29,6 +28,7 @@
 #include "vtkReservedRemoteObjectIds.h"
 #include "vtkSmartPointer.h"
 #include "vtkSMCollaborationManager.h"
+#include "vtkSMCoreUtilities.h"
 #include "vtkSMDeserializerProtobuf.h"
 #include "vtkSMDocumentation.h"
 #include "vtkSMGlobalPropertiesLinkUndoElement.h"
@@ -544,7 +544,8 @@ vtkStdString vtkSMSessionProxyManager::RegisterProxy(const char* groupname, vtkS
 {
   assert(proxy != NULL);
 
-  vtkStdString name = this->GetUniqueProxyName(groupname, proxy->GetXMLName());
+  vtkStdString label = vtkSMCoreUtilities::SanitizeName(proxy->GetXMLLabel());
+  vtkStdString name = this->GetUniqueProxyName(groupname, label.c_str());
   this->RegisterProxy(groupname, name.c_str(), proxy);
   return groupname;
 }
