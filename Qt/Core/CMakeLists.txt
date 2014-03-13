@@ -167,8 +167,6 @@ set(Module_SRCS
   pqRubberBandHelper.h
   pqScalarBarRepresentation.cxx
   pqScalarBarRepresentation.h
-  pqScalarOpacityFunction.cxx
-  pqScalarOpacityFunction.h
   pqScalarsToColors.cxx
   pqScalarsToColors.h
   pqServer.cxx
@@ -291,7 +289,6 @@ set (Module_MOC_HDRS
   pqRepresentation.h
   pqRubberBandHelper.h
   pqScalarBarRepresentation.h
-  pqScalarOpacityFunction.h
   pqScalarsToColors.h
 #  pqScatterPlotRepresentation.h
   pqServerConfigurationCollection.h

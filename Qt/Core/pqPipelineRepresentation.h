@@ -122,10 +122,6 @@ public:
   /// map scalars to opacity.
   virtual vtkSMProxy* getScalarOpacityFunctionProxy();
 
-  /// Returns the pqScalarOpacityFunction object for the piecewise
-  /// function used to map scalars to opacity.
-  virtual pqScalarOpacityFunction* getScalarOpacityFunction();
-
   /// Set representation on the proxy.
   /// If representation is changed to volume, this method ensures that the
   /// scalar array is initialized.
