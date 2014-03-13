@@ -205,8 +205,6 @@ set(Module_SRCS
   pqStandardServerManagerModelInterface.h
   pqStandardViewModules.cxx
   pqStandardViewModules.h
-  pqTextRepresentation.cxx
-  pqTextRepresentation.h
   pqTimeKeeper.cxx
   pqTimeKeeper.h
   pqTreeLayoutStrategyInterface.cxx
@@ -308,7 +306,6 @@ set (Module_MOC_HDRS
   pqSpreadSheetViewWidget.h
   pqStandardServerManagerModelInterface.h
   pqStandardViewModules.h
-  pqTextRepresentation.h
   pqTimeKeeper.h
   pqUndoStack.h
   pqViewExporterManager.h
