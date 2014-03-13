@@ -73,7 +73,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineFilter.h"
 #include "pqPipelineSource.h"
 #include "pqRenderView.h"
-#include "pqScalarBarRepresentation.h"
 #include "pqScalarsToColors.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
@@ -778,48 +777,8 @@ void pqPipelineRepresentation::onRepresentationChanged()
 //-----------------------------------------------------------------------------
 void pqPipelineRepresentation::updateScalarBarVisibility(bool visible)
 {
-  pqView* view = this->getView();
-  if (!view)
-    {
-    return;
-    }
-
-  pqScalarsToColors* lut = this->getLookupTable();
-  if (!lut)
-    {
-    return;
-    }
-
-  // Is this lut used by any other visible repr in this view?
-  QList<pqRepresentation*> reprs = view->getRepresentations();
-  foreach (pqRepresentation* repr, reprs)
-    {
-    pqDataRepresentation* dataRepr=qobject_cast<pqDataRepresentation*>(repr);
-    if (dataRepr && dataRepr != this &&
-      dataRepr->isVisible() && dataRepr->getLookupTable() == lut)
-      {
-      // lut is used by another visible repr. Don't change lut visibility.
-      return;
-      }
-    }
-
-  pqScalarBarRepresentation* sbRepr = lut->getScalarBar(
-    qobject_cast<pqRenderView*>(view));
-  if (sbRepr)
-    {
-    if (!visible && sbRepr->isVisible())
-      {
-      sbRepr->setVisible(false);
-      sbRepr->setAutoHidden(true);
-      }
-    else if (visible && sbRepr->getAutoHidden() && !sbRepr->isVisible())
-      {
-      sbRepr->setAutoHidden(false);
-      sbRepr->setVisible(true);
-      }
-    }
+  qDebug("FIXME");
 }
-
 //-----------------------------------------------------------------------------
 const char* pqPipelineRepresentation::UNSTRUCTURED_GRID_OUTLINE_THRESHOLD()
 {
