@@ -142,8 +142,6 @@ set (Module_SRCS
   pqDataInformationWidget.h
   pqDialog.cxx
   pqDialog.h
-  pqDisplayArrayWidget.cxx
-  pqDisplayArrayWidget.h
   pqDisplayColorWidget.cxx
   pqDisplayColorWidget.h
   pqDisplayPanel.cxx
@@ -473,7 +471,6 @@ set (Module_MOC_HDRS
   pqDataInformationModel.h
   pqDataInformationWidget.h
   pqDialog.h
-  pqDisplayArrayWidget.h
   pqDisplayColorWidget.h
   pqDisplayPanel.h
   pqDisplayPanelPropertyWidget.h
