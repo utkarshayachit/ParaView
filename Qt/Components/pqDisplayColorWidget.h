@@ -29,108 +29,85 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
 #ifndef _pqDisplayColorWidget_h
 #define _pqDisplayColorWidget_h
 
-#include "pqVariableType.h"
 #include "pqComponentsModule.h"
 
 #include <QWidget>
 #include <QPointer>
+#include <QStringList>
 
 class QComboBox;
-class QHBoxLayout;
 
 class pqDataRepresentation;
-class pqPipelineRepresentation;
 class vtkEventQtSlotConnect;
 
-/// Provides a standard user interface for selecting among a collection 
-/// of dataset variables (both cell and node variables).
+/// pqDisplayColorWidget is a widget that can be used to select the array to
+/// with for representations (also known as displays). It comprises of two
+/// combo-boxes, one for the array name, and another for component number.
+/// To use, set the representation using setRepresentation(..). If the
+/// representation has appropriate properties, this widget will allow users
+/// to select the array name.
 class PQCOMPONENTS_EXPORT pqDisplayColorWidget : public QWidget
 {
   Q_OBJECT
 
+  Q_PROPERTY(QStringList arraySelection
+             READ arraySelection
+             WRITE setArraySelection
+             NOTIFY arraySelectionChanged);
+  Q_PROPERTY(int componentNumber
+             READ componentNumber
+             WRITE setComponentNumber
+             NOTIFY componentNumberChanged);
+
+  typedef QWidget Superclass;
 public:
-  pqDisplayColorWidget( QWidget *parent=0 );
+  pqDisplayColorWidget(QWidget *parent=0);
   ~pqDisplayColorWidget();
-  /// Returns the current text in the combo box.
-  QString getCurrentText() const;
 
+  /// Get/Set the array name. The QStringList has 2 elements,
+  /// (association-number, arrayname).
+  QStringList arraySelection() const;
+  void setArraySelection(const QStringList&);
+  QString getCurrentText() const
+    {
+    QStringList val = this->arraySelection();
+    return val.size() == 2? val[1] : QString();
+    }
 
-protected:
-  /// Removes all variables from the collection.
-  void clear();
-
-  /// Adds a variable to the collection.
-  void addVariable(pqVariableType type, const QString& name, bool is_partial);
-
-  /// Makes the given variable the "current" selection.  Emits the 
-  /// variableChanged() signal.
-  void chooseVariable(pqVariableType type, const QString& name);
-
-  /// Returns the display whose color this widget is currently 
-  /// editing.
-  pqPipelineRepresentation* getRepresentation() const;
-
-
-public slots:
-  /// Called when the variable selection changes. 
-  void onVariableChanged(pqVariableType type, const QString& name);
-
-  /// When set, the source/renModule is not used to locate the
-  /// display, instead this display is used.
-  void setRepresentation(pqDataRepresentation* display);
-
-  /// Called when the GUI must reload the arrays shown in the widget.
-  /// i.e. this updates the domain for the combo box.
-  void reloadGUI();
+  /// Get/Set the component number.
+  int componentNumber() const;
+  void setComponentNumber(int);
 
 signals:
-  /// Signal emitted whenever the user chooses a variable, 
-  /// or chooseVariable() is called.
-  /// This signal is fired only when the change is triggered by the wiget
-  /// i.e. if the ServerManager property changes, this signal won't be fired,
-  /// use \c modified() instead.
-  void variableChanged(pqVariableType type, const QString& name);
+  void componentNumberChanged();
+  void arraySelectionChanged();
 
-  /// Fired when ever the color mode on the display changes
-  /// either thorough this widget itself, of when the underlying SMObject
-  /// changes.
-  void modified();
+public slots:
+  /// Set the representation to control the scalar coloring properties on.
+  void setRepresentation(pqDataRepresentation* display);
 
 private slots:
-  /// Called to emit the variableChanged() signal in response to user input 
-  /// or the chooseVariable() method.
-  void onVariableActivated(int row);
-  void onComponentActivated(int row);
+  void refreshColorArrayNames();
 
-  /// Called when any important property on the display changes.
-  /// This updates the selected value.
-  void updateGUI();
-  void updateComponents();
-
-  void reloadGUIInternal();
 private:
-  /// Converts a variable type and name into a packed string representation 
-  /// that can be used with a combo box.
-  static const QStringList variableData(pqVariableType, const QString& name);
- 
+  QVariant itemData(int association, const QString& arrayName) const;
+  QIcon* itemIcon(int association, const QString& arrayName) const;
+
+private:
   QIcon* CellDataIcon;
   QIcon* PointDataIcon;
   QIcon* SolidColorIcon;
-
-  QHBoxLayout* Layout;
   QComboBox* Variables;
   QComboBox* Components;
-  int BlockEmission;
-  bool Updating;
-  vtkEventQtSlotConnect* VTKConnect;
-  QPointer<pqPipelineRepresentation> Representation;
+  QPointer<pqDataRepresentation> Representation;
+
   // This is maintained to detect when the representation has changed.
   void* CachedRepresentation;
-  QList<QString> AvailableArrays;
-};
 
+  class pqInternals;
+  pqInternals* Internals;
+};
 #endif

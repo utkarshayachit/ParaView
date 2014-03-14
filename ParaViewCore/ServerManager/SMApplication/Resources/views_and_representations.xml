@@ -1968,6 +1968,13 @@
             <Property function="Input" name="Input" />
           </RequiredProperties>
         </RepresentedArrayListDomain>
+        <FieldDataDomain name="field_list"
+                         disable_update_domain_entries="1"
+                         force_point_cell_data="1">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+          </RequiredProperties>
+        </FieldDataDomain>
       </StringVectorProperty>
       <IntVectorProperty command="SetExtractedBlockIndex"
                          default_values="0"
@@ -2184,6 +2191,13 @@
             <Property function="Input" name="Input" />
           </RequiredProperties>
         </RepresentedArrayListDomain>
+        <FieldDataDomain name="field_list"
+                         disable_update_domain_entries="1"
+                         force_point_cell_data="1">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+          </RequiredProperties>
+        </FieldDataDomain>
       </StringVectorProperty>
       <DoubleVectorProperty command="SetPosition"
                             default_values="0 0 0"
@@ -2401,6 +2415,13 @@
             <Property function="Input" name="Input" />
           </RequiredProperties>
         </RepresentedArrayListDomain>
+        <FieldDataDomain name="field_list"
+                         disable_update_domain_entries="1"
+                         force_point_cell_data="1">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+          </RequiredProperties>
+        </FieldDataDomain>
       </StringVectorProperty>
       <IntVectorProperty command="SetSlice"
                          default_values="0"
@@ -2559,6 +2580,13 @@
             <Property function="Input" name="Input" />
           </RequiredProperties>
         </RepresentedArrayListDomain>
+        <FieldDataDomain name="field_list"
+                         disable_update_domain_entries="1"
+                         force_point_cell_data="1">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+          </RequiredProperties>
+        </FieldDataDomain>
       </StringVectorProperty>
       <StringVectorProperty command="SetRepresentation"
                             default_values="Surface"
@@ -6098,6 +6126,13 @@
             <Property function="Input" name="Input" />
           </RequiredProperties>
         </RepresentedArrayListDomain>
+        <FieldDataDomain name="field_list"
+                         disable_update_domain_entries="1"
+                         force_point_cell_data="1">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+          </RequiredProperties>
+        </FieldDataDomain>
       </StringVectorProperty>
       <DoubleVectorProperty command="SetPosition"
                             default_values="0 0 0"
