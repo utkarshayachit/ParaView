@@ -1,13 +1,13 @@
 /*=========================================================================
 
    Program: ParaView
-   Module:    pqDisplayColorWidget.h
+   Module:  pqDisplayColorWidget.h
 
    Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
    All rights reserved.
 
    ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
+   under the terms of the ParaView license version 1.2.
 
    See License_v1.2.txt for the full ParaView license.
    A copy of this license can be obtained by contacting
@@ -34,14 +34,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqComponentsModule.h"
 
-#include <QWidget>
+#include <QPair>
 #include <QPointer>
-#include <QStringList>
+#include <QWidget>
 
 class QComboBox;
-
 class pqDataRepresentation;
 class vtkEventQtSlotConnect;
+
 
 /// pqDisplayColorWidget is a widget that can be used to select the array to
 /// with for representations (also known as displays). It comprises of two
@@ -51,12 +51,11 @@ class vtkEventQtSlotConnect;
 /// to select the array name.
 class PQCOMPONENTS_EXPORT pqDisplayColorWidget : public QWidget
 {
+public:
+  typedef QPair<int, QString> ValueType;
+private:
   Q_OBJECT
 
-  Q_PROPERTY(QStringList arraySelection
-             READ arraySelection
-             WRITE setArraySelection
-             NOTIFY arraySelectionChanged);
   Q_PROPERTY(int componentNumber
              READ componentNumber
              WRITE setComponentNumber
@@ -67,14 +66,12 @@ public:
   pqDisplayColorWidget(QWidget *parent=0);
   ~pqDisplayColorWidget();
 
-  /// Get/Set the array name. The QStringList has 2 elements,
-  /// (association-number, arrayname).
-  QStringList arraySelection() const;
-  void setArraySelection(const QStringList&);
+  /// Get/Set the array name as pair (association-number, arrayname).
+  ValueType arraySelection() const;
+  void setArraySelection(const ValueType&);
   QString getCurrentText() const
     {
-    QStringList val = this->arraySelection();
-    return val.size() == 2? val[1] : QString();
+    return this->arraySelection().second;
     }
 
   /// Get/Set the component number.
@@ -82,15 +79,27 @@ public:
   void setComponentNumber(int);
 
 signals:
-  void componentNumberChanged();
   void arraySelectionChanged();
+  void componentNumberChanged();
 
 public slots:
   /// Set the representation to control the scalar coloring properties on.
   void setRepresentation(pqDataRepresentation* display);
 
 private slots:
+  /// fills up the Variables combo-box using the active representation's
+  /// ColorArrayName property's domain.
   void refreshColorArrayNames();
+
+  /// renders the view associated with the active representation.
+  void renderActiveView();
+
+  /// refresh the components combo-box.
+  void refreshComponents();
+
+  /// Called whenever the representation's color transfer function is changed.
+  /// We need the CTF for component selection.
+  void updateColorTransferFunction();
 
 private:
   QVariant itemData(int association, const QString& arrayName) const;
@@ -109,5 +118,7 @@ private:
 
   class pqInternals;
   pqInternals* Internals;
+
+  class PropertyLinksConnection;
 };
 #endif
