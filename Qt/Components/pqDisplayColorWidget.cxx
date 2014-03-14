@@ -29,64 +29,78 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
 #include "pqDisplayColorWidget.h"
 
+#include "pqDataRepresentation.h"
+#include "pqPropertiesPanel.h"
+#include "pqPropertyLinks.h"
+#include "pqSignalAdaptors.h"
+#include "pqUndoStack.h"
 #include "vtkDataObject.h"
 #include "vtkEventQtSlotConnect.h"
-#include "vtkSMOutputPort.h"
+#include "vtkNew.h"
+#include "vtkSMArrayListDomain.h"
+#include "vtkSMEnumerationDomain.h"
 #include "vtkSMProperty.h"
-#include "vtkSMPVRepresentationProxy.h"
+#include "vtkSMProxy.h"
+#include "vtkWeakPointer.h"
 
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QIcon>
-#include <QRegExp>
+#include <QtDebug>
 
-#include "pqApplicationCore.h"
-#include "pqOutputPort.h"
-#include "pqPipelineRepresentation.h"
-#include "pqPropertiesPanel.h"
-#include "pqScalarsToColors.h"
-#include "pqUndoStack.h"
+class pqDisplayColorWidget::pqInternals
+{
+public:
+  pqPropertyLinks Links;
+  vtkNew<vtkEventQtSlotConnect> Connector;
+  vtkWeakPointer<vtkSMArrayListDomain> Domain;
+  vtkWeakPointer<vtkSMEnumerationDomain> EnumDomain;
+
+  QString associationAsString(int val) const
+    {
+    Q_ASSERT(EnumDomain);
+    return this->EnumDomain->GetEntryTextForValue(val);
+    }
+
+  int associationFromString(const QString& val) const
+    {
+    Q_ASSERT(EnumDomain);
+    return this->EnumDomain->HasEntryText(val.toAscii().data())?
+      this->EnumDomain->GetEntryValueForText(val.toAscii().data())
+      : vtkDataObject::POINT;
+    }
+};
 
 //-----------------------------------------------------------------------------
-pqDisplayColorWidget::pqDisplayColorWidget( QWidget *p ) :
-  QWidget( p ),
-  BlockEmission(0),
-  Updating(false),
-  CachedRepresentation(NULL)
+pqDisplayColorWidget::pqDisplayColorWidget( QWidget *parentObject ) :
+  Superclass(parentObject),
+  CachedRepresentation(NULL),
+  Internals(new pqDisplayColorWidget::pqInternals())
 {
   this->CellDataIcon = new QIcon(":/pqWidgets/Icons/pqCellData16.png");
   this->PointDataIcon = new QIcon(":/pqWidgets/Icons/pqPointData16.png");
   this->SolidColorIcon = new QIcon(":/pqWidgets/Icons/pqSolidColor16.png");
 
-  this->Layout  = new QHBoxLayout( this );
-  this->Layout->setMargin(0);
-  this->Layout->setSpacing(pqPropertiesPanel::suggestedHorizontalSpacing());
+  QHBoxLayout* hbox = new QHBoxLayout(this);
+  hbox->setMargin(0);
+  hbox->setSpacing(pqPropertiesPanel::suggestedHorizontalSpacing());
 
   this->Variables = new QComboBox( this );
   this->Variables->setMaxVisibleItems(60);
   this->Variables->setObjectName("Variables");
   this->Variables->setMinimumSize( QSize( 150, 0 ) );
   this->Variables->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-  
+
   this->Components = new QComboBox( this );
   this->Components->setObjectName("Components");
 
-  this->Layout->addWidget(this->Variables);
-  this->Layout->addWidget(this->Components);
+  hbox->addWidget(this->Variables);
+  hbox->addWidget(this->Components);
 
-  QObject::connect(this->Variables, SIGNAL(currentIndexChanged(int)), 
-    SLOT(onVariableActivated(int)));
-  QObject::connect(this->Components, SIGNAL(currentIndexChanged(int)), 
-    SLOT(onComponentActivated(int)));
-  QObject::connect(this, 
-    SIGNAL(variableChanged(pqVariableType, const QString&)),
-    this,
-    SLOT(onVariableChanged(pqVariableType, const QString&)));
-
-  this->VTKConnect = vtkEventQtSlotConnect::New();
+  this->Variables->setEnabled(false);
+  this->Components->setEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -95,15 +109,195 @@ pqDisplayColorWidget::~pqDisplayColorWidget()
   delete this->CellDataIcon;
   delete this->PointDataIcon;
   delete this->SolidColorIcon;
-  this->VTKConnect->Delete();
+  delete this->Internals;
 }
 
 //-----------------------------------------------------------------------------
-QString pqDisplayColorWidget::getCurrentText() const
+void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* repr)
 {
-  return this->Variables->currentText();
+  if (this->CachedRepresentation == repr)
+    {
+    return;
+    }
+
+  this->Internals->Links.clear();
+  this->Internals->Connector->Disconnect();
+  this->Internals->Domain = NULL;
+  this->Internals->EnumDomain = NULL;
+  this->Variables->clear();
+  this->Components->clear();
+  this->CachedRepresentation = repr;
+
+  vtkSMProxy* proxy = repr? repr->getProxy() : NULL;
+  bool can_color = (proxy != NULL && proxy->GetProperty("ColorArrayName") != NULL);
+  if (!can_color)
+    {
+    this->Variables->setEnabled(false);
+    this->Components->setEnabled(false);
+    return;
+    }
+
+  vtkSMProperty* prop = proxy->GetProperty("ColorArrayName");
+  vtkSMArrayListDomain* domain = vtkSMArrayListDomain::SafeDownCast(
+    prop->FindDomain("vtkSMArrayListDomain"));
+  if (!domain)
+    {
+    qCritical("Representation has ColorArrayName property without "
+      "a vtkSMArrayListDomain. This is no longer supported.");
+    return;
+    }
+  vtkSMEnumerationDomain* enumDoman = vtkSMEnumerationDomain::SafeDownCast(
+    prop->FindDomain("vtkSMEnumerationDomain"));
+  if (!enumDoman)
+    {
+    qCritical("Representation has ColorArrayName property without "
+      " a vtkSMEnumerationDomain (or subclass). This is no longer supported.");
+    return;
+    }
+  this->Internals->Domain = domain;
+  this->Internals->EnumDomain = enumDoman;
+
+  this->Internals->Connector->Connect(
+    prop, vtkCommand::DomainModifiedEvent, this, SLOT(refreshColorArrayNames()));
+  this->refreshColorArrayNames();
+
+  this->Internals->Links.addPropertyLink(
+    this, "arraySelection", SIGNAL(arraySelectionChanged()),
+    proxy, prop);
+
+  this->Variables->setEnabled(true);
+  this->Components->setEnabled(true);
+
+  this->connect(this->Variables, SIGNAL(activated(int)), SIGNAL(arraySelectionChanged()));
 }
 
+//-----------------------------------------------------------------------------
+QStringList pqDisplayColorWidget::arraySelection() const
+{
+  QVariant data;
+  if (this->Variables->currentIndex() != -1)
+    {
+    data = this->Variables->itemData(this->Variables->currentIndex());
+    }
+
+  QRegExp regExp("^([0-9]+)\\.(.*)$");
+  int association = vtkDataObject::POINT;
+  QString arrayName = QString();
+
+  if (data.isValid() &&
+    regExp.indexIn(data.toString()) != -1)
+    {
+    association = regExp.cap(1).toInt();
+    arrayName = regExp.cap(2);
+    }
+  QStringList val;
+  val << this->Internals->associationAsString(association);
+  val << arrayName;
+  return val;
+}
+
+//-----------------------------------------------------------------------------
+void pqDisplayColorWidget::setArraySelection(const QStringList& list)
+{
+  if (list.size() != 2)
+    {
+    qCritical("Incorrect call to setArraySelection. Must have 2 items.");
+    return;
+    }
+
+  int association = this->Internals->associationFromString(list[0]);
+  QString arrayName = list[1];
+
+  if (association < vtkDataObject::POINT || association > vtkDataObject::CELL)
+    {
+    qCritical("Only cell/point data coloring is currently supported by this widget.");
+    association = vtkDataObject::POINT;
+    }
+
+  QVariant data = this->itemData(association, arrayName);
+  QIcon* icon = this->itemIcon(association, arrayName);
+
+  int index = this->Variables->findData(data);
+  if (index == -1)
+    {
+    this->Variables->addItem(*icon, arrayName, data);
+    index = this->Variables->findData(data);
+    qDebug() << "(" << association << ", " << arrayName << " ) "
+      "is not array shown in the pqDisplayColorWidget currently. "
+      "Will add a new entry for it";
+    }
+  Q_ASSERT(index != -1);
+  this->Variables->setCurrentIndex(index);
+}
+
+//-----------------------------------------------------------------------------
+QVariant pqDisplayColorWidget::itemData(int association, const QString& arrayName) const
+{
+  if (association < vtkDataObject::POINT ||
+      association > vtkDataObject::CELL ||
+      arrayName.isEmpty())
+    {
+    return QVariant();
+    }
+
+  return QString("%1.%2").arg(association).arg(arrayName);
+}
+
+//-----------------------------------------------------------------------------
+QIcon* pqDisplayColorWidget::itemIcon(int association, const QString& arrayName) const
+{
+  QVariant data = this->itemData(association, arrayName);
+  if (!data.isValid())
+    {
+    return this->SolidColorIcon;
+    }
+  return association == vtkDataObject::CELL?  this->CellDataIcon: this->PointDataIcon;
+}
+
+//-----------------------------------------------------------------------------
+int pqDisplayColorWidget::componentNumber() const
+{
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+void pqDisplayColorWidget::setComponentNumber(int val)
+{
+}
+
+//-----------------------------------------------------------------------------
+void pqDisplayColorWidget::refreshColorArrayNames()
+{
+  QVariant current = this->Variables->currentText() >= 0?
+    this->Variables->itemData(this->Variables->currentIndex()) : QVariant();
+
+  this->Variables->clear();
+
+  // add solid color.
+  this->Variables->addItem(*this->SolidColorIcon, "Solid Color", QVariant());
+
+  vtkSMArrayListDomain* domain = this->Internals->Domain;
+  Q_ASSERT (domain);
+
+  for (unsigned int cc=0, max = domain->GetNumberOfStrings(); cc < max; cc++)
+    {
+    int icon_association = domain->GetFieldAssociation(cc);
+    int association = domain->GetDomainAssociation(cc);
+    QString name = domain->GetString(cc);
+
+    QIcon* icon = this->itemIcon(icon_association, name);
+    QVariant data = this->itemData(association, name);
+    this->Variables->addItem(*icon, name, data);
+    }
+  int idx = this->Variables->findData(current);
+  if (idx >= 0)
+    {
+    this->Variables->setCurrentIndex(idx);
+    }
+}
+
+//
+#if 0
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::clear()
 {
@@ -346,10 +540,11 @@ void pqDisplayColorWidget::updateComponents()
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* display)
 {
-  if(display == this->CachedRepresentation)
+  if (display == this->CachedRepresentation)
     {
     return;
     }
+
   if (this->Representation)
     {
     QObject::disconnect(this->Representation, 0, this, 0);
@@ -441,4 +636,4 @@ void pqDisplayColorWidget::reloadGUIInternal()
 
   emit this->modified();
 }
-
+#endif

@@ -1015,7 +1015,6 @@ void pqDisplayProxyEditor::volumeBlockSelected()
         repr->GetProperty("ExtractedBlockIndex"), selectedIndex);
       repr->UpdateVTKObjects();
       this->Internal->Representation->renderViewEventually();
-      this->Internal->ColorBy->reloadGUI();
       }
     }
 }
