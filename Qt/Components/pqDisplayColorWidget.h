@@ -40,8 +40,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class QComboBox;
 class pqDataRepresentation;
+class pqScalarsToColors;
 class vtkEventQtSlotConnect;
-
 
 /// pqDisplayColorWidget is a widget that can be used to select the array to
 /// with for representations (also known as displays). It comprises of two
@@ -51,17 +51,10 @@ class vtkEventQtSlotConnect;
 /// to select the array name.
 class PQCOMPONENTS_EXPORT pqDisplayColorWidget : public QWidget
 {
+  Q_OBJECT
+  typedef QWidget Superclass;
 public:
   typedef QPair<int, QString> ValueType;
-private:
-  Q_OBJECT
-
-  Q_PROPERTY(int componentNumber
-             READ componentNumber
-             WRITE setComponentNumber
-             NOTIFY componentNumberChanged);
-
-  typedef QWidget Superclass;
 public:
   pqDisplayColorWidget(QWidget *parent=0);
   ~pqDisplayColorWidget();
@@ -74,13 +67,13 @@ public:
     return this->arraySelection().second;
     }
 
-  /// Get/Set the component number.
+  /// Get/Set the component number (-1 == magnitude).
   int componentNumber() const;
   void setComponentNumber(int);
 
 signals:
+  /// fired to indicate the array-name changed.
   void arraySelectionChanged();
-  void componentNumberChanged();
 
 public slots:
   /// Set the representation to control the scalar coloring properties on.
@@ -98,8 +91,13 @@ private slots:
   void refreshComponents();
 
   /// Called whenever the representation's color transfer function is changed.
-  /// We need the CTF for component selection.
+  /// We need the CTF for component selection. This has the side effect of
+  /// updating the component number UI to select the component used by the CTF.
   void updateColorTransferFunction();
+
+  /// called when the UI for component number changes. We update the component
+  /// selection on this->ColorTransferFunction, if present.
+  void componentNumberChanged();
 
 private:
   QVariant itemData(int association, const QString& arrayName) const;
@@ -112,6 +110,7 @@ private:
   QComboBox* Variables;
   QComboBox* Components;
   QPointer<pqDataRepresentation> Representation;
+  QPointer<pqScalarsToColors> ColorTransferFunction;
 
   // This is maintained to detect when the representation has changed.
   void* CachedRepresentation;
