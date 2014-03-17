@@ -39,7 +39,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ParaView Server Manager includes.
 #include "vtkCommand.h"
 #include "vtkDataObject.h"
-#include "vtkEventQtSlotConnect.h"
 #include "vtkGeometryRepresentation.h"
 #include "vtkMath.h"
 #include "vtkProcessModule.h"
@@ -85,11 +84,9 @@ class pqPipelineRepresentation::pqInternal
 {
 public:
   vtkSmartPointer<vtkSMRepresentationProxy> RepresentationProxy;
-  vtkSmartPointer<vtkEventQtSlotConnect> VTKConnect;
 
   pqInternal()
     {
-    this->VTKConnect = vtkSmartPointer<vtkEventQtSlotConnect>::New();
     }
 
   static vtkPVArrayInformation* getArrayInformation(const pqPipelineRepresentation* repr,
@@ -138,15 +135,6 @@ pqPipelineRepresentation::pqPipelineRepresentation(
     qFatal("Display given is not a vtkSMRepresentationProxy.");
     }
 
-  /*
-  // Whenever representation changes to VolumeRendering, we have to
-  // ensure that the ColorArray has been initialized to something.
-  // Otherwise, the VolumeMapper segfaults.
-  this->Internal->VTKConnect->Connect(
-    display->GetProperty("Representation"), vtkCommand::ModifiedEvent,
-    this, SLOT(onRepresentationChanged()), 0, 0, Qt::QueuedConnection);
-    */
-
   QObject::connect(this, SIGNAL(visibilityChanged(bool)),
     this, SLOT(updateScalarBarVisibility(bool)));
 
@@ -154,9 +142,7 @@ pqPipelineRepresentation::pqPipelineRepresentation(
   // change. If that happens, we try to ensure that the lookuptable range is big
   // enough to show the entire data (unless of course, the user locked the
   // lookuptable ranges).
-  this->Internal->VTKConnect->Connect(
-    display, vtkCommand::UpdateDataEvent,
-    this, SLOT(onDataUpdated()));
+  this->connect(this, SIGNAL(dataUpdated()), SLOT(onDataUpdated()));
   this->UpdateLUTRangesOnDataUpdate = true;
 }
 
@@ -170,14 +156,6 @@ pqPipelineRepresentation::~pqPipelineRepresentation()
 vtkSMRepresentationProxy* pqPipelineRepresentation::getRepresentationProxy() const
 {
   return this->Internal->RepresentationProxy;
-}
-
-//-----------------------------------------------------------------------------
-vtkSMProxy* pqPipelineRepresentation::getScalarOpacityFunctionProxy()
-{
-  // We may want to create a new proxy is none exists.
-  return pqSMAdaptor::getProxyProperty(
-    this->getProxy()->GetProperty("ScalarOpacityFunction"));
 }
 
 //-----------------------------------------------------------------------------
@@ -202,75 +180,6 @@ void pqPipelineRepresentation::onInputChanged()
       SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)),
       this, SLOT(onInputAccepted()));
     }
-}
-
-//-----------------------------------------------------------------------------
-int pqPipelineRepresentation::getNumberOfComponents(
-  const char* arrayname, int fieldtype)
-{
-  vtkPVArrayInformation* info = pqInternal::getArrayInformation(this,
-    arrayname, fieldtype);
-  return (info? info->GetNumberOfComponents() : 0);
-}
-//-----------------------------------------------------------------------------
-QString pqPipelineRepresentation::getComponentName(
-  const char* arrayname, int fieldtype, int component)
-{
-  vtkPVArrayInformation* info = pqInternal::getArrayInformation(this,
-    arrayname, fieldtype);
-
-   if ( info )
-     {
-     return QString (info->GetComponentName( component ) );     
-     }  
-
-   //failed to find info, return empty string
-  return QString();
-}
-
-//-----------------------------------------------------------------------------
-QString pqPipelineRepresentation::getRepresentationType() const
-{
-  vtkSMProxy* repr = this->getRepresentationProxy();
-  if (repr && repr->GetProperty("Representation"))
-    {
-    // this handles enumeration domains as well.
-    return vtkSMPropertyHelper(repr, "Representation").GetAsString(0);
-    }
-
-  const char* xmlname = repr->GetXMLName();
-  if (strcmp(xmlname, "OutlineRepresentation") == 0)
-    {
-    return "Outline";
-    }
-
-  if (strcmp(xmlname, "UnstructuredGridVolumeRepresentation") == 0 ||
-    strcmp(xmlname, "UniformGridVolumeRepresentation") == 0)
-    {
-    return "Volume";
-    }
-
-  if (strcmp(xmlname, "ImageSliceRepresentation") == 0)
-    {
-    return "Slice";
-    }
-
-  qCritical() << "pqPipelineRepresentation created for a incorrect proxy : " << xmlname;
-  return 0;
-}
-
-//-----------------------------------------------------------------------------
-double pqPipelineRepresentation::getOpacity() const
-{
-  vtkSMProperty* prop = this->getProxy()->GetProperty("Opacity");
-  return (prop? pqSMAdaptor::getElementProperty(prop).toDouble() : 1.0);
-}
-//-----------------------------------------------------------------------------
-void pqPipelineRepresentation::setColor(double R,double G,double B)
-{
-  double rgb[] = {R,G,B};
-  vtkSMPropertyHelper(this->getProxy()->GetProperty("Color")).Set(rgb, 3);
-  this->getProxy()->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------
@@ -345,55 +254,6 @@ void pqPipelineRepresentation::updateLookupTableScalarRange()
     helper.Set(0, 1);
     lut->getProxy()->UpdateVTKObjects();
     }
-}
-
-//-----------------------------------------------------------------------------
-void pqPipelineRepresentation::setRepresentation(const QString& representation)
-{
-  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
-  vtkSMPropertyHelper(repr, "Representation").Set(representation.toLatin1().data());
-  repr->UpdateVTKObjects();
-  this->onRepresentationChanged();
-}
-
-//-----------------------------------------------------------------------------
-void pqPipelineRepresentation::onRepresentationChanged()
-{
-  cout << "FIXME" << __FILE__ << ":" << __LINE__ << endl;
-  // FIXME:
-  //vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
-  //if (!repr)
-  //  {
-  //  return;
-  //  }
-
-  //QString reprType = this->getRepresentationType();
-  //if (reprType.compare("Volume", Qt::CaseInsensitive) != 0 &&
-  //  reprType.compare("Slice", Qt::CaseInsensitive) != 0)
-  //  {
-  //  // Nothing to do here.
-  //  return;
-  //  }
-
-  //// Representation is Volume, is color array set?
-  //QList<QString> colorFields = this->getColorFields();
-  //if (colorFields.size() == 0)
-  //  {
-  //  qCritical() << 
-  //    "Cannot volume render since no point (or cell) data available.";
-  //  this->setRepresentation("Outline");
-  //  return;
-  //  }
-
-  //QString colorField = this->getColorField(false);
-  //if(!colorFields.contains(colorField))
-  //  {
-  //  // Current color field is not suitable for Volume rendering.
-  //  // Change it.
-  //  this->setColorField(colorFields[0]);
-  //  }
-
-  //this->updateLookupTableScalarRange();
 }
 
 //-----------------------------------------------------------------------------

@@ -31,13 +31,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqEditColorMapReaction.h"
 
-#include "pqApplicationCore.h"
 #include "pqActiveObjects.h"
+#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqPipelineRepresentation.h"
 #include "pqSMAdaptor.h"
 #include "pqStandardColorLinkAdaptor.h"
 #include "pqUndoStack.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 #include "vtkSMPVRepresentationProxy.h"
 
@@ -80,7 +81,8 @@ void pqEditColorMapReaction::editColorMap()
     vtkSMProxy *proxy = repr->getProxy();
     vtkSMProperty *diffuse = proxy->GetProperty("DiffuseColor");
     vtkSMProperty* ambient = proxy->GetProperty("AmbientColor");
-    QString reprType = repr->getRepresentationType();
+    QString reprType = vtkSMPropertyHelper(
+      proxy, "Representation", /*quiet=*/true).GetAsString();
     bool use_ambient = (reprType == "Wireframe" ||
       reprType == "Points"||
       reprType == "Outline");

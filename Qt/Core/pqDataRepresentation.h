@@ -93,10 +93,6 @@ public:
   /// provides access to the Lookup table, if one exists.
   virtual pqScalarsToColors* getLookupTable();
 
-  /// Returns the proxy for the piecewise function used to
-  /// map scalars to opacity.
-  virtual vtkSMProxy* getScalarOpacityFunctionProxy() {return 0;}
-
   /// Returns the data size for the full-res data.
   /// This may trigger a pipeline update to obtain correct data sizes.
   unsigned long getFullResMemorySize();
