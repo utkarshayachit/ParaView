@@ -74,7 +74,7 @@ void pqEditColorMapReaction::editColorMap()
     return;
     }
 
-  if (repr->getColorField() == pqPipelineRepresentation::solidColor())
+  if (!vtkSMPVRepresentationProxy::GetUsingScalarColoring(repr->getProxy()))
     {
     // Get the color property.
     vtkSMProxy *proxy = repr->getProxy();
@@ -113,6 +113,7 @@ void pqEditColorMapReaction::editColorMap()
         // with this property.
         pqStandardColorLinkAdaptor::breakLink(proxy, 
           use_ambient? "AmbientColor" : "DiffuseColor");
+        repr->renderViewEventually();
         END_UNDO_SET();
         }
       }
@@ -134,6 +135,5 @@ void pqEditColorMapReaction::editColorMap()
       }
     }
 
-  repr->renderViewEventually();
 }
 

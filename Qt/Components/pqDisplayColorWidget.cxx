@@ -53,6 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QtDebug>
 
 
+//=============================================================================
 /// This class makes it possible to add custom logic when updating the
 /// "ColorArrayName" property instead of directly setting the SMProperty. The
 /// custom logic, in this case, ensures that the LUT is setup and initialized
@@ -155,6 +156,7 @@ private:
   Q_DISABLE_COPY(PropertyLinksConnection);
 };
 
+//=============================================================================
 class pqDisplayColorWidget::pqInternals
 {
 public:
@@ -193,16 +195,14 @@ pqDisplayColorWidget::pqDisplayColorWidget( QWidget *parentObject ) :
   this->Components->setEnabled(false);
 
   this->connect(this->Variables,
-    SIGNAL(currentIndexChanged(int)), SIGNAL(arraySelectionChanged()));
-  this->connect(this->Variables,
     SIGNAL(currentIndexChanged(int)), SLOT(refreshComponents()));
+  this->connect(this->Variables,
+    SIGNAL(currentIndexChanged(int)), SIGNAL(arraySelectionChanged()));
   this->connect(this->Components,
     SIGNAL(currentIndexChanged(int)), SLOT(componentNumberChanged()));
 
-
   this->connect(&this->Internals->Links,
     SIGNAL(qtWidgetChanged()), SLOT(renderActiveView()));
-
 }
 
 //-----------------------------------------------------------------------------
@@ -279,10 +279,11 @@ void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* repr)
   // property.
   this->connect(repr, SIGNAL(colorTransferFunctionModified()),
     SLOT(updateColorTransferFunction()));
-  this->updateColorTransferFunction();
 
   this->Internals->Links.addPropertyLink<PropertyLinksConnection>(
     this, "notused", SIGNAL(arraySelectionChanged()), proxy, prop);
+
+  this->updateColorTransferFunction();
 }
 
 //-----------------------------------------------------------------------------
@@ -327,6 +328,7 @@ void pqDisplayColorWidget::setArraySelection(
     }
   Q_ASSERT(index != -1);
   this->Variables->setCurrentIndex(index);
+  this->refreshComponents();
 }
 
 //-----------------------------------------------------------------------------
@@ -384,7 +386,6 @@ void pqDisplayColorWidget::refreshColorArrayNames()
     }
   this->Variables->blockSignals(prev);
   this->Variables->setEnabled(this->Variables->count() > 0);
-  this->refreshComponents();
 }
 
 //-----------------------------------------------------------------------------
@@ -400,19 +401,22 @@ int pqDisplayColorWidget::componentNumber() const
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::setComponentNumber(int val)
 {
-  int index = this->Components->findData(val);
-  if (index == -1)
+  if (this->Components->isEnabled())
     {
-    bool prev = this->Components->blockSignals(true);
-    this->Components->addItem(QString("%1").arg(val), val);
-    this->Components->blockSignals(false);
+    int index = this->Components->findData(val);
+    if (index == -1)
+      {
+      bool prev = this->Components->blockSignals(true);
+      this->Components->addItem(QString("%1").arg(val), val);
+      this->Components->blockSignals(false);
 
-    index = this->Components->findData(val);
-    qDebug() << "Component " << val << " is not currently known. "
-      "Will add a new entry for it.";
+      index = this->Components->findData(val);
+      qDebug() << "Component " << val << " is not currently known. "
+        "Will add a new entry for it.";
+      }
+    Q_ASSERT(index != -1);
+    this->Components->setCurrentIndex(index);
     }
-  Q_ASSERT(index != -1);
-  this->Components->setCurrentIndex(index);
 }
 
 //-----------------------------------------------------------------------------
@@ -438,6 +442,8 @@ void pqDisplayColorWidget::refreshComponents()
     return;
     }
 
+  int comp_number = this->componentNumber();
+
   QPair<int, QString> val = this->arraySelection();
   int association = val.first;
   const QString &arrayName = val.second;
@@ -454,6 +460,8 @@ void pqDisplayColorWidget::refreshComponents()
 
   if (!arrayInfo || arrayInfo->GetNumberOfComponents() <= 1)
     {
+    // using solid color or coloring by non-existing array.
+    this->Components->setEnabled(false);
     bool prev = this->Components->blockSignals(true);
     this->Components->clear();
     this->Components->blockSignals(prev);
@@ -474,9 +482,13 @@ void pqDisplayColorWidget::refreshComponents()
     }
 
   /// restore component choice if possible.
-  this->updateColorTransferFunction();
-
+  int idx = this->Components->findData(comp_number);
+  if (idx != -1)
+    {
+    this->Components->setCurrentIndex(idx);
+    }
   this->Components->blockSignals(prev);
+  this->Components->setEnabled(this->Components->count() > 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -499,12 +511,7 @@ void pqDisplayColorWidget::updateColorTransferFunction()
     this->setComponentNumber(
       lut->getVectorMode() == pqScalarsToColors::MAGNITUDE? -1 :
       lut->getVectorComponent());
-    this->Components->setEnabled(this->Components->count() > 0);
     this->connect(lut, SIGNAL(componentOrModeChanged()),
       SLOT(updateColorTransferFunction()), Qt::UniqueConnection);
-    }
-  else
-    {
-    this->Components->setEnabled(false);
     }
 }

@@ -128,6 +128,11 @@ signals:
   /// representation was modified.
   void colorTransferFunctionModified();
 
+  /// Signal fired to indicate that the "ColorArrayName" property (if any) on
+  /// the representation was modified. This property controls the scalar
+  /// coloring settings on the representation.
+  void colorArrayNameModified();
+
 protected slots:
   /// called when input property on display changes. We must detect if
   /// (and when) the display is connected to a new proxy.

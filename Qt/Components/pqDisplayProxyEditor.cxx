@@ -849,24 +849,25 @@ void pqDisplayProxyEditor::updateEnableState()
       {
       attrInfo = geomInfo->GetCellDataInformation();
       }
-    vtkPVArrayInformation* arrayInfo = attrInfo->GetArrayInformation(
-      this->Internal->Representation->getColorField(true).toLatin1().data());
+    qDebug("This is no longer supported.");
+    //vtkPVArrayInformation* arrayInfo = attrInfo->GetArrayInformation(
+    //  this->Internal->Representation->getColorField(true).toLatin1().data());
 
-    if (arrayInfo && arrayInfo->GetDataType() == VTK_UNSIGNED_CHAR)
-      {
-      // Number of component restriction.
-      // Upto 4 component unsigned chars can be direcly mapped.
-      if (arrayInfo->GetNumberOfComponents() <= 4)
-        {
-        // One component causes more trouble than it is worth.
-        this->Internal->ColorMapScalars->setEnabled(true);
-        return;
-        }
-      }
-    if ( arrayInfo )
-      {
-      this->Internal->ColorMapScalars->setCheckState(Qt::Checked);
-      }
+    //if (arrayInfo && arrayInfo->GetDataType() == VTK_UNSIGNED_CHAR)
+    //  {
+    //  // Number of component restriction.
+    //  // Upto 4 component unsigned chars can be direcly mapped.
+    //  if (arrayInfo->GetNumberOfComponents() <= 4)
+    //    {
+    //    // One component causes more trouble than it is worth.
+    //    this->Internal->ColorMapScalars->setEnabled(true);
+    //    return;
+    //    }
+    //  }
+    //if ( arrayInfo )
+    //  {
+    //  this->Internal->ColorMapScalars->setCheckState(Qt::Checked);
+    //  }
     }
 
   
