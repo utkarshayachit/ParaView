@@ -78,7 +78,12 @@ pqDataRepresentation::pqDataRepresentation(const QString& group,
   if (vtkSMProperty* prop = repr->GetProperty("LookupTable"))
     {
     vtkconnector->Connect(prop, vtkCommand::ModifiedEvent,
-      this, SLOT(colorTransferFunctionModified()));
+      this, SIGNAL(colorTransferFunctionModified()));
+    }
+  if (vtkSMProperty* prop = repr->GetProperty("ColorArrayName"))
+    {
+    vtkconnector->Connect(prop, vtkCommand::ModifiedEvent,
+      this, SIGNAL(colorArrayNameModified()));
     }
 }
 
