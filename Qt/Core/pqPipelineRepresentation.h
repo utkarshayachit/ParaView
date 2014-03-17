@@ -74,25 +74,6 @@ public:
   // Get the internal display proxy.
   vtkSMRepresentationProxy* getRepresentationProxy() const;
 
-  /// Returns the proxy for the piecewise function used to
-  /// map scalars to opacity.
-  virtual vtkSMProxy* getScalarOpacityFunctionProxy();
-
-  /// Set representation on the proxy.
-  /// If representation is changed to volume, this method ensures that the
-  /// scalar array is initialized.
-  void setRepresentation(const QString& repr);
-
-  /// Returns the type of representation currently used. Representation type is
-  /// a string as defined by the string-list for the domain for the property
-  /// 'Representation' e.g. Surface, Volume etc.
-  QString getRepresentationType() const;
-
-  /// Returns the opacity.
-  double getOpacity() const;
-
-  void setColor(double R,double G,double B);
-
   /// Get/Set the application wide setting for unstructured grid outline
   /// threshold. If the unstructured grid number of cells exceeds this limit, it
   /// will be rendered as outline by default. The value is in million cells.
@@ -120,12 +101,6 @@ public slots:
   void updateLookupTableScalarRange();
 
 protected slots:
-  /// Called when the "Representation" property changes. If
-  /// representation changes to "Volume", we have to ensure that
-  /// the color field is initialized to something other than
-  /// "Solid Color" otherwise the volume mapper segfaults.
-  void onRepresentationChanged();
-
   /// called when this representations visibility changes. We check if the LUT
   /// used to color this repr is being used by any other repr. If not, we turn off
   /// the scalar bar.
@@ -139,9 +114,6 @@ protected slots:
   /// We mark this representation's LUT ranges dirty so that when the pipeline
   /// finally updates, we can reset the LUT ranges.
   void onInputAccepted();
-
-  virtual int getNumberOfComponents(const char* arrayname, int fieldType);
-  virtual QString getComponentName( const char* arrayname, int fieldtype, int component);
 
 protected:
   /// Overridden to capture the input's modified signal.

@@ -628,7 +628,6 @@ set (Module_UI_FILES
   Resources/UI/pqCustomFilterDefinitionWizard.ui
   Resources/UI/pqCustomFilterManager.ui
   Resources/UI/pqCustomViewButtonDialog.ui
-  Resources/UI/pqDisplayProxyEditor.ui
   Resources/UI/pqDisplayProxyEditorWidget.ui
   Resources/UI/pqDisplayRepresentationWidget.ui
   Resources/UI/pqEmptyView.ui
