@@ -424,10 +424,18 @@ void pqDisplayColorWidget::componentNumberChanged()
 {
   if (this->ColorTransferFunction)
     {
+    BEGIN_UNDO_SET("Change color component");
     int number = this->componentNumber();
     this->ColorTransferFunction->setVectorMode(
       number<0? pqScalarsToColors::MAGNITUDE : pqScalarsToColors::COMPONENT,
       number<0? 0 : number);
+
+    // we could now respect some application setting to determine if the LUT is
+    // to be reset.
+    vtkSMPVRepresentationProxy::RescaleTransferFunctionToDataRange(
+      this->Representation? this->Representation->getProxy() : NULL);
+
+    END_UNDO_SET();
     // FIXME: when LUT changes, the LUT may be shown in multiple views, so
     // we really need to render all the affected views.
     this->renderActiveView();
