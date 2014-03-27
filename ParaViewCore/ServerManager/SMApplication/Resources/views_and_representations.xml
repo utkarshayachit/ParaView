@@ -620,6 +620,9 @@
         <DoubleRangeDomain max="1 1 1"
                            min="0 0 0"
                            name="range" />
+        <Hints>
+          <GlobalPropertyLink type="ColorPalette" property="BackgroundColor" />
+        </Hints>
       </DoubleVectorProperty>
       <DoubleVectorProperty command="SetBackground2"
                             default_values="0 0 0.165"
@@ -2586,6 +2589,9 @@
         <DoubleRangeDomain max="1 1 1"
                            min="0 0 0"
                            name="range" />
+        <Hints>
+          <GlobalPropertyLink type="ColorPalette" property="SurfaceColor" />
+        </Hints>
       </DoubleVectorProperty>
     </RepresentationProxy>
     <!-- ================================================================== -->
@@ -2791,6 +2797,9 @@
         <DoubleRangeDomain max="1 1 1"
                            min="0 0 0"
                            name="range" />
+        <Hints>
+          <GlobalPropertyLink type="ColorPalette" property="ForegroundColor" />
+        </Hints>
       </DoubleVectorProperty>
       <IntVectorProperty command="SetFlyMode"
                          default_values="1"
@@ -3334,6 +3343,9 @@
         <DoubleRangeDomain max="1 1 1"
                            min="0 0 0"
                            name="range" />
+        <Hints>
+          <GlobalPropertyLink type="ColorPalette" property="SelectionColor" />
+        </Hints>
       </DoubleVectorProperty>
       <DoubleVectorProperty command="SetLineWidth"
                             default_values="2.0"
@@ -4976,6 +4988,9 @@
         <DoubleRangeDomain max="1 1 1"
                            min="0 0 0"
                            name="range" />
+        <Hints>
+          <GlobalPropertyLink type="ColorPalette" property="TextAnnotationColor" />
+        </Hints>
       </DoubleVectorProperty>
       <DoubleVectorProperty command="SetLineWidth"
                             default_values="3.0"
@@ -6086,6 +6101,9 @@
         <DoubleRangeDomain max="1 1 1"
                            min="0 0 0"
                            name="range" />
+        <Hints>
+          <GlobalPropertyLink type="ColorPalette" property="ForegroundColor" />
+        </Hints>
       </DoubleVectorProperty>
       <DoubleVectorProperty command="SetDiffuseColor"
                             default_values="1.0 1.0 1.0"
@@ -6094,6 +6112,9 @@
         <DoubleRangeDomain max="1 1 1"
                            min="0 0 0"
                            name="range" />
+        <Hints>
+          <GlobalPropertyLink type="ColorPalette" property="SurfaceColor" />
+        </Hints>
       </DoubleVectorProperty>
       <DoubleVectorProperty command="SetSpecularColor"
                             default_values="1.0 1.0 1.0"
@@ -6162,6 +6183,9 @@
         <DoubleRangeDomain max="1 1 1"
                            min="0 0 0"
                            name="range" />
+        <Hints>
+          <GlobalPropertyLink type="ColorPalette" property="EdgeColor" />
+        </Hints>
       </DoubleVectorProperty>
       <DoubleVectorProperty command="SetPosition"
                             default_values="0 0 0"
