@@ -54,6 +54,8 @@ private slots:
   void clicked(QAbstractButton*);
   void onAccept();
 
+  void onTabIndexChanged(int index);
+
 private:
   void saveInQSettings(const char* key, vtkSMProperty* smproperty);
 

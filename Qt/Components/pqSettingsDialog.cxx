@@ -46,14 +46,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProperty.h"
 #include "vtkPVXMLElement.h"
 
+#include <QMap>
 #include <QScrollArea>
-#include <QVBoxLayout>
 #include <QSpacerItem>
+#include <QVBoxLayout>
 
 class pqSettingsDialog::pqInternals
 {
 public:
   Ui::SettingsDialog Ui;
+
+  // Map from tab indices to stack widget indices. This is needed because there
+  // are more widgets in the stacked widgets than just what we add.
+  QMap<int, int> TabToStackedWidgets;
 };
 
 //-----------------------------------------------------------------------------
@@ -66,6 +71,9 @@ pqSettingsDialog::pqSettingsDialog(QWidget* parentObject, Qt::WindowFlags f)
   Ui::SettingsDialog &ui = this->Internals->Ui;
   this->connect(ui.buttonBox, SIGNAL(clicked(QAbstractButton*)), SLOT(clicked(QAbstractButton*)));
   this->connect(this, SIGNAL(accepted()), SLOT(onAccept()));
+
+  this->connect(ui.tabWidget, SIGNAL(currentChanged(int)),
+                this, SLOT(onTabIndexChanged(int)));
 
   vtkNew<vtkSMProxyIterator> iter;
   iter->SetSession(
@@ -84,6 +92,7 @@ pqSettingsDialog::pqSettingsDialog(QWidget* parentObject, Qt::WindowFlags f)
 
       QWidget* container = new QWidget(scrollArea);
       container->setObjectName("Container");
+      container->setContentsMargins(0, 3, 6, 0);
 
       QVBoxLayout* vbox = new QVBoxLayout(container);
       vbox->setMargin(0);
@@ -107,9 +116,14 @@ pqSettingsDialog::pqSettingsDialog(QWidget* parentObject, Qt::WindowFlags f)
       widget->updatePanel();
 
       // FIXME: add ability to enable/disable buttons if changes are available.
-      ui.tabWidget->addTab(scrollArea, proxy->GetXMLLabel());
+      int tabIndex = ui.tabWidget->addTab(proxy->GetXMLLabel());
+      int stackIndex = ui.stackedWidget->addWidget(scrollArea);
+      this->Internals->TabToStackedWidgets[tabIndex] = stackIndex;
       }
-    }
+    }    
+
+  // After all the tabs are set up, select the first
+  this->onTabIndexChanged(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -165,6 +179,14 @@ void pqSettingsDialog::onAccept()
         }
       }
     }
+}
+
+//-----------------------------------------------------------------------------
+void pqSettingsDialog::onTabIndexChanged(int index)
+{
+  int stackWidgetIndex = this->Internals->TabToStackedWidgets[index];
+  Ui::SettingsDialog &ui = this->Internals->Ui;
+  ui.stackedWidget->setCurrentIndex(stackWidgetIndex);
 }
 
 //-----------------------------------------------------------------------------
