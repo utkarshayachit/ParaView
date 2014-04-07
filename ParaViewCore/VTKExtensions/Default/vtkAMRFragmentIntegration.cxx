@@ -162,7 +162,7 @@ vtkTable* vtkAMRFragmentIntegration::DoRequestData(vtkNonOverlappingAMR* volume,
   fragMass->Delete ();
 
   vtkDoubleArray** volWeightArrays = new vtkDoubleArray*[volumeWeightedNames.size ()];
-  for (int v = 0; v < volumeWeightedNames.size (); v ++)
+  for (size_t v = 0; v < volumeWeightedNames.size (); v ++)
     {
     volWeightArrays[v] = vtkDoubleArray::New ();
     std::string name ("Volume Weighted ");
@@ -175,7 +175,7 @@ vtkTable* vtkAMRFragmentIntegration::DoRequestData(vtkNonOverlappingAMR* volume,
     }
 
   vtkDoubleArray** massWeightArrays = new vtkDoubleArray*[massWeightedNames.size ()];
-  for (int m = 0; m < massWeightedNames.size (); m ++)
+  for (size_t m = 0; m < massWeightedNames.size (); m ++)
     {
     massWeightArrays[m] = vtkDoubleArray::New ();
     std::string name ("Mass Weighted ");
@@ -192,11 +192,11 @@ vtkTable* vtkAMRFragmentIntegration::DoRequestData(vtkNonOverlappingAMR* volume,
     fragIdArray->SetTuple1 (i, 0);
     fragVolume->SetTuple1 (i, 0);
     fragMass->SetTuple1 (i, 0);
-    for (int v = 0; v < volumeWeightedNames.size (); v ++)
+    for (size_t v = 0; v < volumeWeightedNames.size (); v ++)
       {
       volWeightArrays[v]->SetTuple1 (i, 0);
       }
-    for (int m = 0; m < massWeightedNames.size (); m ++)
+    for (size_t m = 0; m < massWeightedNames.size (); m ++)
       {
       massWeightArrays[m]->SetTuple1 (i, 0);
       }
@@ -239,11 +239,11 @@ vtkTable* vtkAMRFragmentIntegration::DoRequestData(vtkNonOverlappingAMR* volume,
       vtkErrorMacro (<< "There is no " << massName << " in cell field");
       return 0;
       }
-    for (int v = 0; v < volumeWeightedNames.size (); v ++)
+    for (size_t v = 0; v < volumeWeightedNames.size (); v ++)
       {
       preVolWeightArrays[v] = grid->GetCellData ()->GetArray (volumeWeightedNames[v].c_str ());
       }
-    for (int m = 0; m < massWeightedNames.size (); m ++)
+    for (size_t m = 0; m < massWeightedNames.size (); m ++)
       {
       preMassWeightArrays[m] = grid->GetCellData ()->GetArray (massWeightedNames[m].c_str ());
       }
@@ -264,13 +264,13 @@ vtkTable* vtkAMRFragmentIntegration::DoRequestData(vtkNonOverlappingAMR* volume,
         double mass = massArray->GetTuple1 (c);
         fragMass->SetTuple1 (fragId, fragMass->GetTuple1 (fragId) + mass);
 
-        for (int v = 0; v < volumeWeightedNames.size (); v ++)
+        for (size_t v = 0; v < volumeWeightedNames.size (); v ++)
           {
           double value = volWeightArrays[v]->GetTuple1 (fragId);
           value += preVolWeightArrays[v]->GetTuple1 (c) * vol;
           volWeightArrays[v]->SetTuple1 (fragId, value);
           }
-        for (int m = 0; m < massWeightedNames.size (); m ++)
+        for (size_t m = 0; m < massWeightedNames.size (); m ++)
           {
           double value = massWeightArrays[m]->GetTuple1 (fragId);
           value += preMassWeightArrays[m]->GetTuple1 (c) * mass;
@@ -314,7 +314,7 @@ vtkTable* vtkAMRFragmentIntegration::DoRequestData(vtkNonOverlappingAMR* volume,
       copyFragMass->Delete ();
       }
 
-    for (int v = 0; v < volumeWeightedNames.size (); v ++) 
+    for (size_t v = 0; v < volumeWeightedNames.size (); v ++) 
       {
       vtkDoubleArray *copyVolWeight;
       if (myProc == 0)
@@ -334,7 +334,7 @@ vtkTable* vtkAMRFragmentIntegration::DoRequestData(vtkNonOverlappingAMR* volume,
         }
       }
 
-    for (int m = 0; m < massWeightedNames.size (); m ++) 
+    for (size_t m = 0; m < massWeightedNames.size (); m ++) 
       {
       vtkDoubleArray *copyMassWeight;
       if (myProc == 0)
@@ -364,12 +364,12 @@ vtkTable* vtkAMRFragmentIntegration::DoRequestData(vtkNonOverlappingAMR* volume,
           }
         else
           {
-          for (int v = 0; v < volumeWeightedNames.size (); v ++) 
+          for (size_t v = 0; v < volumeWeightedNames.size (); v ++) 
             {
             double weightAvg = volWeightArrays[v]->GetTuple1 (row) / fragVolume->GetTuple1 (row);
             volWeightArrays[v]->SetTuple1 (row, weightAvg);
             }
-          for (int m = 0; m < massWeightedNames.size (); m ++) 
+          for (size_t m = 0; m < massWeightedNames.size (); m ++) 
             {
             double weightAvg = massWeightArrays[m]->GetTuple1 (row) / fragMass->GetTuple1 (row);
             massWeightArrays[m]->SetTuple1 (row, weightAvg);
