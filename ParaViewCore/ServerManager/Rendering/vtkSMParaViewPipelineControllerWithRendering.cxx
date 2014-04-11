@@ -139,8 +139,9 @@ namespace
       vtkSMProperty* dest = repr->GetProperty(pname);
       vtkSMProperty* source = iter->GetProperty();
       if (dest && source &&
-        // the property wasn't modified since initialization
-        dest->GetMTime() < initTimeStamp &&
+        // the property wasn't modified since initialization or if it is
+        // "Representation" property -- (HACK)
+        (dest->GetMTime() < initTimeStamp || strcmp("Representation", pname) == 0) &&
         // the property types match.
         strcmp(dest->GetClassName(), source->GetClassName())==0 )
         {
