@@ -273,7 +273,8 @@ void pqPipelineBrowserWidget::setVisibility(bool visible,
         // taken care of by vtkSMParaViewPipelineControllerWithRendering (I still
         // wonder if that's the best thing to do).
         if (repr && visible &&
-          scalarBarMode == vtkPVGeneralSettings::AUTOMATICALLY_SHOW_AND_HIDE_SCALAR_BARS)
+          scalarBarMode == vtkPVGeneralSettings::AUTOMATICALLY_SHOW_AND_HIDE_SCALAR_BARS &&
+          vtkSMPVRepresentationProxy::GetUsingScalarColoring(repr))
           {
           vtkSMPVRepresentationProxy::SetScalarBarVisibility(repr, viewProxy, true);
           }
