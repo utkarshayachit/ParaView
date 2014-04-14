@@ -289,7 +289,8 @@ void pqDeleteReaction::aboutToDelete(pqPipelineSource* source)
         // preference is such.
         if (repr &&
           vtkPVGeneralSettings::GetInstance()->GetScalarBarMode() ==
-          vtkPVGeneralSettings::AUTOMATICALLY_SHOW_AND_HIDE_SCALAR_BARS)
+          vtkPVGeneralSettings::AUTOMATICALLY_SHOW_AND_HIDE_SCALAR_BARS &&
+          vtkSMPVRepresentationProxy::GetUsingScalarColoring(repr))
           {
           vtkSMPVRepresentationProxy::SetScalarBarVisibility(repr, viewProxy, true);
           }
