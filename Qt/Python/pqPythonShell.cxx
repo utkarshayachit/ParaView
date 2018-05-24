@@ -52,15 +52,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkStringOutputWindow.h"
 #include "vtkWeakPointer.h"
 
+#include <QAbstractItemView>
 #include <QApplication>
 #include <QCursor>
 #include <QFile>
 #include <QInputDialog>
 #include <QPointer>
 #include <QStringListModel>
+#include <QtDebug>
 #include <QTextCharFormat>
 #include <QVBoxLayout>
-#include <QtDebug>
 
 QStringList pqPythonShell::Preamble;
 
